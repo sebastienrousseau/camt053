@@ -161,6 +161,24 @@ def test_parse_datetime_dates_and_creditor_party():
     )
 
 
+def test_related_parties_account_without_name():
+    """RltdPties carrying only an account (no party name) is handled."""
+    xml = (
+        '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.14">'
+        "<BkToCstmrStmt><GrpHdr><MsgId>M</MsgId></GrpHdr><Stmt><Id>S</Id>"
+        "<Acct><Id><IBAN>GB29NWBK60161331926819</IBAN></Id></Acct>"
+        '<Ntry><Amt Ccy="EUR">1.00</Amt><CdtDbtInd>CRDT</CdtDbtInd>'
+        "<NtryDtls><TxDtls>"
+        "<RtrInf><Rsn><Cd>AC04</Cd></Rsn></RtrInf>"
+        "<RltdPties><DbtrAcct><Id><IBAN>DE89370400440532013000</IBAN>"
+        "</Id></DbtrAcct></RltdPties>"
+        "</TxDtls></NtryDtls></Ntry></Stmt></BkToCstmrStmt></Document>"
+    )
+    detail = parse_statement(xml).entries[0].details[0]
+    assert detail.counterparty_name is None
+    assert detail.counterparty_account == "DE89370400440532013000"
+
+
 def test_to_dict_roundtrip(statement_xml):
     """The parsed model serialises to plain JSON-friendly data."""
     data = parse_document(statement_xml).to_dict()

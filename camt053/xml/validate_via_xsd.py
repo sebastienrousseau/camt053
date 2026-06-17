@@ -1,3 +1,10 @@
+"""XSD validation helpers for ISO 20022 camt documents.
+
+Validates XML files and in-memory XML strings against an XSD schema, using
+``xmlschema`` for validation and ``defusedxml`` for XXE-safe parsing. Compiled
+schemas are cached so repeated reversal generations reuse one parsed XSD.
+"""
+
 from functools import lru_cache
 from io import StringIO
 
