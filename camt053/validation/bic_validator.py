@@ -37,7 +37,6 @@ Standards:
     - ISO 9362:2022 - Banking -- Banking telecommunication messages -- Business identifier code (BIC)
 """
 
-
 from camt053.exceptions import InvalidBICError
 
 # ISO 3166-1 alpha-2 country codes (SEPA + major financial centers)
