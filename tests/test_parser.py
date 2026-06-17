@@ -33,6 +33,7 @@ CAMT052 = """<?xml version="1.0"?>
 </Document>"""
 
 
+@pytest.mark.smoke
 def test_parse_document_basic(statement_xml):
     """A camt.053 document parses to its header and statements."""
     doc = parse_document(statement_xml)

@@ -23,6 +23,7 @@ from camt053 import services
 from camt053.exceptions import ReversalGenerationError, StatementParseError
 
 
+@pytest.mark.smoke
 def test_list_message_types():
     """Every supported message type is listed with its name."""
     rows = services.list_message_types()
@@ -94,6 +95,7 @@ def test_build_reversal(statement_xml):
     assert records[0]["credit_debit"] == "DBIT"
 
 
+@pytest.mark.smoke
 def test_generate_reversal_default_ac04(statement_xml):
     """The default one-shot workflow reverses AC04 entries."""
     xml = services.generate_reversal(statement_xml)

@@ -17,6 +17,8 @@
 
 import os
 
+import pytest
+
 import camt053
 from camt053.constants import REVERSAL_MESSAGE_TYPE, valid_xml_types
 from camt053.xml.validate_via_xsd import validate_xml_string_via_xsd
@@ -45,6 +47,7 @@ def test_constants():
     assert len(valid_xml_types) == 3
 
 
+@pytest.mark.smoke
 def test_gold_master_statement_reverses_and_validates():
     """The bundled gold-master statement reverses to XSD-valid XML."""
     with open(os.path.join(GOLD, "statement_ac04.xml"), encoding="utf-8") as f:
