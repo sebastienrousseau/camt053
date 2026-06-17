@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.14"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<BkToCstmrStmt>
+		<GrpHdr>
+			<MsgId>{{statement_msg_id}}</MsgId>
+			<CreDtTm>{{creation_date_time}}</CreDtTm>
+		</GrpHdr>
+		<Stmt>
+			<Id>{{statement_id}}</Id>
+			{% if electronic_seq_nb %}<ElctrncSeqNb>{{electronic_seq_nb}}</ElctrncSeqNb>{% endif %}
+			<CreDtTm>{{creation_date_time}}</CreDtTm>
+			<Acct>
+				<Id>
+					{% if account_id %}<IBAN>{{account_id}}</IBAN>{% else %}<Othr><Id>{{account_id_other}}</Id></Othr>{% endif %}
+				</Id>
+				{% if account_currency %}<Ccy>{{account_currency}}</Ccy>{% endif %}
+				{% if account_owner_name %}<Ownr><Nm>{{account_owner_name}}</Nm></Ownr>{% endif %}
+				{% if account_servicer_bic %}<Svcr><FinInstnId><BICFI>{{account_servicer_bic}}</BICFI></FinInstnId></Svcr>{% endif %}
+			</Acct>
+			<Bal>
+				<Tp><CdOrPrtry><Cd>{{bal_type_code}}</Cd></CdOrPrtry></Tp>
+				<Amt Ccy="{{bal_currency}}">{{bal_amount}}</Amt>
+				<CdtDbtInd>{{bal_credit_debit}}</CdtDbtInd>
+				<Dt><Dt>{{bal_date}}</Dt></Dt>
+			</Bal>
+			{% for r in records %}
+			<Ntry>
+				{% if r.entry_ref %}<NtryRef>{{r.entry_ref}}</NtryRef>{% endif %}
+				<Amt Ccy="{{r.currency}}">{{r.amount}}</Amt>
+				<CdtDbtInd>{{r.credit_debit}}</CdtDbtInd>
+				<RvslInd>{{r.reversal_indicator}}</RvslInd>
+				<Sts><Cd>{{r.status}}</Cd></Sts>
+				{% if r.booking_date %}<BookgDt><Dt>{{r.booking_date}}</Dt></BookgDt>{% endif %}
+				{% if r.value_date %}<ValDt><Dt>{{r.value_date}}</Dt></ValDt>{% endif %}
+				<BkTxCd>
+					<Domn>
+						<Cd>PMNT</Cd>
+						<Fmly>
+							<Cd>RCDT</Cd>
+							<SubFmlyCd>RRTN</SubFmlyCd>
+						</Fmly>
+					</Domn>
+				</BkTxCd>
+				<NtryDtls>
+					<TxDtls>
+						<Refs>
+							{% if r.original_ref %}<InstrId>{{r.original_ref}}</InstrId>{% endif %}
+							{% if r.end_to_end_id %}<EndToEndId>{{r.end_to_end_id}}</EndToEndId>{% endif %}
+							{% if r.tx_id %}<TxId>{{r.tx_id}}</TxId>{% endif %}
+						</Refs>
+						<Amt Ccy="{{r.currency}}">{{r.amount}}</Amt>
+						<CdtDbtInd>{{r.credit_debit}}</CdtDbtInd>
+						{% if r.counterparty_name or r.counterparty_account %}
+						<RltdPties>
+							{% if r.counterparty_name %}<Dbtr><Pty><Nm>{{r.counterparty_name}}</Nm></Pty></Dbtr>{% endif %}
+							{% if r.counterparty_account %}<DbtrAcct><Id><IBAN>{{r.counterparty_account}}</IBAN></Id></DbtrAcct>{% endif %}
+						</RltdPties>
+						{% endif %}
+						<RtrInf>
+							<Rsn><Cd>{{r.reason_code}}</Cd></Rsn>
+							{% if r.additional_info %}<AddtlInf>{{r.additional_info}}</AddtlInf>{% endif %}
+						</RtrInf>
+					</TxDtls>
+				</NtryDtls>
+			</Ntry>
+			{% endfor %}
+		</Stmt>
+	</BkToCstmrStmt>
+</Document>

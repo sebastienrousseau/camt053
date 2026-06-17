@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Poetry
+poetry.lock
+
+# Temp
+tmp/
+camt053/tmp/
+*.tmp
+
+# Benchmarks
+.benchmarks/
+camt053.egg-info/
+
+# Lint / type caches
+.mypy_cache/
+.ruff_cache/
