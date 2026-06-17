@@ -182,6 +182,7 @@ class Statement:
         wanted = reason_code.upper()
 
         def matches(entry: Entry) -> bool:
+            """Return True if the entry carries the wanted reason code."""
             codes = {entry.reason_code} | {
                 d.reason_code for d in entry.details
             }

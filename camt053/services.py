@@ -231,6 +231,7 @@ def filter_entries(
     wanted = reason_code.upper()
 
     def matches(entry: Any) -> bool:
+        """Return True if the entry carries the wanted return reason code."""
         codes = {entry.reason_code} | {d.reason_code for d in entry.details}
         return any((c or "").upper() == wanted for c in codes)
 

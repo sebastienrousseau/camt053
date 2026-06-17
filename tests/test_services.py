@@ -143,3 +143,11 @@ def test_load_openapi():
     """The OpenAPI document is serialisable and includes the reverse path."""
     spec = json.loads(services.load_openapi())
     assert "/reverse" in spec["paths"]
+
+
+def test_load_openapi_explicit_app():
+    """An explicit FastAPI app is used when supplied."""
+    from camt053.api.app import app
+
+    spec = json.loads(services.load_openapi(app))
+    assert spec["info"]["title"] == "Camt053 API"
