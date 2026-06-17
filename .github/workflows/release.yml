@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish"
+        required: true
+        default: "v0.0.1"
+
+permissions:
+  contents: write   # create/update the GitHub Release
+  id-token: write   # OIDC token for PyPI Trusted Publishing
+
+jobs:
+  publish:
+    name: Build And Publish
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: pip install poetry twine
+
+      - name: Build distributions
+        run: poetry build
+
+      - name: Check distributions
+        run: twine check dist/*
+
+      # Trusted Publishing (OIDC) — no API token/secret required. Requires a
+      # matching publisher to be configured on PyPI for this repo + workflow.
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publish release artifacts to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${RELEASE_TAG}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" dist/* --repo "${{ github.repository }}" --clobber
+          else
+            gh release create "${RELEASE_TAG}" dist/* --repo "${{ github.repository }}" --title "${RELEASE_TAG}" --generate-notes
+          fi

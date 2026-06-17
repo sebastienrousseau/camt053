@@ -1,0 +1,139 @@
+# Copyright (C) 2023-2026 Sebastien Rousseau.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Tests for the command-line interface."""
+
+from click.testing import CliRunner
+
+from camt053.cli.cli import main
+
+
+def _write(tmp_path, name, content):
+    path = tmp_path / name
+    path.write_text(content)
+    return str(path)
+
+
+def test_message_types_command():
+    """The message-types command lists supported types."""
+    result = CliRunner().invoke(main, ["message-types"])
+    assert result.exit_code == 0
+    assert "camt.053.001.14" in result.output
+
+
+def test_reasons_command():
+    """The reasons command lists return reason codes."""
+    result = CliRunner().invoke(main, ["reasons"])
+    assert result.exit_code == 0
+    assert "AC04" in result.output
+
+
+def test_entries_command(tmp_path, statement_xml):
+    """The entries command lists statement entries."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["entries", "-i", path])
+    assert result.exit_code == 0
+    assert "NTRY-0001" in result.output
+    assert "3 entries" in result.output
+
+
+def test_entries_command_filtered(tmp_path, statement_xml):
+    """The entries command filters by reason code."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["entries", "-i", path, "-r", "AC04"])
+    assert result.exit_code == 0
+    assert "1 entry" in result.output
+
+
+def test_parse_command(tmp_path, statement_xml):
+    """The parse command prints JSON."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["parse", "-i", path])
+    assert result.exit_code == 0
+    assert "STMT-MSG-0001" in result.output
+
+
+def test_parse_command_bad_file():
+    """A missing input file exits non-zero."""
+    result = CliRunner().invoke(main, ["parse", "-i", "/no/such/file.xml"])
+    assert result.exit_code == 1
+    assert "Parse failed" in result.output
+
+
+def test_entries_command_bad_file():
+    """The entries command exits non-zero on a missing file."""
+    result = CliRunner().invoke(main, ["entries", "-i", "/no/such/file.xml"])
+    assert result.exit_code == 1
+    assert "Failed" in result.output
+
+
+def test_version_flag():
+    """The --version flag reports the version."""
+    result = CliRunner().invoke(main, ["--version"])
+    assert result.exit_code == 0
+    assert "0.0.1" in result.output
+
+
+def test_reverse_command_to_stdout(tmp_path, statement_xml):
+    """The reverse command prints the reversal to stdout by default."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["reverse", "-i", path, "-r", "AC04"])
+    assert result.exit_code == 0
+    assert "<RvslInd>true</RvslInd>" in result.output
+
+
+def test_reverse_command_to_file(tmp_path, statement_xml):
+    """The reverse command writes the reversal to a file."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    out = str(tmp_path / "out.xml")
+    result = CliRunner().invoke(main, ["reverse", "-i", path, "-o", out])
+    assert result.exit_code == 0
+    assert "written to" in result.output
+    assert "RvslInd" in open(out, encoding="utf-8").read()
+
+
+def test_reverse_command_no_match(tmp_path, statement_xml):
+    """A reason with no match exits non-zero."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["reverse", "-i", path, "-r", "MD07"])
+    assert result.exit_code == 1
+    assert "Reversal failed" in result.output
+
+
+def test_validate_id_command_valid():
+    """A valid identifier exits zero."""
+    result = CliRunner().invoke(
+        main, ["validate-id", "-k", "bic", "-v", "NWBKGB2LXXX"]
+    )
+    assert result.exit_code == 0
+    assert "Valid BIC" in result.output
+
+
+def test_validate_id_command_invalid():
+    """An invalid identifier exits non-zero."""
+    result = CliRunner().invoke(
+        main, ["validate-id", "-k", "iban", "-v", "NOPE"]
+    )
+    assert result.exit_code == 1
+    assert "Invalid IBAN" in result.output
+
+
+def test_reverse_reads_stdin(statement_xml):
+    """A '-' input reads the statement from stdin."""
+    result = CliRunner().invoke(
+        main, ["reverse", "-i", "-", "-r", "AC04"], input=statement_xml
+    )
+    assert result.exit_code == 0
+    assert "RvslInd" in result.output

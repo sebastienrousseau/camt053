@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.14">
+  <BkToCstmrStmt>
+    <GrpHdr>
+      <MsgId>STMT-MSG-0001</MsgId>
+      <CreDtTm>2026-06-15T08:00:00</CreDtTm>
+    </GrpHdr>
+    <Stmt>
+      <Id>STMT-0001</Id>
+      <ElctrncSeqNb>1</ElctrncSeqNb>
+      <CreDtTm>2026-06-15T08:00:00</CreDtTm>
+      <Acct>
+        <Id><IBAN>GB29NWBK60161331926819</IBAN></Id>
+        <Ccy>EUR</Ccy>
+        <Ownr><Nm>Acme Treasury Ltd</Nm></Ownr>
+        <Svcr><FinInstnId><BICFI>NWBKGB2LXXX</BICFI></FinInstnId></Svcr>
+      </Acct>
+      <Bal>
+        <Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp>
+        <Amt Ccy="EUR">10000.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt><Dt>2026-06-15</Dt></Dt>
+      </Bal>
+      <Ntry>
+        <NtryRef>NTRY-0001</NtryRef>
+        <Amt Ccy="EUR">1500.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-15</Dt></BookgDt>
+        <ValDt><Dt>2026-06-15</Dt></ValDt>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>E2E-0001</EndToEndId><TxId>TX-0001</TxId></Refs>
+          <Amt Ccy="EUR">1500.00</Amt>
+          <CdtDbtInd>CRDT</CdtDbtInd>
+          <RtrInf><Rsn><Cd>AC04</Cd></Rsn><AddtlInf>Beneficiary account closed</AddtlInf></RtrInf>
+          <RltdPties>
+            <Dbtr><Nm>Globex SA</Nm></Dbtr>
+            <DbtrAcct><Id><IBAN>DE89370400440532013000</IBAN></Id></DbtrAcct>
+          </RltdPties>
+        </TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <NtryRef>NTRY-0002</NtryRef>
+        <Amt Ccy="EUR">980.50</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-06-15</Dt></BookgDt>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>E2E-0002</EndToEndId></Refs>
+          <RtrInf><Rsn><Cd>AC06</Cd></Rsn></RtrInf>
+        </TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <NtryRef>NTRY-0003</NtryRef>
+        <Amt Ccy="EUR">42.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

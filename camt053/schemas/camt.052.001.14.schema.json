@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "camt.052.001.14 Reversing-Entry Record Schema",
+  "description": "Schema for a flat reversing-entry record derived from an ISO 20022 camt.052.001.14 Bank To Customer Account Report",
+  "version": "0.0.1",
+  "type": "object",
+  "required": [
+    "statement_msg_id",
+    "creation_date_time",
+    "statement_id",
+    "account_currency",
+    "amount",
+    "currency",
+    "credit_debit",
+    "reason_code"
+  ],
+  "properties": {
+    "statement_msg_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 35,
+      "description": "Group-header message identification of the reversal"
+    },
+    "creation_date_time": {
+      "type": "string",
+      "description": "Creation date and time of the reversal (ISO 8601)"
+    },
+    "statement_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 35,
+      "description": "Statement identification of the reversal"
+    },
+    "electronic_seq_nb": {
+      "type": "string",
+      "description": "Electronic sequence number of the statement"
+    },
+    "account_id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}[0-9]{2}[A-Z0-9]+$",
+      "minLength": 15,
+      "maxLength": 34,
+      "description": "Statement account identifier (IBAN)"
+    },
+    "account_id_other": {
+      "type": "string",
+      "maxLength": 34,
+      "description": "Proprietary statement account identifier"
+    },
+    "account_currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Statement account currency (ISO 4217)"
+    },
+    "account_owner_name": {
+      "type": "string",
+      "maxLength": 140,
+      "description": "Statement account owner name"
+    },
+    "account_servicer_bic": {
+      "type": "string",
+      "pattern": "^[A-Z0-9]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$",
+      "description": "Account servicer BICFI"
+    },
+    "entry_ref": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Reference of the reversing entry"
+    },
+    "original_ref": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Reference of the original (reversed) entry"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^[0-9]+(\\.[0-9]{1,5})?$",
+      "description": "Entry amount (non-negative decimal)"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "Entry currency (ISO 4217)"
+    },
+    "credit_debit": {
+      "type": "string",
+      "enum": [
+        "CRDT",
+        "DBIT"
+      ],
+      "description": "Reversing-entry credit/debit indicator (opposite of original)"
+    },
+    "reversal_indicator": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "description": "Whether the entry is a reversal (RvslInd)"
+    },
+    "status": {
+      "type": "string",
+      "maxLength": 4,
+      "description": "Entry status code (e.g., BOOK)"
+    },
+    "booking_date": {
+      "type": "string",
+      "description": "Entry booking date (ISO date)"
+    },
+    "value_date": {
+      "type": "string",
+      "description": "Entry value date (ISO date)"
+    },
+    "end_to_end_id": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Transaction end-to-end identification"
+    },
+    "tx_id": {
+      "type": "string",
+      "maxLength": 35,
+      "description": "Transaction identification"
+    },
+    "reason_code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4,
+      "description": "ISO external return reason code (e.g., AC04 Closed Account)"
+    },
+    "additional_info": {
+      "type": "string",
+      "maxLength": 105,
+      "description": "Return additional information"
+    },
+    "counterparty_name": {
+      "type": "string",
+      "maxLength": 140,
+      "description": "Counterparty (debtor) name"
+    },
+    "counterparty_account": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}[0-9]{2}[A-Z0-9]+$",
+      "description": "Counterparty account identifier (IBAN)"
+    }
+  },
+  "additionalProperties": true
+}
