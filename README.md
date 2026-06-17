@@ -291,7 +291,7 @@ Built on [Click](https://click.palletsprojects.com/),
 [mcp-pkg]: https://github.com/sebastienrousseau/camt053-mcp
 [lsp-pkg]: https://github.com/sebastienrousseau/camt053-lsp
 [release-001]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.1
-[banner]: https://cloudcdn.pro/camt053/v1/logos/camt053.svg 'camt053'
+[banner]: https://cloudcdn.pro/api/transform?url=/camt053/v1/logos/camt053.webp&w=128 'camt053'
 [docs-badge]: https://img.shields.io/badge/Docs-camt053.com-blue?style=for-the-badge
 [docs-url]: https://camt053.com/
 [license-badge]: https://img.shields.io/pypi/l/camt053?style=for-the-badge
