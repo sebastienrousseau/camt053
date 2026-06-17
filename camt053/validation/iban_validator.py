@@ -36,7 +36,6 @@ Standards:
     - ISO 7064 - Check digit mod-97-10 algorithm
 """
 
-
 from camt053.exceptions import InvalidIBANError
 
 # SEPA IBAN lengths by country code (ISO 13616)

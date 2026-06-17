@@ -37,7 +37,6 @@ Standards:
     - ISO 7064 - Check digit mod-97-10 algorithm
 """
 
-
 from camt053.exceptions import InvalidLEIError
 
 # ISO 17442 LEI length (18 alphanumeric identifier + 2 check digits)

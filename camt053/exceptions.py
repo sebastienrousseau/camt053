@@ -34,7 +34,6 @@ Example:
     ...     log.error(f"Configuration error: {e}")
 """
 
-
 __all__ = [
     "Camt053Error",
     "AccountValidationError",
