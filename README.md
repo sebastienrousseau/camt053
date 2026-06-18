@@ -117,16 +117,28 @@ Or from the command line:
 # Generate a reversing entry for every AC04 entry on a statement
 camt053 reverse -i statement.xml -r AC04 -o reversal.xml
 
-# List the entries on a statement (optionally filtered by reason)
+# List the entries on a statement (filter by reason, status, date, or amount)
 camt053 entries -i statement.xml -r AC04
+camt053 entries -i statement.xml --status BOOK --from 2026-06-01 --min 1000
+
+# Export the (filtered) entries as CSV or JSON, to stdout or a file
+camt053 entries -i statement.xml --export csv -o entries.csv
+camt053 entries -i statement.xml -r AC04 --export json
+
+# Choose the output format: a Rich table (default) or structured JSON
+camt053 entries -i statement.xml --format json
+camt053 reverse -i statement.xml -r AC04 --format json   # JSON envelope
 
 # Inspect the parsed statement as JSON, or validate an identifier
 camt053 parse -i statement.xml
 camt053 validate-id -k iban -v GB29NWBK60161331926819
+
+# Validate an incoming statement against its official ISO camt XSD
+camt053 validate -i statement.xml
 ```
 
-`parse`, `entries`, and `reverse` accept `-i -` to read from stdin, so they
-compose in a pipeline.
+`parse`, `entries`, `reverse`, and `validate` accept `-i -` to read from stdin,
+so they compose in a pipeline.
 
 ## Features
 
@@ -134,17 +146,41 @@ compose in a pipeline.
   model. Parsing is **namespace-agnostic**, so every ISO version (`.001.01`
   through `.001.14`) and real-world bank file is read.
 - **Filter** booked entries by ISO external return reason code (AC04, AC06,
-  MD07, …).
+  MD07, …), and by **status**, **booking-date range**, and **amount range**
+  (all ANDed) via `services.filter_entries(...)` or the `camt053 entries`
+  flags.
+- **Return reason codes** — a substantial slice of the ISO 20022
+  `ExternalReturnReason1Code` set (the common SEPA / CBPR+ return reasons),
+  listed via `camt053 reasons`, with case-insensitive lookup through
+  `services.validate_reason_code(code) -> {"code", "name", "valid"}`.
+- **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
+  --export {csv,json} [-o file]`); CSV columns are `reference, amount,
+  currency, credit_debit_indicator, status, booking_date, value_date,
+  reason_code`.
+- **Structured output** — `camt053 entries --format json` emits the entries
+  as a JSON array, and `camt053 reverse --format json` emits a
+  `{"message_type", "reason_code", "xml"}` envelope instead of raw XML
+  (`--format table`, the default, keeps the Rich table / raw XML).
 - **Reverse** — generate a `camt.053.001.14` reversing entry from the matching
   entries (credit/debit indicator flipped, `RvslInd` set, return reason carried
   in `RtrInf`), in one call.
 - **Validated output** — generated reversals are checked against the **official
   ISO 20022 `camt.053.001.14` XSD** bundled with the package.
+- **Validate incoming statements** — `services.validate_statement(xml)` (and the
+  `camt053 validate` command) check an inbound camt.052 / camt.053 / camt.054
+  document against the matching **official ISO 20022 XSD**, detected from its
+  namespace, returning `{"valid", "message_type", "errors"}`.
 - **Safe by default** — XML is parsed with `defusedxml` (XXE / billion-laughs
   safe); output paths are traversal-checked.
 - **One facade, four interfaces** — the CLI, REST API, MCP server, and LSP
   server all call `camt053.services`.
 - **IBAN / BIC / LEI validators** (ISO 13616 / 9362 / 17442).
+- **Decimal amounts & ISO 4217 currencies** — `Entry.amount_decimal` /
+  `Balance.amount_decimal` parse the string amount into a `Decimal` (the
+  string is kept verbatim for XML fidelity), and
+  `services.validate_currency(code) -> {"code", "valid", "minor_units"}`
+  checks a code against a bundled ISO 4217 set and reports its minor units
+  (EUR=2, JPY=0, …).
 - **Typed** (mypy `--strict`) and **tested** (100% coverage), validated against
   the official ISO 20022 business samples.
 
@@ -226,6 +262,39 @@ flowchart TD
 | `camt053.validation` | IBAN / BIC / LEI and JSON-Schema validators |
 | `camt053.security` | XXE-safe parsing and path-traversal-checked output |
 | `camt053.services` | The shared facade backing every interface |
+
+## Error handling
+
+Every exception in [`camt053.exceptions`](camt053/exceptions.py) inherits from
+`Camt053Error` and carries a stable, machine-readable `code`. These codes are
+part of the public API — they are guaranteed unique and will not change across
+releases — so you can switch on `exc.code` (e.g. to map a failure onto an HTTP
+status) without depending on the class name or message text.
+
+| Code | Exception | Meaning |
+|------|-----------|---------|
+| `CAMT053_ERROR` | `Camt053Error` | Base error for any Camt053 failure |
+| `ACCOUNT_VALIDATION_ERROR` | `AccountValidationError` | Account/input data failed validation |
+| `XML_GENERATION_ERROR` | `XMLGenerationError` | XML rendering or template failure |
+| `CONFIGURATION_ERROR` | `ConfigurationError` | Invalid configuration or CLI arguments |
+| `DATA_SOURCE_ERROR` | `DataSourceError` | A data source could not be read |
+| `SCHEMA_VALIDATION_ERROR` | `SchemaValidationError` | XML did not conform to its ISO 20022 XSD |
+| `INVALID_IBAN_ERROR` | `InvalidIBANError` | IBAN format / checksum validation failed |
+| `INVALID_BIC_ERROR` | `InvalidBICError` | BIC/SWIFT format validation failed |
+| `INVALID_LEI_ERROR` | `InvalidLEIError` | LEI format / checksum validation failed |
+| `MISSING_REQUIRED_FIELD_ERROR` | `MissingRequiredFieldError` | A required field was absent |
+| `STATEMENT_PARSE_ERROR` | `StatementParseError` | An incoming statement could not be parsed |
+| `REVERSAL_GENERATION_ERROR` | `ReversalGenerationError` | A reversing entry could not be generated |
+
+```python
+from camt053 import services
+from camt053.exceptions import Camt053Error
+
+try:
+    services.generate_reversal(statement_xml, reason_code="AC04")
+except Camt053Error as exc:
+    log.error("[%s] %s", exc.code, exc)
+```
 
 ## Examples
 

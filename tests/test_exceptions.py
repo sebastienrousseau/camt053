@@ -18,7 +18,11 @@
 from camt053.exceptions import (
     AccountValidationError,
     Camt053Error,
+    ConfigurationError,
+    DataSourceError,
+    InvalidBICError,
     InvalidIBANError,
+    InvalidLEIError,
     MissingRequiredFieldError,
     ReversalGenerationError,
     SchemaValidationError,
@@ -26,6 +30,21 @@ from camt053.exceptions import (
     XMLGenerationError,
     XSDValidationError,
 )
+
+_ALL_EXCEPTIONS = [
+    Camt053Error,
+    AccountValidationError,
+    XMLGenerationError,
+    ConfigurationError,
+    DataSourceError,
+    SchemaValidationError,
+    InvalidIBANError,
+    InvalidBICError,
+    InvalidLEIError,
+    MissingRequiredFieldError,
+    StatementParseError,
+    ReversalGenerationError,
+]
 
 
 def test_base_hierarchy():
@@ -76,3 +95,31 @@ def test_reversal_generation_error_is_catchable_as_base():
         raise ReversalGenerationError("nothing to reverse")
     except Camt053Error as exc:
         assert "nothing to reverse" in str(exc)
+
+
+def test_every_exception_exposes_a_code():
+    """Each exception class exposes a non-empty, upper-snake ``code`` (#30)."""
+    for exc_type in _ALL_EXCEPTIONS:
+        code = exc_type.code
+        assert isinstance(code, str)
+        assert code
+        assert code == code.upper()
+
+
+def test_error_codes_are_unique():
+    """No two exception classes share an error code (#30)."""
+    codes = [exc_type.code for exc_type in _ALL_EXCEPTIONS]
+    assert len(codes) == len(set(codes))
+
+
+def test_known_error_codes_are_stable():
+    """The documented codes match the class-level constants (#30)."""
+    assert Camt053Error.code == "CAMT053_ERROR"
+    assert StatementParseError.code == "STATEMENT_PARSE_ERROR"
+    assert ReversalGenerationError.code == "REVERSAL_GENERATION_ERROR"
+    assert SchemaValidationError.code == "SCHEMA_VALIDATION_ERROR"
+    # The XSD alias inherits the schema-validation code.
+    assert XSDValidationError.code == "SCHEMA_VALIDATION_ERROR"
+    # Instances inherit the class-level code.
+    assert StatementParseError("bad").code == "STATEMENT_PARSE_ERROR"
+    assert InvalidIBANError("bad", iban="XX").code == "INVALID_IBAN_ERROR"

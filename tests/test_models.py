@@ -15,6 +15,8 @@
 
 """Tests for the typed statement model."""
 
+from decimal import Decimal
+
 from camt053.models import (
     Account,
     Balance,
@@ -23,6 +25,29 @@ from camt053.models import (
     Statement,
     TransactionDetails,
 )
+
+
+def test_entry_amount_decimal():
+    """``Entry.amount_decimal`` parses the string amount (#22)."""
+    assert Entry(amount="1500.00").amount_decimal == Decimal("1500.00")
+
+
+def test_entry_amount_decimal_empty_is_none():
+    """An empty or missing amount yields ``None`` (#22)."""
+    assert Entry().amount_decimal is None
+    assert Entry(amount="").amount_decimal is None
+
+
+def test_entry_amount_decimal_invalid_is_none():
+    """An unparsable amount yields ``None`` (#22)."""
+    assert Entry(amount="not-a-number").amount_decimal is None
+
+
+def test_balance_amount_decimal():
+    """``Balance.amount_decimal`` parses the string amount (#22)."""
+    assert Balance(amount="42.5").amount_decimal == Decimal("42.5")
+    assert Balance().amount_decimal is None
+    assert Balance(amount="oops").amount_decimal is None
 
 
 def test_account_identifier_prefers_iban():

@@ -20,18 +20,43 @@ in banking integrations. Instead of catching generic ValueError or TypeError,
 consuming applications can distinguish between data validation errors,
 configuration errors, and XML generation failures.
 
+Every exception exposes a stable, machine-readable class-level ``code``
+attribute. These codes are part of the public API: they will not change
+across releases and are guaranteed unique, so consumers can switch on them
+(e.g. to map a failure onto an HTTP status or a localised message) without
+relying on the exception's class name or message text.
+
+Error code taxonomy:
+
+================================ ============================================
+Code                             Meaning
+================================ ============================================
+``CAMT053_ERROR``                Base error for any Camt053 failure.
+``ACCOUNT_VALIDATION_ERROR``     Account/input data failed validation.
+``XML_GENERATION_ERROR``         XML rendering or template failure.
+``CONFIGURATION_ERROR``          Invalid configuration or CLI arguments.
+``DATA_SOURCE_ERROR``            A data source could not be read.
+``SCHEMA_VALIDATION_ERROR``      XML did not conform to its ISO 20022 XSD.
+``INVALID_IBAN_ERROR``           IBAN format / checksum validation failed.
+``INVALID_BIC_ERROR``            BIC/SWIFT format validation failed.
+``INVALID_LEI_ERROR``            LEI format / checksum validation failed.
+``MISSING_REQUIRED_FIELD_ERROR`` A required field was absent.
+``STATEMENT_PARSE_ERROR``        An incoming statement could not be parsed.
+``REVERSAL_GENERATION_ERROR``    A reversing entry could not be generated.
+================================ ============================================
+
 Example:
     >>> try:
     ...     process_files(...)
     ... except AccountValidationError as e:
     ...     # Handle invalid IBAN/BIC/LEI - notify user
-    ...     log.error(f"Account data invalid: {e}")
+    ...     log.error(f"[{e.code}] Account data invalid: {e}")
     ... except XMLGenerationError as e:
     ...     # Handle XML generation failure - check templates
-    ...     log.error(f"XML generation failed: {e}")
+    ...     log.error(f"[{e.code}] XML generation failed: {e}")
     ... except ConfigurationError as e:
     ...     # Handle config issues - check setup
-    ...     log.error(f"Configuration error: {e}")
+    ...     log.error(f"[{e.code}] Configuration error: {e}")
 """
 
 __all__ = [
@@ -66,6 +91,8 @@ class Camt053Error(Exception):
         ...     log.error("Camt053 operation failed")
     """
 
+    code: str = "CAMT053_ERROR"
+
 
 class AccountValidationError(Camt053Error):
     """Raised when account data validation fails.
@@ -84,6 +111,8 @@ class AccountValidationError(Camt053Error):
         ...     # User-facing error - show validation message
         ...     return {"error": str(e), "field": e.field}
     """
+
+    code: str = "ACCOUNT_VALIDATION_ERROR"
 
     def __init__(self, message: str, field: str | None = None):
         """Initialize validation error with optional field name.
@@ -115,6 +144,8 @@ class XMLGenerationError(Camt053Error):
         ...     alert_ops_team()
     """
 
+    code: str = "XML_GENERATION_ERROR"
+
 
 class ConfigurationError(Camt053Error):
     """Raised when configuration or setup is invalid.
@@ -135,6 +166,8 @@ class ConfigurationError(Camt053Error):
         ...     print_usage_help()
     """
 
+    code: str = "CONFIGURATION_ERROR"
+
 
 class DataSourceError(Camt053Error):
     """Raised when data source access fails.
@@ -154,6 +187,8 @@ class DataSourceError(Camt053Error):
         ...     log.error(f"Cannot access data source: {e}")
     """
 
+    code: str = "DATA_SOURCE_ERROR"
+
 
 class SchemaValidationError(Camt053Error):
     """Raised when XSD schema validation fails.
@@ -172,6 +207,8 @@ class SchemaValidationError(Camt053Error):
         ...     log.error(f"XML schema validation failed: {e}")
         ...     log.debug(f"Validation errors: {e.errors}")
     """
+
+    code: str = "SCHEMA_VALIDATION_ERROR"
 
     def __init__(self, message: str, errors: list[str] | None = None):
         """Initialize schema validation error with optional error list.
@@ -205,6 +242,8 @@ class InvalidIBANError(AccountValidationError):
         ...     print(f"Invalid IBAN: {e}")
         ...     print(f"Field: {e.field}, Value: {e.iban}")
     """
+
+    code: str = "INVALID_IBAN_ERROR"
 
     def __init__(
         self,
@@ -244,6 +283,8 @@ class InvalidBICError(AccountValidationError):
         ...     print(f"Field: {e.field}, Value: {e.bic}")
     """
 
+    code: str = "INVALID_BIC_ERROR"
+
     def __init__(
         self,
         message: str,
@@ -280,6 +321,8 @@ class InvalidLEIError(AccountValidationError):
         ...     print(f"Invalid LEI: {e}")
         ...     print(f"Field: {e.field}, Value: {e.lei}")
     """
+
+    code: str = "INVALID_LEI_ERROR"
 
     def __init__(
         self,
@@ -319,6 +362,8 @@ class MissingRequiredFieldError(AccountValidationError):
         ...     print(f"Row: {e.row_number}, Expected fields: {e.required_fields}")
     """
 
+    code: str = "MISSING_REQUIRED_FIELD_ERROR"
+
     def __init__(
         self,
         message: str,
@@ -355,6 +400,8 @@ class StatementParseError(Camt053Error):
         ...     log.error(f"Cannot parse statement: {e}")
     """
 
+    code: str = "STATEMENT_PARSE_ERROR"
+
     def __init__(self, message: str, line: int | None = None):
         """Initialize statement parse error with optional source line.
 
@@ -381,3 +428,5 @@ class ReversalGenerationError(XMLGenerationError):
         ...     # Nothing to reverse, or reversal failed validation
         ...     log.error(f"Reversal generation failed: {e}")
     """
+
+    code: str = "REVERSAL_GENERATION_ERROR"

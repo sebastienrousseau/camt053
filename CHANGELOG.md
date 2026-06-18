@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Add a `--format {table,json}` option to the `camt053 entries` and
+  `camt053 reverse` commands (`table` is the default). For `entries`, `json`
+  emits the (optionally filtered) entries as a JSON array; for `reverse`,
+  `json` emits a `{"message_type", "reason_code", "xml"}` envelope instead
+  of raw XML. The `parse` command accepts `--format json` as a no-op alias
+  for symmetry. Exit codes are unchanged (#9)
+- Ship a PEP 561 `py.typed` marker so downstream projects pick up the
+  library's inline type hints (#3)
+- `services.validate_statement(xml)` and a `camt053 validate` CLI command
+  that validate an incoming camt.052 / camt.053 / camt.054 document against
+  the matching official ISO 20022 XSD (detected from its namespace),
+  returning a `{"valid", "message_type", "errors"}` report (#17)
+- Filter statement entries by `status`, booking-date range (`date_from` /
+  `date_to`), and amount range (`min_amount` / `max_amount`) — all ANDed
+  with the existing reason filter — via `services.filter_entries(...)` and
+  new `--status` / `--from` / `--to` / `--min` / `--max` flags on the
+  `camt053 entries` command (#21)
+- Export parsed (and optionally filtered) entries to CSV or JSON via the
+  `camt053 entries --export {csv,json}` option, to stdout or a file
+  (`-o/--output`); CSV ships a stable, documented column set and an empty
+  statement yields a header-only CSV / `[]` JSON (#23)
+- Expose amounts as `Decimal` via `Entry.amount_decimal` and
+  `Balance.amount_decimal` (the string `amount` is kept verbatim for XML
+  fidelity; empty/invalid values yield `None`), and add an ISO 4217 currency
+  validator (`camt053.validation.currency_validator` with
+  `validate_currency(code)` and `currency_minor_units(code)`) plus
+  `services.validate_currency(code) -> {"code", "valid", "minor_units"}`
+  (EUR=2, JPY=0, BHD=3, …) (#22)
+- Expand the ISO 20022 `ExternalReturnReason1Code` table to cover the
+  common SEPA / CBPR+ return reasons (AC01–AC14, AG01/AG02, AM01–AM09,
+  BE01/BE05, CNOR/DNOR, DT01, ED01/ED05, FF01, MD01/MD06/MD07, MS02/MS03,
+  NARR/NOAS/NOOR, RC01, RR01–RR04, SL01, TM01) with their official names,
+  and add `services.validate_reason_code(code) -> {"code", "name", "valid"}`
+  (case-insensitive; unknown codes report `valid=False`); the full set is
+  listed by `camt053 reasons` (#12)
+- Give every exception in `camt053.exceptions` a stable, unique class-level
+  `code` (e.g. `STATEMENT_PARSE_ERROR`, `REVERSAL_GENERATION_ERROR`) so
+  consumers can switch on `exc.code` without depending on class names or
+  message text; documented as a code → meaning table in the module
+  docstring and the README (#30)
+
+### Fixed
+
+- Reverse matching entries across **all** statements in a document, not
+  just the first; a return reason carried only by a later statement is no
+  longer missed (#20)
+
 ## [0.0.1] - 2026-06-17
 
 ### Added

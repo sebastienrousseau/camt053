@@ -21,7 +21,11 @@ entries. Every command is a thin wrapper over :mod:`camt053.services`, so the
 CLI behaves identically to the REST API, MCP server, and LSP server.
 """
 
+import csv
+import io
+import json
 import sys
+from typing import Any
 
 import click
 from rich import box
@@ -29,10 +33,22 @@ from rich.console import Console
 from rich.table import Table
 
 from camt053 import services
-from camt053.constants import VERSION
+from camt053.constants import REVERSAL_MESSAGE_TYPE, VERSION
 from camt053.exceptions import Camt053Error
 
 console = Console()
+
+# Stable, documented column order for entry exports.
+_EXPORT_COLUMNS = [
+    "reference",
+    "amount",
+    "currency",
+    "credit_debit_indicator",
+    "status",
+    "booking_date",
+    "value_date",
+    "reason_code",
+]
 
 
 def _read_input(input_file: str) -> str:
@@ -41,6 +57,25 @@ def _read_input(input_file: str) -> str:
         return sys.stdin.read()
     with open(input_file, encoding="utf-8") as handle:
         return handle.read()
+
+
+def _export_entries(rows: list[dict[str, Any]], fmt: str) -> str:
+    """Render entry dicts as a CSV or JSON document.
+
+    CSV always carries a header row (so an empty statement yields a
+    header-only file); JSON renders the list of entry dicts (``[]`` when
+    empty).
+    """
+    if fmt == "json":
+        return json.dumps(rows, indent=2)
+    buffer = io.StringIO()
+    writer = csv.DictWriter(
+        buffer, fieldnames=_EXPORT_COLUMNS, extrasaction="ignore"
+    )
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({col: row.get(col, "") for col in _EXPORT_COLUMNS})
+    return buffer.getvalue()
 
 
 @click.group(
@@ -93,16 +128,52 @@ def reasons() -> None:
     required=True,
     help="Path to the statement XML file ('-' for stdin).",
 )
-def parse(input_file: str) -> None:
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["json"], case_sensitive=False),
+    default="json",
+    show_default=True,
+    help="Output format (parse always prints JSON; accepted for symmetry).",
+)
+def parse(input_file: str, output_format: str) -> None:
     """Parse a statement and print it as JSON."""
-    import json
-
     try:
         document = services.parse_statement(_read_input(input_file))
     except (OSError, Camt053Error) as exc:
         console.print(f"[bold red]✗ Parse failed:[/bold red] {exc}")
         sys.exit(1)
     console.print_json(json.dumps(document))
+
+
+@main.command("validate")
+@click.option(
+    "-i",
+    "--input",
+    "input_file",
+    required=True,
+    help="Path to the statement XML file ('-' for stdin).",
+)
+def validate(input_file: str) -> None:
+    """Validate a statement against its official ISO camt XSD."""
+    try:
+        report = services.validate_statement(_read_input(input_file))
+    except (OSError, Camt053Error) as exc:
+        console.print(f"[bold red]✗ Validation failed:[/bold red] {exc}")
+        sys.exit(1)
+
+    message_type = report["message_type"]
+    if report["valid"]:
+        console.print(f"[bold green]✓ Valid {message_type}[/bold green]")
+        return
+
+    console.print(
+        f"[bold red]✗ Invalid {message_type}[/bold red] "
+        f"({len(report['errors'])} error(s))"
+    )
+    for error in report["errors"]:
+        console.print(f"  [red]•[/red] {error}")
+    sys.exit(1)
 
 
 @main.command("entries")
@@ -120,18 +191,119 @@ def parse(input_file: str) -> None:
     default=None,
     help="Only show entries carrying this return reason code (e.g. AC04).",
 )
-def entries(input_file: str, reason_code: str | None) -> None:
-    """List the entries on a statement (optionally filtered by reason)."""
+@click.option(
+    "--status",
+    "status",
+    default=None,
+    help="Only show entries with this status (e.g. BOOK).",
+)
+@click.option(
+    "--from",
+    "date_from",
+    default=None,
+    help="Only show entries booked on or after this ISO date.",
+)
+@click.option(
+    "--to",
+    "date_to",
+    default=None,
+    help="Only show entries booked on or before this ISO date.",
+)
+@click.option(
+    "--min",
+    "min_amount",
+    default=None,
+    help="Only show entries with an amount >= this value.",
+)
+@click.option(
+    "--max",
+    "max_amount",
+    default=None,
+    help="Only show entries with an amount <= this value.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"], case_sensitive=False),
+    default="table",
+    show_default=True,
+    help="Output format: a Rich table or a JSON array.",
+)
+@click.option(
+    "--export",
+    "export_format",
+    type=click.Choice(["csv", "json"], case_sensitive=False),
+    default=None,
+    help="Export the (filtered) entries as CSV or JSON instead of a table.",
+)
+@click.option(
+    "-o",
+    "--output",
+    "output_file",
+    default=None,
+    help="Write the export here (default: stdout).",
+)
+def entries(
+    input_file: str,
+    reason_code: str | None,
+    status: str | None,
+    date_from: str | None,
+    date_to: str | None,
+    min_amount: str | None,
+    max_amount: str | None,
+    output_format: str,
+    export_format: str | None,
+    output_file: str | None,
+) -> None:
+    """List the entries on a statement (optionally filtered or exported)."""
+    filtered = any(
+        v is not None
+        for v in (
+            reason_code,
+            status,
+            date_from,
+            date_to,
+            min_amount,
+            max_amount,
+        )
+    )
     try:
         xml = _read_input(input_file)
         rows = (
-            services.filter_entries(xml, reason_code)
-            if reason_code
+            services.filter_entries(
+                xml,
+                reason_code,
+                status=status,
+                date_from=date_from,
+                date_to=date_to,
+                min_amount=min_amount,
+                max_amount=max_amount,
+            )
+            if filtered
             else services.list_entries(xml)
         )
-    except (OSError, Camt053Error) as exc:
+    except (OSError, ValueError, Camt053Error) as exc:
         console.print(f"[bold red]✗ Failed:[/bold red] {exc}")
         sys.exit(1)
+
+    # ``--export`` takes precedence; ``--format json`` is a shorthand for a
+    # JSON array export (``--format table`` keeps the default table view).
+    fmt = export_format or (
+        "json" if output_format.lower() == "json" else None
+    )
+    if fmt:
+        document = _export_entries(rows, fmt.lower())
+        if output_file:
+            with open(output_file, "w", encoding="utf-8") as handle:
+                handle.write(document)
+            console.print(
+                f"[bold green]✓ Exported {len(rows)} entr"
+                f"{'y' if len(rows) == 1 else 'ies'} to[/bold green] "
+                f"{output_file}"
+            )
+        else:
+            click.echo(document)
+        return
 
     table = Table(box=box.SIMPLE, title="Statement entries")
     table.add_column("Reference", style="cyan")
@@ -168,6 +340,17 @@ def entries(input_file: str, reason_code: str | None) -> None:
     help="Return reason code whose entries are reversed.",
 )
 @click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"], case_sensitive=False),
+    default="table",
+    show_default=True,
+    help=(
+        "Output format: raw reversal XML (table) or a JSON envelope "
+        "carrying the message type, reason code, and XML."
+    ),
+)
+@click.option(
     "-o",
     "--output",
     "output_file",
@@ -175,7 +358,10 @@ def entries(input_file: str, reason_code: str | None) -> None:
     help="Write the reversing entry here (default: stdout).",
 )
 def reverse(
-    input_file: str, reason_code: str, output_file: str | None
+    input_file: str,
+    reason_code: str,
+    output_format: str,
+    output_file: str | None,
 ) -> None:
     """Generate a reversing entry for matching statement entries."""
     try:
@@ -185,15 +371,29 @@ def reverse(
         console.print(f"[bold red]✗ Reversal failed:[/bold red] {exc}")
         sys.exit(1)
 
+    # ``--format json`` wraps the reversal XML in a JSON envelope; the default
+    # ``table`` format emits the raw reversal XML for XML-native pipelines.
+    if output_format.lower() == "json":
+        document = json.dumps(
+            {
+                "message_type": REVERSAL_MESSAGE_TYPE,
+                "reason_code": reason_code,
+                "xml": reversal,
+            },
+            indent=2,
+        )
+    else:
+        document = reversal
+
     if output_file:
         with open(output_file, "w", encoding="utf-8") as handle:
-            handle.write(reversal)
+            handle.write(document)
         console.print(
             f"[bold green]✓ Reversing entry written to[/bold green] "
             f"{output_file}"
         )
     else:
-        click.echo(reversal)
+        click.echo(document)
 
 
 @main.command("validate-id")

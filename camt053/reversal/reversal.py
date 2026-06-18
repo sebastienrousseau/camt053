@@ -43,7 +43,11 @@ from camt053.exceptions import ReversalGenerationError
 from camt053.models import Entry, Statement
 from camt053.parse.reason_codes import describe_reason
 
-__all__ = ["build_reversal_record", "build_reversal_records"]
+__all__ = [
+    "build_reversal_record",
+    "build_reversal_records",
+    "build_reversal_records_for_statements",
+]
 
 
 def _entry_reason(entry: Entry) -> str | None:
@@ -51,6 +55,31 @@ def _entry_reason(entry: Entry) -> str | None:
     if entry.reason_code:
         return entry.reason_code
     return next((d.reason_code for d in entry.details if d.reason_code), None)
+
+
+def _select_entries(
+    statement: Statement, reason_code: str | None
+) -> list[Entry]:
+    """Return the booked entries of a statement selected for reversal.
+
+    If ``reason_code`` is given, only entries carrying that return reason are
+    selected; otherwise every entry carrying any return reason is.
+    """
+    if reason_code:
+        return statement.entries_with_reason(reason_code)
+    return [e for e in statement.entries if e.is_returnable()]
+
+
+def _no_match_error(reason_code: str | None) -> ReversalGenerationError:
+    """Build the "nothing to reverse" error for a selection criteria."""
+    target = (
+        f"return reason {reason_code.upper()}"
+        if reason_code
+        else "any return reason"
+    )
+    return ReversalGenerationError(
+        f"No statement entries match {target}; nothing to reverse."
+    )
 
 
 def build_reversal_record(
@@ -164,20 +193,9 @@ def build_reversal_records(
     Raises:
         ReversalGenerationError: If no entry matches the selection criteria.
     """
-    if reason_code:
-        entries = statement.entries_with_reason(reason_code)
-    else:
-        entries = [e for e in statement.entries if e.is_returnable()]
-
+    entries = _select_entries(statement, reason_code)
     if not entries:
-        target = (
-            f"return reason {reason_code.upper()}"
-            if reason_code
-            else "any return reason"
-        )
-        raise ReversalGenerationError(
-            f"No statement entries match {target}; nothing to reverse."
-        )
+        raise _no_match_error(reason_code)
 
     base_id = statement.id or "STMT"
     resolved_msg_id = (msg_id or f"RVSL-{base_id}")[:35]
@@ -192,5 +210,63 @@ def build_reversal_records(
             resolved_dt,
             resolved_stmt_id,
         )
+        for entry in entries
+    ]
+
+
+def build_reversal_records_for_statements(
+    statements: list[Statement],
+    reason_code: str | None = None,
+    msg_id: str | None = None,
+    creation_date_time: str | None = None,
+) -> list[dict[str, Any]]:
+    """Build flat reversing-entry records across every statement.
+
+    Scans all statements in a document, reverses the matching entries in
+    each, and aggregates the records into a single reversal. The statement
+    header context (message / statement id, balances, account) is taken from
+    the first statement that carries a match, so a match in a later statement
+    is no longer missed.
+
+    Args:
+        statements: The parsed statements to reverse entries from.
+        reason_code: If given, only entries carrying this return reason are
+            reversed; otherwise every entry that carries any return reason is.
+        msg_id: Group-header message id for the reversal (defaults to a value
+            derived from the matching statement's id).
+        creation_date_time: ISO 8601 timestamp for the reversal (defaults to
+            the matching statement's own creation time).
+
+    Returns:
+        A list of flat reversing-entry records, one per reversed entry.
+
+    Raises:
+        ReversalGenerationError: If no statement has any matching entry.
+    """
+    matches = [
+        (statement, entries)
+        for statement in statements
+        if (entries := _select_entries(statement, reason_code))
+    ]
+    if not matches:
+        raise _no_match_error(reason_code)
+
+    header_statement = matches[0][0]
+    base_id = header_statement.id or "STMT"
+    resolved_msg_id = (msg_id or f"RVSL-{base_id}")[:35]
+    resolved_dt = (
+        creation_date_time or header_statement.creation_date_time or ""
+    )
+    resolved_stmt_id = f"RVSL-{base_id}"[:35]
+
+    return [
+        build_reversal_record(
+            entry,
+            statement,
+            resolved_msg_id,
+            resolved_dt,
+            resolved_stmt_id,
+        )
+        for statement, entries in matches
         for entry in entries
     ]

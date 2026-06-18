@@ -33,29 +33,47 @@ Example:
 """
 
 import json
+from datetime import date
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from camt053.constants import message_names, valid_xml_types
-from camt053.parse.reason_codes import list_reason_codes
+from camt053.parse.reason_codes import (
+    list_reason_codes,
+)
+from camt053.parse.reason_codes import (
+    validate_reason_code as _validate_reason_code,
+)
 from camt053.parse.statement_parser import parse_document as _parse_document
-from camt053.reversal.reversal import build_reversal_records
+from camt053.reversal.reversal import (
+    build_reversal_records_for_statements,
+)
 from camt053.validation.bic_validator import validate_bic_safe
+from camt053.validation.currency_validator import (
+    currency_minor_units,
+)
+from camt053.validation.currency_validator import (
+    validate_currency as _validate_currency,
+)
 from camt053.validation.iban_validator import validate_iban_safe
 from camt053.validation.lei_validator import validate_lei_safe
 from camt053.validation.schema_validator import SchemaValidator
-from camt053.xml.generate_xml import (
-    generate_reversal_for_statement,
-    generate_reversal_xml,
+from camt053.xml.generate_xml import generate_reversal_xml
+from camt053.xml.validate_statement import (
+    validate_statement as _validate_statement,
 )
 
 __all__ = [
     "list_message_types",
     "list_return_reasons",
+    "validate_reason_code",
     "get_input_schema",
     "get_required_fields",
     "validate_records",
     "validate_identifier",
+    "validate_currency",
     "parse_statement",
+    "validate_statement",
     "list_entries",
     "filter_entries",
     "build_reversal",
@@ -91,6 +109,19 @@ def list_return_reasons() -> list[dict[str, str]]:
         A list of ``{"code": ..., "name": ...}`` dictionaries.
     """
     return list_reason_codes()
+
+
+def validate_reason_code(code: str) -> dict[str, Any]:
+    """Validate an ISO external return reason code.
+
+    Args:
+        code: An ISO external return reason code (case-insensitive).
+
+    Returns:
+        ``{"code": str, "name": str, "valid": bool}``. Unknown codes report
+        ``valid=False`` with the generic ``"Unknown reason code"`` name.
+    """
+    return _validate_reason_code(code)
 
 
 def get_input_schema(message_type: str) -> dict[str, Any]:
@@ -180,6 +211,27 @@ def validate_identifier(kind: str, value: str) -> dict[str, Any]:
     return {"kind": key, "value": value, "valid": bool(validator(value))}
 
 
+def validate_currency(code: str) -> dict[str, Any]:
+    """Validate an ISO 4217 alphabetic currency code.
+
+    The check is case-insensitive. The returned ``minor_units`` is the number
+    of decimal places in the currency's subdivision (e.g. EUR=2, JPY=0), or
+    ``None`` when the code is unknown.
+
+    Args:
+        code: A three-letter ISO 4217 currency code.
+
+    Returns:
+        ``{"code": str, "valid": bool, "minor_units": int | None}``.
+    """
+    canonical = (code or "").strip().upper()
+    return {
+        "code": canonical,
+        "valid": _validate_currency(canonical),
+        "minor_units": currency_minor_units(canonical),
+    }
+
+
 def parse_statement(xml: str) -> dict[str, Any]:
     """Parse an incoming camt.05x statement into plain data.
 
@@ -194,6 +246,25 @@ def parse_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed or unrecognised.
     """
     return _parse_document(xml).to_dict()
+
+
+def validate_statement(xml: str) -> dict[str, Any]:
+    """Validate an incoming statement against its official ISO camt XSD.
+
+    Detects the document's message type from its namespace and validates it
+    against the matching official XSD bundled with the package.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Returns:
+        ``{"valid": bool, "message_type": str, "errors": [str, ...]}``.
+
+    Raises:
+        StatementParseError: If the XML is malformed / unrecognised, or no
+            official XSD is bundled for the detected message type.
+    """
+    return _validate_statement(xml)
 
 
 def list_entries(xml: str) -> list[dict[str, Any]]:
@@ -211,29 +282,107 @@ def list_entries(xml: str) -> list[dict[str, Any]]:
     return [e.to_dict() for e in _parse_document(xml).all_entries()]
 
 
+def _parse_amount(value: str | None, label: str) -> Decimal | None:
+    """Parse an amount string into a Decimal, or raise a clear ValueError."""
+    if value is None:
+        return None
+    try:
+        return Decimal(value)
+    except InvalidOperation as exc:
+        raise ValueError(f"Invalid {label} amount: {value!r}.") from exc
+
+
+def _entry_amount(entry: Any) -> Decimal | None:
+    """Return an entry's amount as a Decimal, or None if absent / unparsable."""
+    if not entry.amount:
+        return None
+    try:
+        return Decimal(entry.amount)
+    except InvalidOperation:
+        return None
+
+
+def _check_date(value: str | None, label: str) -> str | None:
+    """Validate an ISO date filter bound, returning its date portion."""
+    if value is None:
+        return None
+    text = value.strip()
+    try:
+        date.fromisoformat(text[:10])
+    except ValueError as exc:
+        raise ValueError(f"Invalid {label} date: {value!r}.") from exc
+    return text[:10]
+
+
 def filter_entries(
-    xml: str, reason_code: str = DEFAULT_REASON_CODE
+    xml: str,
+    reason_code: str | None = DEFAULT_REASON_CODE,
+    *,
+    status: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    min_amount: str | None = None,
+    max_amount: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Return the statement entries carrying a given return reason code.
+    """Return statement entries matching every supplied filter (ANDed).
+
+    Called as before, ``filter_entries(xml)`` keeps the default-AC04 reason
+    behaviour. Passing ``reason_code=None`` (or an empty string) drops the
+    reason filter, so the other criteria can be used on their own.
 
     Args:
         xml: The raw statement XML as a string.
-        reason_code: The ISO external return reason to match (default
-            ``"AC04"`` Closed Account).
+        reason_code: ISO external return reason to match (default ``"AC04"``);
+            ``None`` / empty disables the reason filter.
+        status: If given, only entries with this status (e.g. ``"BOOK"``).
+        date_from: If given, only entries booked on or after this ISO date.
+        date_to: If given, only entries booked on or before this ISO date.
+        min_amount: If given, only entries with an amount >= this value.
+        max_amount: If given, only entries with an amount <= this value.
 
     Returns:
         A list of matching entry dicts.
 
     Raises:
         StatementParseError: If the XML is malformed or unrecognised.
+        ValueError: If a date or amount filter value is invalid.
     """
     document = _parse_document(xml)
-    wanted = reason_code.upper()
+    wanted = reason_code.upper() if reason_code else None
+    wanted_status = status.upper() if status else None
+    low = _parse_amount(min_amount, "minimum")
+    high = _parse_amount(max_amount, "maximum")
+    after = _check_date(date_from, "from")
+    before = _check_date(date_to, "to")
 
     def matches(entry: Any) -> bool:
-        """Return True if the entry carries the wanted return reason code."""
-        codes = {entry.reason_code} | {d.reason_code for d in entry.details}
-        return any((c or "").upper() == wanted for c in codes)
+        """Return True if the entry satisfies every active filter."""
+        if wanted is not None:
+            codes = {entry.reason_code} | {
+                d.reason_code for d in entry.details
+            }
+            if not any((c or "").upper() == wanted for c in codes):
+                return False
+        if wanted_status is not None:
+            if (entry.status or "").upper() != wanted_status:
+                return False
+        if after is not None or before is not None:
+            booked = (entry.booking_date or "")[:10]
+            if not booked:
+                return False
+            if after is not None and booked < after:
+                return False
+            if before is not None and booked > before:
+                return False
+        if low is not None or high is not None:
+            amount = _entry_amount(entry)
+            if amount is None:
+                return False
+            if low is not None and amount < low:
+                return False
+            if high is not None and amount > high:
+                return False
+        return True
 
     return [e.to_dict() for e in document.all_entries() if matches(e)]
 
@@ -243,7 +392,7 @@ def build_reversal(
 ) -> list[dict[str, Any]]:
     """Build the flat reversing-entry records for a statement's matches.
 
-    Parses the statement, selects the first statement's entries with the given
+    Parses the statement, selects every statement's entries with the given
     return reason, and maps them to flat records (without rendering XML).
 
     Args:
@@ -263,8 +412,8 @@ def build_reversal(
         from camt053.exceptions import StatementParseError
 
         raise StatementParseError("Document contains no statement element")
-    return build_reversal_records(
-        document.statements[0], reason_code=reason_code
+    return build_reversal_records_for_statements(
+        document.statements, reason_code=reason_code
     )
 
 
@@ -299,12 +448,13 @@ def generate_reversal(
         from camt053.exceptions import StatementParseError
 
         raise StatementParseError("Document contains no statement element")
-    return generate_reversal_for_statement(
-        document.statements[0],
+    records = build_reversal_records_for_statements(
+        document.statements,
         reason_code=reason_code,
         msg_id=msg_id,
         creation_date_time=creation_date_time,
     )
+    return generate_reversal_xml(records)
 
 
 def generate(records: list[dict[str, Any]]) -> str:
