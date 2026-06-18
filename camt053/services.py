@@ -38,7 +38,12 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from camt053.constants import message_names, valid_xml_types
-from camt053.parse.reason_codes import list_reason_codes
+from camt053.parse.reason_codes import (
+    list_reason_codes,
+)
+from camt053.parse.reason_codes import (
+    validate_reason_code as _validate_reason_code,
+)
 from camt053.parse.statement_parser import parse_document as _parse_document
 from camt053.reversal.reversal import (
     build_reversal_records_for_statements,
@@ -55,6 +60,7 @@ from camt053.xml.validate_statement import (
 __all__ = [
     "list_message_types",
     "list_return_reasons",
+    "validate_reason_code",
     "get_input_schema",
     "get_required_fields",
     "validate_records",
@@ -96,6 +102,19 @@ def list_return_reasons() -> list[dict[str, str]]:
         A list of ``{"code": ..., "name": ...}`` dictionaries.
     """
     return list_reason_codes()
+
+
+def validate_reason_code(code: str) -> dict[str, Any]:
+    """Validate an ISO external return reason code.
+
+    Args:
+        code: An ISO external return reason code (case-insensitive).
+
+    Returns:
+        ``{"code": str, "name": str, "valid": bool}``. Unknown codes report
+        ``valid=False`` with the generic ``"Unknown reason code"`` name.
+    """
+    return _validate_reason_code(code)
 
 
 def get_input_schema(message_type: str) -> dict[str, Any]:

@@ -40,18 +40,52 @@ STATEMENT_CONTAINERS = {
 # The repeated report/statement/notification element inside each container.
 STATEMENT_ELEMENTS = ("Stmt", "Rpt", "Ntfctn")
 
-# ISO 20022 external return reason codes most relevant to reversing entries.
-# AC04 (ClosedAccount) is the headline case: a credit transfer booked against
-# an account that has since been closed must be returned to the debtor.
+# ISO 20022 ExternalReturnReason1Code values, covering the common SEPA and
+# CBPR+ return reasons. AC04 (ClosedAccount) is the headline case: a credit
+# transfer booked against an account that has since been closed must be
+# returned to the debtor. Names follow the official ISO external code set.
 return_reason_names = {
     "AC01": "Incorrect Account Number",
+    "AC02": "Invalid Debtor Account Number",
+    "AC03": "Invalid Creditor Account Number",
     "AC04": "Closed Account Number",
     "AC06": "Blocked Account",
+    "AC13": "Invalid Debtor Account Type",
+    "AC14": "Invalid Creditor Account Type",
     "AG01": "Transaction Forbidden",
+    "AG02": "Invalid Bank Operation Code",
+    "AM01": "Zero Amount",
+    "AM02": "Not Allowed Amount",
+    "AM03": "Not Allowed Currency",
     "AM04": "Insufficient Funds",
+    "AM05": "Duplication",
+    "AM06": "Too Low Amount",
+    "AM07": "Blocked Amount",
+    "AM08": "Non Settled Amount",
+    "AM09": "Wrong Amount",
+    "BE01": "Inconsistent With End Customer",
+    "BE05": "Unrecognised Initiating Party",
+    "CNOR": "Creditor Bank Is Not Registered",
+    "DNOR": "Debtor Bank Is Not Registered",
+    "DT01": "Invalid Date",
+    "ED01": "Correspondent Bank Not Possible",
+    "ED05": "Settlement Failed",
+    "FF01": "Invalid File Format",
+    "MD01": "No Mandate",
+    "MD06": "Refund Request By End Customer",
     "MD07": "End Customer Deceased",
+    "MS02": "Not Specified Reason Customer Generated",
+    "MS03": "Not Specified Reason Agent Generated",
+    "NARR": "Narrative",
+    "NOAS": "No Answer From Customer",
+    "NOOR": "No Original Transaction Received",
+    "RC01": "Bank Identifier Incorrect",
     "RR01": "Missing Debtor Account Or Identification",
+    "RR02": "Missing Debtor Name Or Address",
+    "RR03": "Missing Creditor Name Or Address",
     "RR04": "Regulatory Reason",
+    "SL01": "Specific Service Offered By Debtor Agent",
+    "TM01": "Cut Off Time",
 }
 
 # Credit/debit indicator values and their reversal.

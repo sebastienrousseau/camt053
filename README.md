@@ -145,6 +145,10 @@ so they compose in a pipeline.
   MD07, …), and by **status**, **booking-date range**, and **amount range**
   (all ANDed) via `services.filter_entries(...)` or the `camt053 entries`
   flags.
+- **Return reason codes** — a substantial slice of the ISO 20022
+  `ExternalReturnReason1Code` set (the common SEPA / CBPR+ return reasons),
+  listed via `camt053 reasons`, with case-insensitive lookup through
+  `services.validate_reason_code(code) -> {"code", "name", "valid"}`.
 - **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
   --export {csv,json} [-o file]`); CSV columns are `reference, amount,
   currency, credit_debit_indicator, status, booking_date, value_date,

@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `camt053 entries --export {csv,json}` option, to stdout or a file
   (`-o/--output`); CSV ships a stable, documented column set and an empty
   statement yields a header-only CSV / `[]` JSON (#23)
+- Expand the ISO 20022 `ExternalReturnReason1Code` table to cover the
+  common SEPA / CBPR+ return reasons (AC01–AC14, AG01/AG02, AM01–AM09,
+  BE01/BE05, CNOR/DNOR, DT01, ED01/ED05, FF01, MD01/MD06/MD07, MS02/MS03,
+  NARR/NOAS/NOOR, RC01, RR01–RR04, SL01, TM01) with their official names,
+  and add `services.validate_reason_code(code) -> {"code", "name", "valid"}`
+  (case-insensitive; unknown codes report `valid=False`); the full set is
+  listed by `camt053 reasons` (#12)
 - Give every exception in `camt053.exceptions` a stable, unique class-level
   `code` (e.g. `STATEMENT_PARSE_ERROR`, `REVERSAL_GENERATION_ERROR`) so
   consumers can switch on `exc.code` without depending on class names or

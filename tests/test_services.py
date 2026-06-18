@@ -40,6 +40,16 @@ def test_list_return_reasons():
     assert {"code": "AC04", "name": "Closed Account Number"} in rows
 
 
+def test_validate_reason_code():
+    """The facade validates known/unknown reason codes (#12)."""
+    assert services.validate_reason_code("ac04") == {
+        "code": "AC04",
+        "name": "Closed Account Number",
+        "valid": True,
+    }
+    assert services.validate_reason_code("nope")["valid"] is False
+
+
 def test_get_input_schema_and_required_fields():
     """The input schema and its required fields are available."""
     schema = services.get_input_schema("camt.053.001.14")

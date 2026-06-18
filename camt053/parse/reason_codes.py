@@ -29,7 +29,12 @@ Example:
 
 from camt053.constants import return_reason_names
 
-__all__ = ["describe_reason", "is_known_reason", "list_reason_codes"]
+__all__ = [
+    "describe_reason",
+    "is_known_reason",
+    "list_reason_codes",
+    "validate_reason_code",
+]
 
 
 def describe_reason(code: str) -> str:
@@ -59,3 +64,26 @@ def list_reason_codes() -> list[dict[str, str]]:
         {"code": code, "name": name}
         for code, name in return_reason_names.items()
     ]
+
+
+def validate_reason_code(code: str) -> dict[str, object]:
+    """Validate an ISO external return reason code.
+
+    The lookup is case-insensitive. An unrecognised code is reported as
+    invalid with the generic ``"Unknown reason code"`` name.
+
+    Args:
+        code: An ISO external return reason code (case-insensitive).
+
+    Returns:
+        ``{"code": str, "name": str, "valid": bool}``, where ``code`` is the
+        canonical upper-cased code, ``name`` is its human-readable name (or
+        ``"Unknown reason code"``), and ``valid`` indicates whether the code
+        is recognised.
+    """
+    canonical = (code or "").upper()
+    return {
+        "code": canonical,
+        "name": describe_reason(canonical),
+        "valid": canonical in return_reason_names,
+    }
