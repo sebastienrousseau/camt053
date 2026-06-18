@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `camt053 entries --export {csv,json}` option, to stdout or a file
   (`-o/--output`); CSV ships a stable, documented column set and an empty
   statement yields a header-only CSV / `[]` JSON (#23)
+- Expose amounts as `Decimal` via `Entry.amount_decimal` and
+  `Balance.amount_decimal` (the string `amount` is kept verbatim for XML
+  fidelity; empty/invalid values yield `None`), and add an ISO 4217 currency
+  validator (`camt053.validation.currency_validator` with
+  `validate_currency(code)` and `currency_minor_units(code)`) plus
+  `services.validate_currency(code) -> {"code", "valid", "minor_units"}`
+  (EUR=2, JPY=0, BHD=3, …) (#22)
 - Expand the ISO 20022 `ExternalReturnReason1Code` table to cover the
   common SEPA / CBPR+ return reasons (AC01–AC14, AG01/AG02, AM01–AM09,
   BE01/BE05, CNOR/DNOR, DT01, ED01/ED05, FF01, MD01/MD06/MD07, MS02/MS03,

@@ -85,6 +85,21 @@ def test_validate_identifier():
         services.validate_identifier("ssn", "123")
 
 
+def test_validate_currency():
+    """The facade validates currency codes and reports minor units (#22)."""
+    assert services.validate_currency("eur") == {
+        "code": "EUR",
+        "valid": True,
+        "minor_units": 2,
+    }
+    assert services.validate_currency("JPY")["minor_units"] == 0
+    assert services.validate_currency("ZZZ") == {
+        "code": "ZZZ",
+        "valid": False,
+        "minor_units": None,
+    }
+
+
 def test_parse_statement(statement_xml):
     """Parsing returns the document as plain data."""
     doc = services.parse_statement(statement_xml)

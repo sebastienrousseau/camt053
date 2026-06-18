@@ -24,6 +24,10 @@ from camt053.validation.bic_validator import (
     validate_bic_format,
     validate_bic_safe,
 )
+from camt053.validation.currency_validator import (
+    currency_minor_units,
+    validate_currency,
+)
 from camt053.validation.iban_validator import (
     validate_iban,
     validate_iban_checksum,
@@ -54,6 +58,9 @@ __all__ = [
     "validate_bic",
     "validate_bic_format",
     "validate_bic_safe",
+    # Currency validation
+    "validate_currency",
+    "currency_minor_units",
     # LEI validation
     "validate_lei",
     "validate_lei_format",

@@ -167,6 +167,12 @@ so they compose in a pipeline.
 - **One facade, four interfaces** — the CLI, REST API, MCP server, and LSP
   server all call `camt053.services`.
 - **IBAN / BIC / LEI validators** (ISO 13616 / 9362 / 17442).
+- **Decimal amounts & ISO 4217 currencies** — `Entry.amount_decimal` /
+  `Balance.amount_decimal` parse the string amount into a `Decimal` (the
+  string is kept verbatim for XML fidelity), and
+  `services.validate_currency(code) -> {"code", "valid", "minor_units"}`
+  checks a code against a bundled ISO 4217 set and reports its minor units
+  (EUR=2, JPY=0, …).
 - **Typed** (mypy `--strict`) and **tested** (100% coverage), validated against
   the official ISO 20022 business samples.
 

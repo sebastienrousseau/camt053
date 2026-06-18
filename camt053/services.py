@@ -49,6 +49,12 @@ from camt053.reversal.reversal import (
     build_reversal_records_for_statements,
 )
 from camt053.validation.bic_validator import validate_bic_safe
+from camt053.validation.currency_validator import (
+    currency_minor_units,
+)
+from camt053.validation.currency_validator import (
+    validate_currency as _validate_currency,
+)
 from camt053.validation.iban_validator import validate_iban_safe
 from camt053.validation.lei_validator import validate_lei_safe
 from camt053.validation.schema_validator import SchemaValidator
@@ -65,6 +71,7 @@ __all__ = [
     "get_required_fields",
     "validate_records",
     "validate_identifier",
+    "validate_currency",
     "parse_statement",
     "validate_statement",
     "list_entries",
@@ -202,6 +209,27 @@ def validate_identifier(kind: str, value: str) -> dict[str, Any]:
             f"Expected one of: {supported}."
         )
     return {"kind": key, "value": value, "valid": bool(validator(value))}
+
+
+def validate_currency(code: str) -> dict[str, Any]:
+    """Validate an ISO 4217 alphabetic currency code.
+
+    The check is case-insensitive. The returned ``minor_units`` is the number
+    of decimal places in the currency's subdivision (e.g. EUR=2, JPY=0), or
+    ``None`` when the code is unknown.
+
+    Args:
+        code: A three-letter ISO 4217 currency code.
+
+    Returns:
+        ``{"code": str, "valid": bool, "minor_units": int | None}``.
+    """
+    canonical = (code or "").strip().upper()
+    return {
+        "code": canonical,
+        "valid": _validate_currency(canonical),
+        "minor_units": currency_minor_units(canonical),
+    }
 
 
 def parse_statement(xml: str) -> dict[str, Any]:

@@ -32,7 +32,27 @@ Example:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 from typing import Any
+
+
+def _to_decimal(amount: str | None) -> Decimal | None:
+    """Parse an amount string into a :class:`~decimal.Decimal`.
+
+    Args:
+        amount: The amount as a string (as carried in the XML), or ``None``.
+
+    Returns:
+        The parsed ``Decimal``, or ``None`` if the value is empty or cannot
+        be parsed as a number.
+    """
+    if not amount:
+        return None
+    try:
+        return Decimal(amount)
+    except InvalidOperation:
+        return None
+
 
 __all__ = [
     "Account",
@@ -78,6 +98,15 @@ class Balance:
     currency: str | None = None
     credit_debit_indicator: str | None = None
     date: str | None = None
+
+    @property
+    def amount_decimal(self) -> Decimal | None:
+        """Return :attr:`amount` as a ``Decimal``, or ``None`` if invalid.
+
+        The string :attr:`amount` is preserved for XML fidelity; this is a
+        convenience for arithmetic. Empty or unparsable values yield ``None``.
+        """
+        return _to_decimal(self.amount)
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serialisable representation."""
@@ -135,6 +164,15 @@ class Entry:
     reversal_indicator: bool = False
     reason_code: str | None = None
     details: list[TransactionDetails] = field(default_factory=list)
+
+    @property
+    def amount_decimal(self) -> Decimal | None:
+        """Return :attr:`amount` as a ``Decimal``, or ``None`` if invalid.
+
+        The string :attr:`amount` is preserved for XML fidelity; this is a
+        convenience for arithmetic. Empty or unparsable values yield ``None``.
+        """
+        return _to_decimal(self.amount)
 
     def is_returnable(self) -> bool:
         """Return ``True`` if this entry carries any return reason code."""
