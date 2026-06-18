@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Re-serialise a parsed statement back to camt.053 XML (round-trip): a new
+  `camt053.xml.serialize_statement` module renders a parsed `ParsedDocument` /
+  `Statement` back to a validated `camt.053.001.14` document via a Jinja2
+  statement template, exposed as `services.serialize_statement(xml)` and
+  `camt053.serialize_document` / `camt053.serialize_statement`. The output is
+  deterministic and round-trip stable:
+  `parse_document(serialize_statement(parse_document(xml)))` preserves the
+  account, balances, and entries (references, amounts, currencies,
+  credit/debit indicators, and return reasons); schema-mandatory elements
+  absent from the source are filled with safe defaults so the document still
+  validates against the bundled XSD (#18)
 - SWIFT charset cleansing of name / narrative fields (`Nm` / `AddtlInf` /
   party / counterparty names) bound for SWIFT FIN / CBPR+ rails: a new
   `camt053.compliance` module transliterates or strips characters outside the

@@ -68,6 +68,9 @@ from camt053.validation.iban_validator import validate_iban_safe
 from camt053.validation.lei_validator import validate_lei_safe
 from camt053.validation.schema_validator import SchemaValidator
 from camt053.xml.generate_xml import generate_reversal_xml
+from camt053.xml.serialize_statement import (
+    serialize_document as _serialize_document,
+)
 from camt053.xml.validate_statement import (
     validate_statement as _validate_statement,
 )
@@ -84,6 +87,7 @@ __all__ = [
     "validate_identifier",
     "validate_currency",
     "parse_statement",
+    "serialize_statement",
     "validate_statement",
     "list_entries",
     "filter_entries",
@@ -301,6 +305,30 @@ def parse_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed or unrecognised.
     """
     return _parse_document(xml).to_dict()
+
+
+def serialize_statement(xml: str) -> str:
+    """Round-trip a statement: parse it, then re-serialise it to camt.053 XML.
+
+    Parses the incoming camt.05x statement into the typed model and renders it
+    back to a validated ``camt.053.001.14`` document. The result is
+    deterministic and preserves the account, balances, and entries (their
+    references, amounts, currencies, credit/debit indicators, and return
+    reasons), so ``parse_statement(serialize_statement(xml))`` reproduces the
+    same parsed data.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Returns:
+        The re-serialised, XSD-validated camt.053.001.14 document as a string.
+
+    Raises:
+        StatementParseError: If the XML is malformed or unrecognised.
+        XMLGenerationError: If the document carries no statement or the
+            rendered XML does not validate against the bundled XSD.
+    """
+    return _serialize_document(_parse_document(xml))
 
 
 def validate_statement(xml: str) -> dict[str, Any]:

@@ -189,6 +189,13 @@ so they compose in a pipeline.
   `camt053 validate` command) check an inbound camt.052 / camt.053 / camt.054
   document against the matching **official ISO 20022 XSD**, detected from its
   namespace, returning `{"valid", "message_type", "errors"}`.
+- **Re-serialise (round-trip)** — render a parsed `ParsedDocument` / `Statement`
+  back to a validated `camt.053.001.14` document via
+  `services.serialize_statement(xml)` (or `camt053.serialize_document(doc)` /
+  `camt053.serialize_statement(stmt)`). The output is **deterministic** and
+  round-trip stable: `parse_document(serialize_statement(parse_document(xml)))`
+  preserves the account, balances, and entries (references, amounts,
+  currencies, credit/debit indicators, and return reasons).
 - **Safe by default** — XML is parsed with `defusedxml` (XXE / billion-laughs
   safe); output paths are traversal-checked.
 - **One facade, four interfaces** — the CLI, REST API, MCP server, and LSP
