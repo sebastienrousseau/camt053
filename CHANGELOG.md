@@ -49,6 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consumers can switch on `exc.code` without depending on class names or
   message text; documented as a code → meaning table in the module
   docstring and the README (#30)
+- Add a security policy (`SECURITY.md`) describing supported versions and the
+  coordinated-disclosure process, a Dependabot configuration keeping the `pip`
+  and `github-actions` ecosystems up to date weekly, and a weekly CodeQL code
+  scanning workflow for Python (#14)
 
 ### Fixed
 
