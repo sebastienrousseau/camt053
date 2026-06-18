@@ -123,10 +123,13 @@ camt053 entries -i statement.xml -r AC04
 # Inspect the parsed statement as JSON, or validate an identifier
 camt053 parse -i statement.xml
 camt053 validate-id -k iban -v GB29NWBK60161331926819
+
+# Validate an incoming statement against its official ISO camt XSD
+camt053 validate -i statement.xml
 ```
 
-`parse`, `entries`, and `reverse` accept `-i -` to read from stdin, so they
-compose in a pipeline.
+`parse`, `entries`, `reverse`, and `validate` accept `-i -` to read from stdin,
+so they compose in a pipeline.
 
 ## Features
 
@@ -140,6 +143,10 @@ compose in a pipeline.
   in `RtrInf`), in one call.
 - **Validated output** — generated reversals are checked against the **official
   ISO 20022 `camt.053.001.14` XSD** bundled with the package.
+- **Validate incoming statements** — `services.validate_statement(xml)` (and the
+  `camt053 validate` command) check an inbound camt.052 / camt.053 / camt.054
+  document against the matching **official ISO 20022 XSD**, detected from its
+  namespace, returning `{"valid", "message_type", "errors"}`.
 - **Safe by default** — XML is parsed with `defusedxml` (XXE / billion-laughs
   safe); output paths are traversal-checked.
 - **One facade, four interfaces** — the CLI, REST API, MCP server, and LSP

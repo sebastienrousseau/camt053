@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ship a PEP 561 `py.typed` marker so downstream projects pick up the
   library's inline type hints (#3)
+- `services.validate_statement(xml)` and a `camt053 validate` CLI command
+  that validate an incoming camt.052 / camt.053 / camt.054 document against
+  the matching official ISO 20022 XSD (detected from its namespace),
+  returning a `{"valid", "message_type", "errors"}` report (#17)
 
 ### Fixed
 

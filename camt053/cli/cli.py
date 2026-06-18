@@ -105,6 +105,36 @@ def parse(input_file: str) -> None:
     console.print_json(json.dumps(document))
 
 
+@main.command("validate")
+@click.option(
+    "-i",
+    "--input",
+    "input_file",
+    required=True,
+    help="Path to the statement XML file ('-' for stdin).",
+)
+def validate(input_file: str) -> None:
+    """Validate a statement against its official ISO camt XSD."""
+    try:
+        report = services.validate_statement(_read_input(input_file))
+    except (OSError, Camt053Error) as exc:
+        console.print(f"[bold red]✗ Validation failed:[/bold red] {exc}")
+        sys.exit(1)
+
+    message_type = report["message_type"]
+    if report["valid"]:
+        console.print(f"[bold green]✓ Valid {message_type}[/bold green]")
+        return
+
+    console.print(
+        f"[bold red]✗ Invalid {message_type}[/bold red] "
+        f"({len(report['errors'])} error(s))"
+    )
+    for error in report["errors"]:
+        console.print(f"  [red]•[/red] {error}")
+    sys.exit(1)
+
+
 @main.command("entries")
 @click.option(
     "-i",

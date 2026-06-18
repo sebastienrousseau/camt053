@@ -15,9 +15,19 @@
 
 """Tests for the command-line interface."""
 
+import os
+
 from click.testing import CliRunner
 
 from camt053.cli.cli import main
+
+GOLD = os.path.join(os.path.dirname(__file__), "gold_master")
+
+_INVALID_DOC = (
+    '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.04">'
+    "<BkToCstmrStmt><GrpHdr></GrpHdr><Stmt></Stmt></BkToCstmrStmt>"
+    "</Document>"
+)
 
 
 def _write(tmp_path, name, content):
@@ -55,6 +65,34 @@ def test_entries_command_filtered(tmp_path, statement_xml):
     result = CliRunner().invoke(main, ["entries", "-i", path, "-r", "AC04"])
     assert result.exit_code == 0
     assert "1 entry" in result.output
+
+
+def test_validate_command_valid(tmp_path):
+    """The validate command exits 0 for a schema-valid statement."""
+    with open(
+        os.path.join(GOLD, "business_sample_camt.053.001.04.xml"),
+        encoding="utf-8",
+    ) as handle:
+        xml = handle.read()
+    path = _write(tmp_path, "stmt.xml", xml)
+    result = CliRunner().invoke(main, ["validate", "-i", path])
+    assert result.exit_code == 0
+    assert "Valid camt.053.001.04" in result.output
+
+
+def test_validate_command_invalid(tmp_path):
+    """The validate command exits 1 and lists errors for an invalid doc."""
+    path = _write(tmp_path, "bad.xml", _INVALID_DOC)
+    result = CliRunner().invoke(main, ["validate", "-i", path])
+    assert result.exit_code == 1
+    assert "Invalid camt.053.001.04" in result.output
+
+
+def test_validate_command_bad_file():
+    """The validate command exits non-zero on a missing file."""
+    result = CliRunner().invoke(main, ["validate", "-i", "/no/such/file.xml"])
+    assert result.exit_code == 1
+    assert "Validation failed" in result.output
 
 
 def test_parse_command(tmp_path, statement_xml):

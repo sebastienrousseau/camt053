@@ -46,6 +46,9 @@ from camt053.validation.iban_validator import validate_iban_safe
 from camt053.validation.lei_validator import validate_lei_safe
 from camt053.validation.schema_validator import SchemaValidator
 from camt053.xml.generate_xml import generate_reversal_xml
+from camt053.xml.validate_statement import (
+    validate_statement as _validate_statement,
+)
 
 __all__ = [
     "list_message_types",
@@ -55,6 +58,7 @@ __all__ = [
     "validate_records",
     "validate_identifier",
     "parse_statement",
+    "validate_statement",
     "list_entries",
     "filter_entries",
     "build_reversal",
@@ -193,6 +197,25 @@ def parse_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed or unrecognised.
     """
     return _parse_document(xml).to_dict()
+
+
+def validate_statement(xml: str) -> dict[str, Any]:
+    """Validate an incoming statement against its official ISO camt XSD.
+
+    Detects the document's message type from its namespace and validates it
+    against the matching official XSD bundled with the package.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Returns:
+        ``{"valid": bool, "message_type": str, "errors": [str, ...]}``.
+
+    Raises:
+        StatementParseError: If the XML is malformed / unrecognised, or no
+            official XSD is bundled for the detected message type.
+    """
+    return _validate_statement(xml)
 
 
 def list_entries(xml: str) -> list[dict[str, Any]]:

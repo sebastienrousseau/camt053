@@ -8,6 +8,7 @@ BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__))).resolve()
 VERSION = "0.0.1"
 SCHEMAS_DIR = BASE_DIR / "schemas"
 TEMPLATES_DIR = BASE_DIR / "templates"
+XSD_DIR = BASE_DIR / "xsd"
 
 # Cash-management messages this library can read (parse) and, for the
 # statement message, write (the reversing entry is emitted as a camt.053).
@@ -86,6 +87,7 @@ __all__ = [
     "STATEMENT_ELEMENTS",
     "TEMPLATES_DIR",
     "VERSION",
+    "XSD_DIR",
     "message_names",
     "return_reason_names",
     "reverse_credit_debit",
