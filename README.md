@@ -245,6 +245,39 @@ flowchart TD
 | `camt053.security` | XXE-safe parsing and path-traversal-checked output |
 | `camt053.services` | The shared facade backing every interface |
 
+## Error handling
+
+Every exception in [`camt053.exceptions`](camt053/exceptions.py) inherits from
+`Camt053Error` and carries a stable, machine-readable `code`. These codes are
+part of the public API — they are guaranteed unique and will not change across
+releases — so you can switch on `exc.code` (e.g. to map a failure onto an HTTP
+status) without depending on the class name or message text.
+
+| Code | Exception | Meaning |
+|------|-----------|---------|
+| `CAMT053_ERROR` | `Camt053Error` | Base error for any Camt053 failure |
+| `ACCOUNT_VALIDATION_ERROR` | `AccountValidationError` | Account/input data failed validation |
+| `XML_GENERATION_ERROR` | `XMLGenerationError` | XML rendering or template failure |
+| `CONFIGURATION_ERROR` | `ConfigurationError` | Invalid configuration or CLI arguments |
+| `DATA_SOURCE_ERROR` | `DataSourceError` | A data source could not be read |
+| `SCHEMA_VALIDATION_ERROR` | `SchemaValidationError` | XML did not conform to its ISO 20022 XSD |
+| `INVALID_IBAN_ERROR` | `InvalidIBANError` | IBAN format / checksum validation failed |
+| `INVALID_BIC_ERROR` | `InvalidBICError` | BIC/SWIFT format validation failed |
+| `INVALID_LEI_ERROR` | `InvalidLEIError` | LEI format / checksum validation failed |
+| `MISSING_REQUIRED_FIELD_ERROR` | `MissingRequiredFieldError` | A required field was absent |
+| `STATEMENT_PARSE_ERROR` | `StatementParseError` | An incoming statement could not be parsed |
+| `REVERSAL_GENERATION_ERROR` | `ReversalGenerationError` | A reversing entry could not be generated |
+
+```python
+from camt053 import services
+from camt053.exceptions import Camt053Error
+
+try:
+    services.generate_reversal(statement_xml, reason_code="AC04")
+except Camt053Error as exc:
+    log.error("[%s] %s", exc.code, exc)
+```
+
 ## Examples
 
 Runnable, self-contained scripts live in [`examples/`](examples/):

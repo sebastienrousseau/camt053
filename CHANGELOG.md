@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `camt053 entries --export {csv,json}` option, to stdout or a file
   (`-o/--output`); CSV ships a stable, documented column set and an empty
   statement yields a header-only CSV / `[]` JSON (#23)
+- Give every exception in `camt053.exceptions` a stable, unique class-level
+  `code` (e.g. `STATEMENT_PARSE_ERROR`, `REVERSAL_GENERATION_ERROR`) so
+  consumers can switch on `exc.code` without depending on class names or
+  message text; documented as a code → meaning table in the module
+  docstring and the README (#30)
 
 ### Fixed
 
