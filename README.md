@@ -153,6 +153,14 @@ so they compose in a pipeline.
   `ExternalReturnReason1Code` set (the common SEPA / CBPR+ return reasons),
   listed via `camt053 reasons`, with case-insensitive lookup through
   `services.validate_reason_code(code) -> {"code", "name", "valid"}`.
+- **Reason-code action policy** — classify a return reason into a handling
+  action (`"return"`, `"retry"`, or `"ignore"`) via
+  `services.classify_reason(code) -> {"code", "name", "action"}`, with a
+  sensible built-in default (account-level rejections return, transient
+  conditions such as `AM04` / `AM05` retry, informational reasons ignore). The
+  full mapping is `services.reason_policy()`; both accept an `overrides`
+  mapping and a custom `default`. The `camt053 reasons` table shows the action
+  column and `camt053 classify -r AC04` classifies a single code.
 - **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
   --export {csv,json} [-o file]`); CSV columns are `reference, amount,
   currency, credit_debit_indicator, status, booking_date, value_date,
@@ -166,10 +174,28 @@ so they compose in a pipeline.
   in `RtrInf`), in one call.
 - **Validated output** — generated reversals are checked against the **official
   ISO 20022 `camt.053.001.14` XSD** bundled with the package.
+- **SWIFT charset cleansing** — opt-in cleansing of the name / narrative fields
+  (`Nm` / `AddtlInf` / party / counterparty names) bound for SWIFT FIN / CBPR+
+  rails: characters outside the **SWIFT X** set are transliterated (`é` → `e`,
+  `ß` → `ss`, smart quotes / dashes folded) or stripped, and field maximum
+  lengths are enforced. Enable it on the reversal path with
+  `services.generate_reversal(xml, cleanse=True)` /
+  `services.generate(records, cleanse=True)` (default off, so existing output
+  is unchanged), or cleanse records directly with
+  `services.cleanse_records(records) -> {"changed", "fields": [report, ...]}`,
+  which returns an audit report of exactly what changed. Cleansed reversals
+  still validate against the bundled XSD.
 - **Validate incoming statements** — `services.validate_statement(xml)` (and the
   `camt053 validate` command) check an inbound camt.052 / camt.053 / camt.054
   document against the matching **official ISO 20022 XSD**, detected from its
   namespace, returning `{"valid", "message_type", "errors"}`.
+- **Re-serialise (round-trip)** — render a parsed `ParsedDocument` / `Statement`
+  back to a validated `camt.053.001.14` document via
+  `services.serialize_statement(xml)` (or `camt053.serialize_document(doc)` /
+  `camt053.serialize_statement(stmt)`). The output is **deterministic** and
+  round-trip stable: `parse_document(serialize_statement(parse_document(xml)))`
+  preserves the account, balances, and entries (references, amounts,
+  currencies, credit/debit indicators, and return reasons).
 - **Safe by default** — XML is parsed with `defusedxml` (XXE / billion-laughs
   safe); output paths are traversal-checked.
 - **One facade, four interfaces** — the CLI, REST API, MCP server, and LSP
@@ -295,6 +321,27 @@ try:
 except Camt053Error as exc:
     log.error("[%s] %s", exc.code, exc)
 ```
+
+## Robustness
+
+The statement parser is built for the messy reality of inbound bank files:
+malformed-but-recoverable statements degrade gracefully rather than failing
+outright.
+
+- **Missing optional elements** (owner name, currency, balances, booking date,
+  return reason, ...) read as `None` / empty — only the `<Document>` envelope
+  wrapping a recognised camt.05x container is mandatory.
+- **Unknown or extra elements** (vendor extensions, unexpected siblings) are
+  ignored: children are matched by local name, not by a fixed schema.
+- **Unexpected namespaces and prefixes** are tolerated — a prefixed
+  `<camt:Document>` root, a missing namespace, or a non-ISO namespace URI all
+  parse the same way.
+
+Genuinely non-well-formed XML (unclosed / mismatched tags, bad entities) still
+raises `StatementParseError`, which carries the 1-based source `line` (and
+column, where reported) so the offending byte can be located. See
+[`camt053/parse/statement_parser.py`](camt053/parse/statement_parser.py) for
+the documented recovery limits.
 
 ## Examples
 

@@ -88,6 +88,45 @@ return_reason_names = {
     "TM01": "Cut Off Time",
 }
 
+# Handling actions a return reason can be classified into. ``return`` sends the
+# funds back to the originator (the headline reversal flow), ``retry`` re-tries
+# the transaction (transient conditions such as insufficient funds), and
+# ``ignore`` records the reason without acting on it.
+REASON_ACTIONS = ("return", "retry", "ignore")
+
+# The action used for any reason code not named in ``_REASON_ACTION_POLICY``.
+DEFAULT_REASON_ACTION = "return"
+
+# Built-in mapping of ISO external return reason codes to a handling action.
+# Account-level rejections (closed / blocked / invalid account) are returned;
+# transient conditions (insufficient funds, duplicates, cut-off) are retried;
+# purely informational reasons are ignored. Codes not listed fall back to
+# ``DEFAULT_REASON_ACTION``.
+_REASON_ACTION_POLICY = {
+    "AC01": "return",
+    "AC02": "return",
+    "AC03": "return",
+    "AC04": "return",
+    "AC06": "return",
+    "AC13": "return",
+    "AC14": "return",
+    "AG01": "return",
+    "AM04": "retry",
+    "AM05": "retry",
+    "AM07": "retry",
+    "ED05": "retry",
+    "TM01": "retry",
+    "NARR": "ignore",
+    "MS02": "ignore",
+    "MS03": "ignore",
+}
+
+
+def reason_action_policy() -> dict[str, str]:
+    """Return a copy of the built-in reason-code action policy."""
+    return dict(_REASON_ACTION_POLICY)
+
+
 # Credit/debit indicator values and their reversal.
 CREDIT = "CRDT"
 DEBIT = "DBIT"
@@ -115,6 +154,8 @@ __all__ = [
     "BASE_DIR",
     "CREDIT",
     "DEBIT",
+    "DEFAULT_REASON_ACTION",
+    "REASON_ACTIONS",
     "REVERSAL_MESSAGE_TYPE",
     "SCHEMAS_DIR",
     "STATEMENT_CONTAINERS",
@@ -123,6 +164,7 @@ __all__ = [
     "VERSION",
     "XSD_DIR",
     "message_names",
+    "reason_action_policy",
     "return_reason_names",
     "reverse_credit_debit",
     "valid_xml_types",

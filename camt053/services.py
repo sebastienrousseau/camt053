@@ -37,9 +37,18 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from camt053.compliance.swift_charset import (
+    cleanse_records as _cleanse_records,
+)
 from camt053.constants import message_names, valid_xml_types
 from camt053.parse.reason_codes import (
+    classify_reason as _classify_reason,
+)
+from camt053.parse.reason_codes import (
     list_reason_codes,
+)
+from camt053.parse.reason_codes import (
+    reason_policy as _reason_policy,
 )
 from camt053.parse.reason_codes import (
     validate_reason_code as _validate_reason_code,
@@ -59,6 +68,9 @@ from camt053.validation.iban_validator import validate_iban_safe
 from camt053.validation.lei_validator import validate_lei_safe
 from camt053.validation.schema_validator import SchemaValidator
 from camt053.xml.generate_xml import generate_reversal_xml
+from camt053.xml.serialize_statement import (
+    serialize_document as _serialize_document,
+)
 from camt053.xml.validate_statement import (
     validate_statement as _validate_statement,
 )
@@ -67,16 +79,20 @@ __all__ = [
     "list_message_types",
     "list_return_reasons",
     "validate_reason_code",
+    "classify_reason",
+    "reason_policy",
     "get_input_schema",
     "get_required_fields",
     "validate_records",
     "validate_identifier",
     "validate_currency",
     "parse_statement",
+    "serialize_statement",
     "validate_statement",
     "list_entries",
     "filter_entries",
     "build_reversal",
+    "cleanse_records",
     "generate_reversal",
     "generate",
 ]
@@ -122,6 +138,49 @@ def validate_reason_code(code: str) -> dict[str, Any]:
         ``valid=False`` with the generic ``"Unknown reason code"`` name.
     """
     return _validate_reason_code(code)
+
+
+def classify_reason(
+    code: str,
+    overrides: dict[str, str] | None = None,
+    default: str | None = None,
+) -> dict[str, str]:
+    """Classify a return reason code into a handling action.
+
+    Maps an ISO external return reason code to ``"return"``, ``"retry"``, or
+    ``"ignore"`` using the built-in policy (account-level rejections return,
+    transient conditions retry, informational reasons ignore). The lookup is
+    case-insensitive; unknown / unmapped codes resolve to ``default``.
+
+    Args:
+        code: An ISO external return reason code (case-insensitive).
+        overrides: Optional code -> action mapping taking precedence over the
+            built-in policy (keys matched case-insensitively).
+        default: The action for codes the policy / overrides do not cover
+            (defaults to ``"return"``).
+
+    Returns:
+        ``{"code": str, "name": str, "action": str}``.
+    """
+    return _classify_reason(code, overrides=overrides, default=default)
+
+
+def reason_policy(
+    overrides: dict[str, str] | None = None,
+    default: str | None = None,
+) -> dict[str, Any]:
+    """Return the full reason-code action policy.
+
+    Args:
+        overrides: Optional code -> action mapping taking precedence over the
+            built-in policy (keys matched case-insensitively).
+        default: The action for codes the policy / overrides do not cover
+            (defaults to ``"return"``).
+
+    Returns:
+        ``{"default": str, "actions": [str, ...], "policy": {code: action}}``.
+    """
+    return _reason_policy(overrides=overrides, default=default)
 
 
 def get_input_schema(message_type: str) -> dict[str, Any]:
@@ -246,6 +305,30 @@ def parse_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed or unrecognised.
     """
     return _parse_document(xml).to_dict()
+
+
+def serialize_statement(xml: str) -> str:
+    """Round-trip a statement: parse it, then re-serialise it to camt.053 XML.
+
+    Parses the incoming camt.05x statement into the typed model and renders it
+    back to a validated ``camt.053.001.14`` document. The result is
+    deterministic and preserves the account, balances, and entries (their
+    references, amounts, currencies, credit/debit indicators, and return
+    reasons), so ``parse_statement(serialize_statement(xml))`` reproduces the
+    same parsed data.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Returns:
+        The re-serialised, XSD-validated camt.053.001.14 document as a string.
+
+    Raises:
+        StatementParseError: If the XML is malformed or unrecognised.
+        XMLGenerationError: If the document carries no statement or the
+            rendered XML does not validate against the bundled XSD.
+    """
+    return _serialize_document(_parse_document(xml))
 
 
 def validate_statement(xml: str) -> dict[str, Any]:
@@ -417,11 +500,37 @@ def build_reversal(
     )
 
 
+def cleanse_records(
+    records: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Cleanse the SWIFT-constrained fields of reversing-entry records.
+
+    Transliterates or strips characters outside the SWIFT X charset and
+    enforces the maximum length of every name / narrative field (``Nm`` /
+    ``AddtlInf`` / party / counterparty names), mutating the records in place
+    so they are safe to render onto SWIFT FIN / CBPR+ rails.
+
+    Args:
+        records: The flat reversing-entry records to cleanse in place.
+
+    Returns:
+        ``{"changed": int, "fields": [report, ...]}`` where each report is a
+        :meth:`~camt053.compliance.swift_charset.FieldCleansing.to_dict` of a
+        field whose value was altered (unchanged fields are omitted).
+    """
+    reports = _cleanse_records(records)
+    return {
+        "changed": len(reports),
+        "fields": [report.to_dict() for report in reports],
+    }
+
+
 def generate_reversal(
     xml: str,
     reason_code: str = DEFAULT_REASON_CODE,
     msg_id: str | None = None,
     creation_date_time: str | None = None,
+    cleanse: bool = False,
 ) -> str:
     """Read a statement and generate a validated reversing-entry document.
 
@@ -435,6 +544,9 @@ def generate_reversal(
             ``"AC04"``).
         msg_id: Optional reversal group-header message id.
         creation_date_time: Optional ISO 8601 timestamp for the reversal.
+        cleanse: Opt-in SWIFT charset cleansing of the reversal's name /
+            narrative fields before rendering (default ``False``, leaving the
+            existing output byte-for-byte unchanged).
 
     Returns:
         The validated camt.053.001.08 reversal document as a string.
@@ -454,10 +566,12 @@ def generate_reversal(
         msg_id=msg_id,
         creation_date_time=creation_date_time,
     )
+    if cleanse:
+        _cleanse_records(records)
     return generate_reversal_xml(records)
 
 
-def generate(records: list[dict[str, Any]]) -> str:
+def generate(records: list[dict[str, Any]], cleanse: bool = False) -> str:
     """Render flat reversing-entry records into validated camt.053 XML.
 
     The in-process entry point for callers that already hold reversing-entry
@@ -465,6 +579,8 @@ def generate(records: list[dict[str, Any]]) -> str:
 
     Args:
         records: One or more flat reversing-entry records.
+        cleanse: Opt-in SWIFT charset cleansing of the records' name /
+            narrative fields before rendering (default ``False``).
 
     Returns:
         The validated camt.053.001.08 reversal document as a string.
@@ -472,6 +588,8 @@ def generate(records: list[dict[str, Any]]) -> str:
     Raises:
         ReversalGenerationError: If records are empty or validation fails.
     """
+    if cleanse:
+        _cleanse_records(records)
     return generate_reversal_xml(records)
 
 

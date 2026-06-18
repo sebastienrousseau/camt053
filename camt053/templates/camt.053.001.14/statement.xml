@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.14"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<BkToCstmrStmt>
+		<GrpHdr>
+			<MsgId>{{msg_id}}</MsgId>
+			<CreDtTm>{{creation_date_time}}</CreDtTm>
+		</GrpHdr>
+		{% for stmt in statements %}
+		<Stmt>
+			<Id>{{stmt.id}}</Id>
+			{% if stmt.electronic_seq_nb %}<ElctrncSeqNb>{{stmt.electronic_seq_nb}}</ElctrncSeqNb>{% endif %}
+			{% if stmt.creation_date_time %}<CreDtTm>{{stmt.creation_date_time}}</CreDtTm>{% endif %}
+			<Acct>
+				{% if stmt.account_id %}<Id>{% if stmt.account_iban %}<IBAN>{{stmt.account_iban}}</IBAN>{% else %}<Othr><Id>{{stmt.account_other_id}}</Id></Othr>{% endif %}</Id>{% endif %}
+				{% if stmt.account_currency %}<Ccy>{{stmt.account_currency}}</Ccy>{% endif %}
+				{% if stmt.account_owner_name %}<Ownr><Nm>{{stmt.account_owner_name}}</Nm></Ownr>{% endif %}
+				{% if stmt.account_servicer_bic %}<Svcr><FinInstnId><BICFI>{{stmt.account_servicer_bic}}</BICFI></FinInstnId></Svcr>{% endif %}
+			</Acct>
+			{% for bal in stmt.balances %}
+			<Bal>
+				<Tp><CdOrPrtry><Cd>{{bal.type_code}}</Cd></CdOrPrtry></Tp>
+				<Amt Ccy="{{bal.currency}}">{{bal.amount}}</Amt>
+				<CdtDbtInd>{{bal.credit_debit_indicator}}</CdtDbtInd>
+				<Dt>{% if bal.is_datetime %}<DtTm>{{bal.date}}</DtTm>{% else %}<Dt>{{bal.date}}</Dt>{% endif %}</Dt>
+			</Bal>
+			{% endfor %}
+			{% for ntry in stmt.entries %}
+			<Ntry>
+				{% if ntry.reference %}<NtryRef>{{ntry.reference}}</NtryRef>{% endif %}
+				<Amt Ccy="{{ntry.currency}}">{{ntry.amount}}</Amt>
+				<CdtDbtInd>{{ntry.credit_debit_indicator}}</CdtDbtInd>
+				{% if ntry.reversal_indicator %}<RvslInd>true</RvslInd>{% endif %}
+				<Sts><Cd>{{ntry.status}}</Cd></Sts>
+				{% if ntry.booking_date %}<BookgDt>{% if ntry.booking_is_datetime %}<DtTm>{{ntry.booking_date}}</DtTm>{% else %}<Dt>{{ntry.booking_date}}</Dt>{% endif %}</BookgDt>{% endif %}
+				{% if ntry.value_date %}<ValDt>{% if ntry.value_is_datetime %}<DtTm>{{ntry.value_date}}</DtTm>{% else %}<Dt>{{ntry.value_date}}</Dt>{% endif %}</ValDt>{% endif %}
+				{% if ntry.account_servicer_ref %}<AcctSvcrRef>{{ntry.account_servicer_ref}}</AcctSvcrRef>{% endif %}
+				<BkTxCd>
+					<Domn>
+						<Cd>PMNT</Cd>
+						<Fmly>
+							<Cd>RCDT</Cd>
+							<SubFmlyCd>RRTN</SubFmlyCd>
+						</Fmly>
+					</Domn>
+				</BkTxCd>
+				{% for tx in ntry.details %}
+				<NtryDtls>
+					<TxDtls>
+						{% if tx.instruction_id or tx.end_to_end_id or tx.tx_id %}
+						<Refs>
+							{% if tx.instruction_id %}<InstrId>{{tx.instruction_id}}</InstrId>{% endif %}
+							{% if tx.end_to_end_id %}<EndToEndId>{{tx.end_to_end_id}}</EndToEndId>{% endif %}
+							{% if tx.tx_id %}<TxId>{{tx.tx_id}}</TxId>{% endif %}
+						</Refs>
+						{% endif %}
+						{% if tx.counterparty_name or tx.counterparty_account %}
+						<RltdPties>
+							{% if tx.counterparty_name %}<Dbtr><Pty><Nm>{{tx.counterparty_name}}</Nm></Pty></Dbtr>{% endif %}
+							{% if tx.counterparty_account %}<DbtrAcct><Id><IBAN>{{tx.counterparty_account}}</IBAN></Id></DbtrAcct>{% endif %}
+						</RltdPties>
+						{% endif %}
+						{% if tx.reason_code or tx.additional_info %}
+						<RtrInf>
+							{% if tx.reason_code %}<Rsn><Cd>{{tx.reason_code}}</Cd></Rsn>{% endif %}
+							{% if tx.additional_info %}<AddtlInf>{{tx.additional_info}}</AddtlInf>{% endif %}
+						</RtrInf>
+						{% endif %}
+					</TxDtls>
+				</NtryDtls>
+				{% endfor %}
+			</Ntry>
+			{% endfor %}
+		</Stmt>
+		{% endfor %}
+	</BkToCstmrStmt>
+</Document>

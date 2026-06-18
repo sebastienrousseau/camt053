@@ -17,9 +17,11 @@
 
 from camt053.constants import return_reason_names, reverse_credit_debit
 from camt053.parse.reason_codes import (
+    classify_reason,
     describe_reason,
     is_known_reason,
     list_reason_codes,
+    reason_policy,
     validate_reason_code,
 )
 
@@ -126,6 +128,69 @@ def test_validate_reason_code_unknown():
     empty = validate_reason_code("")
     assert empty["valid"] is False
     assert empty["code"] == ""
+
+
+def test_classify_reason_default_actions():
+    """Built-in policy maps codes to sensible default actions (#24)."""
+    assert classify_reason("AC04") == {
+        "code": "AC04",
+        "name": "Closed Account Number",
+        "action": "return",
+    }
+    assert classify_reason("AM04")["action"] == "retry"
+    assert classify_reason("AM05")["action"] == "retry"
+    assert classify_reason("NARR")["action"] == "ignore"
+
+
+def test_classify_reason_case_insensitive():
+    """Classification is case-insensitive and canonicalises the code (#24)."""
+    result = classify_reason("ac04")
+    assert result["code"] == "AC04"
+    assert result["action"] == "return"
+
+
+def test_classify_reason_unknown_uses_default():
+    """An unknown code falls back to the configurable default (#24)."""
+    assert classify_reason("ZZ99")["action"] == "return"
+    assert classify_reason("ZZ99", default="ignore")["action"] == "ignore"
+    assert classify_reason("ZZ99", default="IGNORE")["action"] == "ignore"
+
+
+def test_classify_reason_known_unmapped_uses_default():
+    """A known code absent from the policy resolves to the default (#24)."""
+    # AC03 is mapped; AM01 is a known code we left to the default.
+    assert classify_reason("AM01")["action"] == "return"
+    assert classify_reason("AM01", default="retry")["action"] == "retry"
+
+
+def test_classify_reason_override():
+    """An override mapping takes precedence over the built-in policy (#24)."""
+    result = classify_reason("AC04", overrides={"ac04": "ignore"})
+    assert result["action"] == "ignore"
+    # Non-overridden codes still use the built-in policy.
+    assert (
+        classify_reason("AM04", overrides={"AC04": "ignore"})["action"]
+        == "retry"
+    )
+
+
+def test_reason_policy_shape():
+    """The policy exposes its default, action set, and full mapping (#24)."""
+    policy = reason_policy()
+    assert policy["default"] == "return"
+    assert set(policy["actions"]) == {"return", "retry", "ignore"}
+    assert policy["policy"]["AC04"] == "return"
+    assert policy["policy"]["AM04"] == "retry"
+    assert set(policy["policy"]) == set(return_reason_names)
+
+
+def test_reason_policy_override_and_default():
+    """Policy honours overrides and a custom default (#24)."""
+    policy = reason_policy(overrides={"AC04": "ignore"}, default="retry")
+    assert policy["default"] == "retry"
+    assert policy["policy"]["AC04"] == "ignore"
+    # A known, unmapped code now resolves to the custom default.
+    assert policy["policy"]["AM01"] == "retry"
 
 
 def test_reverse_credit_debit():

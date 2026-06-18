@@ -22,6 +22,30 @@ arrive in many ISO versions, so elements are matched by local name rather than
 by a fixed namespace URI. XML is parsed with :mod:`defusedxml` to neutralise
 XXE / billion-laughs attacks on untrusted bank files.
 
+Resilient recovery
+------------------
+Real-world statements are frequently malformed-but-recoverable, so the parser
+degrades gracefully rather than failing on every imperfection:
+
+* **Missing optional elements** (owner name, currency, balances, booking date,
+  return reason, ...) are read as ``None`` / empty, never an error. Only the
+  document envelope (a ``<Document>`` root wrapping a recognised message
+  container) is mandatory.
+* **Unknown or extra elements** are ignored: children are matched by local
+  name, so vendor extensions and unexpected siblings are skipped silently.
+* **Unexpected namespaces and prefixes** are tolerated: every tag is reduced
+  to its local name, so a prefixed root (``<camt:Document>``), a missing
+  namespace, or a non-ISO namespace URI all parse the same way.
+
+These limits are **deliberate**. The following are *not* recoverable and raise
+:class:`~camt053.exceptions.StatementParseError` with precise context:
+
+* Non-well-formed XML (unclosed / mismatched tags, bad entities) — the error
+  carries the 1-based source ``line`` (and column, where the parser reports
+  one) so the offending byte can be located.
+* Empty input, a non-``<Document>`` root, a ``<Document>`` with no container
+  child, or a container whose local name is not a recognised camt.05x message.
+
 Example:
     >>> from camt053.parse.statement_parser import parse_document
     >>> doc = parse_document(xml_string)           # doctest: +SKIP
@@ -60,6 +84,35 @@ _CONTAINER_TO_TYPE = {v: k for k, v in STATEMENT_CONTAINERS.items()}
 
 
 _VERSION_RE = re.compile(r"(camt\.0\d{2}\.001\.\d{2})")
+
+# defusedxml re-raises the stdlib expat error, whose message ends with a
+# ``: line L, column C`` suffix. We surface the line on the raised
+# StatementParseError and fold the column into the message for precision.
+_LINE_RE = re.compile(r"line (\d+)")
+_COLUMN_RE = re.compile(r"column (\d+)")
+
+
+def _malformed_error(exc: ParseError) -> StatementParseError:
+    """Build a precise :class:`StatementParseError` for non-well-formed XML.
+
+    Extracts the 1-based source line (and, when expat reports one, the column)
+    from the underlying parse error so callers can locate the offending byte.
+    A parser that omits position information still yields a clear error with
+    ``line=None`` rather than crashing.
+    """
+    text = str(exc)
+    line_match = _LINE_RE.search(text)
+    col_match = _COLUMN_RE.search(text)
+    line = int(line_match.group(1)) if line_match else None
+    if line is None:
+        where = "an unknown position"
+    elif col_match:
+        where = f"line {line}, column {col_match.group(1)}"
+    else:
+        where = f"line {line}"
+    return StatementParseError(
+        f"Malformed statement XML at {where}: {exc}", line=line
+    )
 
 
 def _local(tag: str) -> str:
@@ -263,11 +316,7 @@ def parse_document(xml: str) -> ParsedDocument:
     try:
         tree = defused_parse(StringIO(xml))
     except ParseError as exc:
-        match = re.search(r"line (\d+)", str(exc))
-        line = int(match.group(1)) if match else None
-        raise StatementParseError(
-            f"Malformed statement XML: {exc}", line=line
-        ) from exc
+        raise _malformed_error(exc) from exc
 
     root = tree.getroot()
     if root is None:  # pragma: no cover - getroot only returns None pre-parse

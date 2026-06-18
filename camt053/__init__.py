@@ -12,10 +12,16 @@ from camt053.xml.generate_xml import (
     generate_reversal_for_statement,
     generate_reversal_xml,
 )
+from camt053.xml.serialize_statement import (
+    serialize_document,
+    serialize_statement,
+)
 
 __all__ = [
     "parse_document",
     "parse_statement",
+    "serialize_document",
+    "serialize_statement",
     "generate_reversal_xml",
     "generate_reversal_for_statement",
     "Entry",

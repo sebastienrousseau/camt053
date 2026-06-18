@@ -51,22 +51,39 @@ pip install poetry
    ```bash
    git checkout -b feat/my-feature
    ```
+   Use a `feat/`, `fix/`, `docs/`, or `chore/` prefix that matches the kind of
+   change.
 3. **Make changes** — follow the coding standards below
-4. **Run tests** — ensure 99%+ coverage:
+4. **Run tests** — coverage must remain at **100%**:
    ```bash
    poetry run pytest tests/ -v
    ```
-5. **Run linters**:
+5. **Run linters and type checks**:
    ```bash
    poetry run ruff check camt053/
-   poetry run mypy camt053/
    poetry run black --check camt053/ tests/
+   poetry run mypy camt053/
    ```
-6. **Sign and commit**:
+6. **Sign and commit** (see [Commit Signing](#commit-signing-required)):
    ```bash
    git commit -S -m "feat: add my feature"
    ```
-7. **Push** and open a pull request
+7. **Push** and open a pull request against `main`, filling in the PR template
+
+## Branch Protection
+
+`main` is a protected branch. Changes land **only** through a pull request that
+satisfies all of the following:
+
+- **Pull request required** — direct pushes to `main` are rejected.
+- **Green CI** — every required check (test matrix, smoke tests, lint, type
+  check, security scan, and CodeQL) must pass.
+- **Signed commits** — all commits in the PR must be verified (SSH or GPG).
+- **Conversation resolution** — all review comments must be resolved before
+  merge.
+- **Up to date with `main`** — rebase onto the latest `main` if it has moved.
+
+`CODEOWNERS` automatically requests review from the maintainer on every PR.
 
 ## Commit Signing (Required)
 
@@ -94,10 +111,20 @@ refactor: simplify XML data preparer dispatch
 
 ## Coding Standards
 
+The following tools are run in CI and must pass locally before you push:
+
+- **Ruff** (`ruff check camt053/`) — linting.
+- **Black** `26.5.1` (`black --check camt053/ tests/`) — formatting; pin the
+  same version locally to avoid spurious diffs.
+- **mypy** `--strict` (`mypy camt053/`) — static type checking.
+
+In addition:
+
 - **Line length:** 79 characters (enforced by Black + Ruff)
 - **Type hints:** Required on all public functions (mypy strict)
 - **Docstrings:** Required on all public classes and functions
-- **Tests:** Every new feature must include tests; maintain 99%+ coverage
+- **Tests:** Every new feature must include tests; coverage must stay at
+  **100%** — the suite fails below that threshold
 
 ## Testing
 
@@ -116,12 +143,17 @@ poetry run pytest tests/test_version_matrix.py -v
 
 ## Pull Request Checklist
 
+The PR template captures this checklist; the essentials are:
+
 - [ ] All tests pass (`poetry run pytest`)
-- [ ] Coverage remains at 99%+
-- [ ] Linters pass (`ruff check`, `mypy`, `black --check`)
-- [ ] Commits are signed
+- [ ] Coverage remains at **100%**
+- [ ] Linters and type checks pass (`ruff check`, `black --check`, `mypy`)
+- [ ] Commits are signed (SSH or GPG)
 - [ ] PR title follows conventional commit format
-- [ ] New features include tests and documentation
+- [ ] PR is linked to a tracking issue
+- [ ] All review conversations are resolved
+- [ ] New features include tests and documentation, and `CHANGELOG.md` is
+      updated
 
 ## License
 

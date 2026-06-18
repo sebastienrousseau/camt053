@@ -111,12 +111,33 @@ def message_types() -> None:
 
 @main.command("reasons")
 def reasons() -> None:
-    """List the known ISO external return reason codes."""
+    """List the known ISO external return reason codes and their action."""
+    policy = services.reason_policy()["policy"]
     table = Table(box=box.SIMPLE, title="Return reason codes")
     table.add_column("Code", style="cyan")
     table.add_column("Name")
+    table.add_column("Action")
     for row in services.list_return_reasons():
-        table.add_row(row["code"], row["name"])
+        table.add_row(row["code"], row["name"], policy[row["code"]])
+    console.print(table)
+
+
+@main.command("classify")
+@click.option(
+    "-r",
+    "--reason",
+    "reason_code",
+    required=True,
+    help="Return reason code to classify (e.g. AC04).",
+)
+def classify(reason_code: str) -> None:
+    """Classify a return reason code into a handling action."""
+    result = services.classify_reason(reason_code)
+    table = Table(box=box.SIMPLE, title="Reason classification")
+    table.add_column("Code", style="cyan")
+    table.add_column("Name")
+    table.add_column("Action")
+    table.add_row(result["code"], result["name"], result["action"])
     console.print(table)
 
 

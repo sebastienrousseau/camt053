@@ -5,10 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.2] - 2026-06-18
 
 ### Added
 
+- Re-serialise a parsed statement back to camt.053 XML (round-trip): a new
+  `camt053.xml.serialize_statement` module renders a parsed `ParsedDocument` /
+  `Statement` back to a validated `camt.053.001.14` document via a Jinja2
+  statement template, exposed as `services.serialize_statement(xml)` and
+  `camt053.serialize_document` / `camt053.serialize_statement`. The output is
+  deterministic and round-trip stable:
+  `parse_document(serialize_statement(parse_document(xml)))` preserves the
+  account, balances, and entries (references, amounts, currencies,
+  credit/debit indicators, and return reasons); schema-mandatory elements
+  absent from the source are filled with safe defaults so the document still
+  validates against the bundled XSD (#18)
+- SWIFT charset cleansing of name / narrative fields (`Nm` / `AddtlInf` /
+  party / counterparty names) bound for SWIFT FIN / CBPR+ rails: a new
+  `camt053.compliance` module transliterates or strips characters outside the
+  SWIFT X charset (`é` → `e`, `ß` → `ss`, smart quotes / dashes folded) and
+  enforces field maximum lengths, returning a `FieldCleansing` audit report of
+  what changed. Wired into the reversal path as opt-in
+  (`services.generate_reversal(xml, cleanse=True)` /
+  `services.generate(records, cleanse=True)`, default off so existing golden
+  output is unchanged) and exposed directly via
+  `services.cleanse_records(records) -> {"changed", "fields"}`. Cleansed
+  reversals still validate against the bundled XSD (#19)
+- Resilient parsing of malformed-but-recoverable statements: missing optional
+  elements degrade gracefully (read as `None` / empty), unknown / extra
+  elements and unexpected namespaces and prefixes are ignored rather than
+  fatal, while genuinely non-well-formed XML still raises a
+  `StatementParseError` carrying precise source context (1-based `line`, plus
+  column where the parser reports one). Recovery limits are documented in the
+  parser module docstring and covered by a dedicated resilience test suite
+  (#16)
+- Configurable reason-code action policy mapping ISO return reason codes to a
+  handling action (`return` / `retry` / `ignore`) with a sensible built-in
+  default (account-level rejections such as AC01/AC04/AC06/AC13 return,
+  transient conditions such as AM04/AM05 retry, informational reasons ignore;
+  unknown / unmapped codes fall back to a configurable default). Exposed via
+  `services.classify_reason(code) -> {"code", "name", "action"}` and
+  `services.reason_policy() -> {"default", "actions", "policy"}` (both accept
+  an `overrides` mapping and a custom `default`); surfaced on the CLI as an
+  Action column on `camt053 reasons` and a new `camt053 classify -r AC04`
+  command (#24)
 - Add a `--format {table,json}` option to the `camt053 entries` and
   `camt053 reverse` commands (`table` is the default). For `entries`, `json`
   emits the (optionally filtered) entries as a JSON array; for `reverse`,
@@ -49,6 +89,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consumers can switch on `exc.code` without depending on class names or
   message text; documented as a code → meaning table in the module
   docstring and the README (#30)
+- Add a security policy (`SECURITY.md`) describing supported versions and the
+  coordinated-disclosure process, a Dependabot configuration keeping the `pip`
+  and `github-actions` ecosystems up to date weekly, and a weekly CodeQL code
+  scanning workflow for Python (#14)
+- Add GitHub issue templates (bug report and feature request, the latter
+  prompting for an `As a / I want / So that` user story and `Given/When/Then`
+  acceptance criteria), a pull-request template, and a `CODEOWNERS` file;
+  expand `CONTRIBUTING.md` with the protected-branch requirements, the 100%
+  coverage gate, the ruff / black / mypy toolchain, and signed-commit
+  guidance (#34)
 
 ### Fixed
 
@@ -91,4 +141,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[0.0.2]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.1
