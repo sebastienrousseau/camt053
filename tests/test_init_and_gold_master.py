@@ -16,6 +16,7 @@
 """Package-level smoke tests and a parse -> reverse gold-master check."""
 
 import os
+from importlib.resources import files
 
 import pytest
 
@@ -39,6 +40,11 @@ def test_version_and_exports():
     assert camt053.__version__ == "0.0.1"
     assert callable(camt053.parse_document)
     assert callable(camt053.generate_reversal_for_statement)
+
+
+def test_py_typed_marker_ships():
+    """The PEP 561 ``py.typed`` marker ships with the package."""
+    assert files("camt053").joinpath("py.typed").is_file()
 
 
 def test_constants():
