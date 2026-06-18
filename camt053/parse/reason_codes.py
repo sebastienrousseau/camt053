@@ -27,12 +27,19 @@ Example:
     True
 """
 
-from camt053.constants import return_reason_names
+from camt053.constants import (
+    DEFAULT_REASON_ACTION,
+    REASON_ACTIONS,
+    reason_action_policy,
+    return_reason_names,
+)
 
 __all__ = [
+    "classify_reason",
     "describe_reason",
     "is_known_reason",
     "list_reason_codes",
+    "reason_policy",
     "validate_reason_code",
 ]
 
@@ -86,4 +93,82 @@ def validate_reason_code(code: str) -> dict[str, object]:
         "code": canonical,
         "name": describe_reason(canonical),
         "valid": canonical in return_reason_names,
+    }
+
+
+def _resolve_action(
+    canonical: str,
+    overrides: dict[str, str] | None,
+    default: str | None,
+) -> str:
+    """Resolve the action for a canonical code, applying any overrides.
+
+    The lookup order is: caller ``overrides`` (case-insensitive keys), then the
+    built-in policy, then the (possibly overridden) default action.
+    """
+    fallback = (default or DEFAULT_REASON_ACTION).lower()
+    if overrides:
+        normalised = {k.upper(): v.lower() for k, v in overrides.items()}
+        if canonical in normalised:
+            return normalised[canonical]
+    return reason_action_policy().get(canonical, fallback)
+
+
+def classify_reason(
+    code: str,
+    overrides: dict[str, str] | None = None,
+    default: str | None = None,
+) -> dict[str, str]:
+    """Classify a return reason code into a handling action.
+
+    Maps an ISO external return reason code to one of the actions in
+    :data:`camt053.constants.REASON_ACTIONS` (``"return"``, ``"retry"``, or
+    ``"ignore"``). The lookup is case-insensitive; an unrecognised code (or a
+    known code absent from the policy) resolves to ``default``.
+
+    Args:
+        code: An ISO external return reason code (case-insensitive).
+        overrides: An optional mapping of code -> action that takes precedence
+            over the built-in policy (keys are matched case-insensitively).
+        default: The action for codes not covered by the policy or overrides
+            (defaults to :data:`camt053.constants.DEFAULT_REASON_ACTION`).
+
+    Returns:
+        ``{"code": str, "name": str, "action": str}``, where ``code`` is the
+        canonical upper-cased code, ``name`` is its human-readable name (or
+        ``"Unknown reason code"``), and ``action`` is the resolved action.
+    """
+    canonical = (code or "").upper()
+    return {
+        "code": canonical,
+        "name": describe_reason(canonical),
+        "action": _resolve_action(canonical, overrides, default),
+    }
+
+
+def reason_policy(
+    overrides: dict[str, str] | None = None,
+    default: str | None = None,
+) -> dict[str, object]:
+    """Return the full reason-code action policy.
+
+    Args:
+        overrides: An optional mapping of code -> action that takes precedence
+            over the built-in policy (keys are matched case-insensitively).
+        default: The action for codes not covered by the policy or overrides
+            (defaults to :data:`camt053.constants.DEFAULT_REASON_ACTION`).
+
+    Returns:
+        ``{"default": str, "actions": list[str], "policy": {code: action}}``,
+        where ``policy`` maps every known reason code to its resolved action.
+    """
+    resolved_default = (default or DEFAULT_REASON_ACTION).lower()
+    policy = {
+        code: _resolve_action(code, overrides, resolved_default)
+        for code in return_reason_names
+    }
+    return {
+        "default": resolved_default,
+        "actions": list(REASON_ACTIONS),
+        "policy": policy,
     }

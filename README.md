@@ -153,6 +153,14 @@ so they compose in a pipeline.
   `ExternalReturnReason1Code` set (the common SEPA / CBPR+ return reasons),
   listed via `camt053 reasons`, with case-insensitive lookup through
   `services.validate_reason_code(code) -> {"code", "name", "valid"}`.
+- **Reason-code action policy** — classify a return reason into a handling
+  action (`"return"`, `"retry"`, or `"ignore"`) via
+  `services.classify_reason(code) -> {"code", "name", "action"}`, with a
+  sensible built-in default (account-level rejections return, transient
+  conditions such as `AM04` / `AM05` retry, informational reasons ignore). The
+  full mapping is `services.reason_policy()`; both accept an `overrides`
+  mapping and a custom `default`. The `camt053 reasons` table shows the action
+  column and `camt053 classify -r AC04` classifies a single code.
 - **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
   --export {csv,json} [-o file]`); CSV columns are `reference, amount,
   currency, credit_debit_indicator, status, booking_date, value_date,

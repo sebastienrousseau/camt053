@@ -39,7 +39,13 @@ from typing import Any
 
 from camt053.constants import message_names, valid_xml_types
 from camt053.parse.reason_codes import (
+    classify_reason as _classify_reason,
+)
+from camt053.parse.reason_codes import (
     list_reason_codes,
+)
+from camt053.parse.reason_codes import (
+    reason_policy as _reason_policy,
 )
 from camt053.parse.reason_codes import (
     validate_reason_code as _validate_reason_code,
@@ -67,6 +73,8 @@ __all__ = [
     "list_message_types",
     "list_return_reasons",
     "validate_reason_code",
+    "classify_reason",
+    "reason_policy",
     "get_input_schema",
     "get_required_fields",
     "validate_records",
@@ -122,6 +130,49 @@ def validate_reason_code(code: str) -> dict[str, Any]:
         ``valid=False`` with the generic ``"Unknown reason code"`` name.
     """
     return _validate_reason_code(code)
+
+
+def classify_reason(
+    code: str,
+    overrides: dict[str, str] | None = None,
+    default: str | None = None,
+) -> dict[str, str]:
+    """Classify a return reason code into a handling action.
+
+    Maps an ISO external return reason code to ``"return"``, ``"retry"``, or
+    ``"ignore"`` using the built-in policy (account-level rejections return,
+    transient conditions retry, informational reasons ignore). The lookup is
+    case-insensitive; unknown / unmapped codes resolve to ``default``.
+
+    Args:
+        code: An ISO external return reason code (case-insensitive).
+        overrides: Optional code -> action mapping taking precedence over the
+            built-in policy (keys matched case-insensitively).
+        default: The action for codes the policy / overrides do not cover
+            (defaults to ``"return"``).
+
+    Returns:
+        ``{"code": str, "name": str, "action": str}``.
+    """
+    return _classify_reason(code, overrides=overrides, default=default)
+
+
+def reason_policy(
+    overrides: dict[str, str] | None = None,
+    default: str | None = None,
+) -> dict[str, Any]:
+    """Return the full reason-code action policy.
+
+    Args:
+        overrides: Optional code -> action mapping taking precedence over the
+            built-in policy (keys matched case-insensitively).
+        default: The action for codes the policy / overrides do not cover
+            (defaults to ``"return"``).
+
+    Returns:
+        ``{"default": str, "actions": [str, ...], "policy": {code: action}}``.
+    """
+    return _reason_policy(overrides=overrides, default=default)
 
 
 def get_input_schema(message_type: str) -> dict[str, Any]:

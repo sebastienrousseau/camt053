@@ -50,6 +50,38 @@ def test_validate_reason_code():
     assert services.validate_reason_code("nope")["valid"] is False
 
 
+def test_classify_reason():
+    """The facade classifies reason codes into actions (#24)."""
+    assert services.classify_reason("ac04") == {
+        "code": "AC04",
+        "name": "Closed Account Number",
+        "action": "return",
+    }
+    assert services.classify_reason("AM04")["action"] == "retry"
+    assert (
+        services.classify_reason("ZZ99", default="ignore")["action"]
+        == "ignore"
+    )
+    assert (
+        services.classify_reason("AC04", overrides={"AC04": "ignore"})[
+            "action"
+        ]
+        == "ignore"
+    )
+
+
+def test_reason_policy():
+    """The facade exposes the full reason-code action policy (#24)."""
+    policy = services.reason_policy()
+    assert policy["default"] == "return"
+    assert policy["policy"]["AM04"] == "retry"
+    overridden = services.reason_policy(
+        overrides={"AC04": "ignore"}, default="retry"
+    )
+    assert overridden["default"] == "retry"
+    assert overridden["policy"]["AC04"] == "ignore"
+
+
 def test_get_input_schema_and_required_fields():
     """The input schema and its required fields are available."""
     schema = services.get_input_schema("camt.053.001.14")

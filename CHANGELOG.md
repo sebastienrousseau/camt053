@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Configurable reason-code action policy mapping ISO return reason codes to a
+  handling action (`return` / `retry` / `ignore`) with a sensible built-in
+  default (account-level rejections such as AC01/AC04/AC06/AC13 return,
+  transient conditions such as AM04/AM05 retry, informational reasons ignore;
+  unknown / unmapped codes fall back to a configurable default). Exposed via
+  `services.classify_reason(code) -> {"code", "name", "action"}` and
+  `services.reason_policy() -> {"default", "actions", "policy"}` (both accept
+  an `overrides` mapping and a custom `default`); surfaced on the CLI as an
+  Action column on `camt053 reasons` and a new `camt053 classify -r AC04`
+  command (#24)
 - Add a `--format {table,json}` option to the `camt053 entries` and
   `camt053 reverse` commands (`table` is the default). For `entries`, `json`
   emits the (optionally filtered) entries as a JSON array; for `reverse`,

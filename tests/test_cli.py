@@ -45,10 +45,20 @@ def test_message_types_command():
 
 
 def test_reasons_command():
-    """The reasons command lists return reason codes."""
+    """The reasons command lists reason codes with their action (#24)."""
     result = CliRunner().invoke(main, ["reasons"])
     assert result.exit_code == 0
     assert "AC04" in result.output
+    assert "Action" in result.output
+    assert "return" in result.output
+
+
+def test_classify_command():
+    """The classify command reports a reason code's action (#24)."""
+    result = CliRunner().invoke(main, ["classify", "-r", "AM04"])
+    assert result.exit_code == 0
+    assert "AM04" in result.output
+    assert "retry" in result.output
 
 
 def test_entries_command(tmp_path, statement_xml):
