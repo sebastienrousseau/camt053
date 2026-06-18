@@ -141,6 +141,59 @@ def test_generate_reversal_no_statement_raises():
         services.generate_reversal(_NO_STMT, "AC04")
 
 
+# A two-statement document whose ONLY AC04 match is in the SECOND statement.
+_TWO_STMT_AC04_IN_SECOND = (
+    '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.14">'
+    "<BkToCstmrStmt>"
+    "<GrpHdr><MsgId>MULTI</MsgId>"
+    "<CreDtTm>2026-06-15T08:00:00</CreDtTm></GrpHdr>"
+    "<Stmt><Id>STMT-A</Id><ElctrncSeqNb>1</ElctrncSeqNb>"
+    "<CreDtTm>2026-06-15T08:00:00</CreDtTm>"
+    "<Acct><Id><IBAN>GB29NWBK60161331926819</IBAN></Id><Ccy>EUR</Ccy></Acct>"
+    "<Bal><Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp>"
+    '<Amt Ccy="EUR">100.00</Amt><CdtDbtInd>CRDT</CdtDbtInd>'
+    "<Dt><Dt>2026-06-15</Dt></Dt></Bal>"
+    "<Ntry><NtryRef>A-1</NtryRef>"
+    '<Amt Ccy="EUR">10.00</Amt><CdtDbtInd>DBIT</CdtDbtInd>'
+    "<Sts>BOOK</Sts></Ntry>"
+    "</Stmt>"
+    "<Stmt><Id>STMT-B</Id><ElctrncSeqNb>2</ElctrncSeqNb>"
+    "<CreDtTm>2026-06-15T08:00:00</CreDtTm>"
+    "<Acct><Id><IBAN>GB29NWBK60161331926819</IBAN></Id><Ccy>EUR</Ccy></Acct>"
+    "<Bal><Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp>"
+    '<Amt Ccy="EUR">200.00</Amt><CdtDbtInd>CRDT</CdtDbtInd>'
+    "<Dt><Dt>2026-06-15</Dt></Dt></Bal>"
+    "<Ntry><NtryRef>B-1</NtryRef>"
+    '<Amt Ccy="EUR">1500.00</Amt><CdtDbtInd>CRDT</CdtDbtInd>'
+    "<Sts><Cd>BOOK</Cd></Sts>"
+    "<BookgDt><Dt>2026-06-15</Dt></BookgDt>"
+    "<NtryDtls><TxDtls>"
+    "<Refs><EndToEndId>E2E-B1</EndToEndId></Refs>"
+    "<RtrInf><Rsn><Cd>AC04</Cd></Rsn></RtrInf>"
+    "</TxDtls></NtryDtls>"
+    "</Ntry>"
+    "</Stmt>"
+    "</BkToCstmrStmt></Document>"
+)
+
+
+def test_build_reversal_matches_later_statement():
+    """An AC04 match in a later statement is reversed (#20)."""
+    records = services.build_reversal(_TWO_STMT_AC04_IN_SECOND, "AC04")
+    assert len(records) == 1
+    assert records[0]["original_ref"] == "B-1"
+    assert records[0]["credit_debit"] == "DBIT"
+    # Header context comes from the first statement that has a match.
+    assert records[0]["statement_id"] == "RVSL-STMT-B"
+
+
+def test_generate_reversal_matches_later_statement():
+    """The one-shot workflow reverses a match in a later statement (#20)."""
+    xml = services.generate_reversal(_TWO_STMT_AC04_IN_SECOND, "AC04")
+    assert xml.count("<RvslInd>true</RvslInd>") == 1
+    assert "AC04" in xml
+
+
 def test_load_openapi():
     """The OpenAPI document is serialisable and includes the reverse path."""
     spec = json.loads(services.load_openapi())

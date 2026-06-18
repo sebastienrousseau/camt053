@@ -38,15 +38,14 @@ from typing import Any
 from camt053.constants import message_names, valid_xml_types
 from camt053.parse.reason_codes import list_reason_codes
 from camt053.parse.statement_parser import parse_document as _parse_document
-from camt053.reversal.reversal import build_reversal_records
+from camt053.reversal.reversal import (
+    build_reversal_records_for_statements,
+)
 from camt053.validation.bic_validator import validate_bic_safe
 from camt053.validation.iban_validator import validate_iban_safe
 from camt053.validation.lei_validator import validate_lei_safe
 from camt053.validation.schema_validator import SchemaValidator
-from camt053.xml.generate_xml import (
-    generate_reversal_for_statement,
-    generate_reversal_xml,
-)
+from camt053.xml.generate_xml import generate_reversal_xml
 
 __all__ = [
     "list_message_types",
@@ -243,7 +242,7 @@ def build_reversal(
 ) -> list[dict[str, Any]]:
     """Build the flat reversing-entry records for a statement's matches.
 
-    Parses the statement, selects the first statement's entries with the given
+    Parses the statement, selects every statement's entries with the given
     return reason, and maps them to flat records (without rendering XML).
 
     Args:
@@ -263,8 +262,8 @@ def build_reversal(
         from camt053.exceptions import StatementParseError
 
         raise StatementParseError("Document contains no statement element")
-    return build_reversal_records(
-        document.statements[0], reason_code=reason_code
+    return build_reversal_records_for_statements(
+        document.statements, reason_code=reason_code
     )
 
 
@@ -299,12 +298,13 @@ def generate_reversal(
         from camt053.exceptions import StatementParseError
 
         raise StatementParseError("Document contains no statement element")
-    return generate_reversal_for_statement(
-        document.statements[0],
+    records = build_reversal_records_for_statements(
+        document.statements,
         reason_code=reason_code,
         msg_id=msg_id,
         creation_date_time=creation_date_time,
     )
+    return generate_reversal_xml(records)
 
 
 def generate(records: list[dict[str, Any]]) -> str:

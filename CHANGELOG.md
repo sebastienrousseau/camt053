@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ship a PEP 561 `py.typed` marker so downstream projects pick up the
   library's inline type hints (#3)
 
+### Fixed
+
+- Reverse matching entries across **all** statements in a document, not
+  just the first; a return reason carried only by a later statement is no
+  longer missed (#20)
+
 ## [0.0.1] - 2026-06-17
 
 ### Added

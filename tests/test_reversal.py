@@ -23,6 +23,7 @@ from camt053.parse import parse_statement
 from camt053.reversal.reversal import (
     build_reversal_record,
     build_reversal_records,
+    build_reversal_records_for_statements,
 )
 
 
@@ -60,6 +61,63 @@ def test_build_records_no_returnable_raises():
     stmt = Statement(entries=[Entry(reference="X")])
     with pytest.raises(ReversalGenerationError, match="any return reason"):
         build_reversal_records(stmt)
+
+
+def test_build_records_for_statements_aggregates():
+    """Records are aggregated across every matching statement (#20)."""
+    stmt_a = Statement(
+        id="A",
+        creation_date_time="2026-01-01T00:00:00",
+        entries=[
+            Entry(reference="A-1", credit_debit_indicator="CRDT"),
+            Entry(
+                reference="A-2",
+                credit_debit_indicator="CRDT",
+                reason_code="AC04",
+            ),
+        ],
+    )
+    stmt_b = Statement(
+        id="B",
+        entries=[
+            Entry(
+                reference="B-1",
+                credit_debit_indicator="CRDT",
+                reason_code="AC04",
+            ),
+        ],
+    )
+    records = build_reversal_records_for_statements([stmt_a, stmt_b], "AC04")
+    assert [r["original_ref"] for r in records] == ["A-2", "B-1"]
+    # Header context is taken from the first statement with a match.
+    assert all(r["statement_id"] == "RVSL-A" for r in records)
+
+
+def test_build_records_for_statements_match_only_in_second():
+    """A match present only in a later statement is reversed (#20)."""
+    stmt_a = Statement(id="A", entries=[Entry(reference="A-1")])
+    stmt_b = Statement(
+        id="B",
+        creation_date_time="2026-02-02T00:00:00",
+        entries=[
+            Entry(
+                reference="B-1",
+                credit_debit_indicator="CRDT",
+                reason_code="AC04",
+            ),
+        ],
+    )
+    records = build_reversal_records_for_statements([stmt_a, stmt_b], "AC04")
+    assert len(records) == 1
+    assert records[0]["original_ref"] == "B-1"
+    assert records[0]["statement_id"] == "RVSL-B"
+
+
+def test_build_records_for_statements_no_match_raises():
+    """No match in any statement raises ReversalGenerationError (#20)."""
+    stmt = Statement(id="A", entries=[Entry(reference="A-1")])
+    with pytest.raises(ReversalGenerationError, match="MD07"):
+        build_reversal_records_for_statements([stmt], "MD07")
 
 
 def test_msg_id_and_creation_overrides(statement_xml):
