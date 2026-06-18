@@ -174,6 +174,17 @@ so they compose in a pipeline.
   in `RtrInf`), in one call.
 - **Validated output** — generated reversals are checked against the **official
   ISO 20022 `camt.053.001.14` XSD** bundled with the package.
+- **SWIFT charset cleansing** — opt-in cleansing of the name / narrative fields
+  (`Nm` / `AddtlInf` / party / counterparty names) bound for SWIFT FIN / CBPR+
+  rails: characters outside the **SWIFT X** set are transliterated (`é` → `e`,
+  `ß` → `ss`, smart quotes / dashes folded) or stripped, and field maximum
+  lengths are enforced. Enable it on the reversal path with
+  `services.generate_reversal(xml, cleanse=True)` /
+  `services.generate(records, cleanse=True)` (default off, so existing output
+  is unchanged), or cleanse records directly with
+  `services.cleanse_records(records) -> {"changed", "fields": [report, ...]}`,
+  which returns an audit report of exactly what changed. Cleansed reversals
+  still validate against the bundled XSD.
 - **Validate incoming statements** — `services.validate_statement(xml)` (and the
   `camt053 validate` command) check an inbound camt.052 / camt.053 / camt.054
   document against the matching **official ISO 20022 XSD**, detected from its

@@ -37,6 +37,9 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from camt053.compliance.swift_charset import (
+    cleanse_records as _cleanse_records,
+)
 from camt053.constants import message_names, valid_xml_types
 from camt053.parse.reason_codes import (
     classify_reason as _classify_reason,
@@ -85,6 +88,7 @@ __all__ = [
     "list_entries",
     "filter_entries",
     "build_reversal",
+    "cleanse_records",
     "generate_reversal",
     "generate",
 ]
@@ -468,11 +472,37 @@ def build_reversal(
     )
 
 
+def cleanse_records(
+    records: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Cleanse the SWIFT-constrained fields of reversing-entry records.
+
+    Transliterates or strips characters outside the SWIFT X charset and
+    enforces the maximum length of every name / narrative field (``Nm`` /
+    ``AddtlInf`` / party / counterparty names), mutating the records in place
+    so they are safe to render onto SWIFT FIN / CBPR+ rails.
+
+    Args:
+        records: The flat reversing-entry records to cleanse in place.
+
+    Returns:
+        ``{"changed": int, "fields": [report, ...]}`` where each report is a
+        :meth:`~camt053.compliance.swift_charset.FieldCleansing.to_dict` of a
+        field whose value was altered (unchanged fields are omitted).
+    """
+    reports = _cleanse_records(records)
+    return {
+        "changed": len(reports),
+        "fields": [report.to_dict() for report in reports],
+    }
+
+
 def generate_reversal(
     xml: str,
     reason_code: str = DEFAULT_REASON_CODE,
     msg_id: str | None = None,
     creation_date_time: str | None = None,
+    cleanse: bool = False,
 ) -> str:
     """Read a statement and generate a validated reversing-entry document.
 
@@ -486,6 +516,9 @@ def generate_reversal(
             ``"AC04"``).
         msg_id: Optional reversal group-header message id.
         creation_date_time: Optional ISO 8601 timestamp for the reversal.
+        cleanse: Opt-in SWIFT charset cleansing of the reversal's name /
+            narrative fields before rendering (default ``False``, leaving the
+            existing output byte-for-byte unchanged).
 
     Returns:
         The validated camt.053.001.08 reversal document as a string.
@@ -505,10 +538,12 @@ def generate_reversal(
         msg_id=msg_id,
         creation_date_time=creation_date_time,
     )
+    if cleanse:
+        _cleanse_records(records)
     return generate_reversal_xml(records)
 
 
-def generate(records: list[dict[str, Any]]) -> str:
+def generate(records: list[dict[str, Any]], cleanse: bool = False) -> str:
     """Render flat reversing-entry records into validated camt.053 XML.
 
     The in-process entry point for callers that already hold reversing-entry
@@ -516,6 +551,8 @@ def generate(records: list[dict[str, Any]]) -> str:
 
     Args:
         records: One or more flat reversing-entry records.
+        cleanse: Opt-in SWIFT charset cleansing of the records' name /
+            narrative fields before rendering (default ``False``).
 
     Returns:
         The validated camt.053.001.08 reversal document as a string.
@@ -523,6 +560,8 @@ def generate(records: list[dict[str, Any]]) -> str:
     Raises:
         ReversalGenerationError: If records are empty or validation fails.
     """
+    if cleanse:
+        _cleanse_records(records)
     return generate_reversal_xml(records)
 
 

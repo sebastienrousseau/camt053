@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SWIFT charset cleansing of name / narrative fields (`Nm` / `AddtlInf` /
+  party / counterparty names) bound for SWIFT FIN / CBPR+ rails: a new
+  `camt053.compliance` module transliterates or strips characters outside the
+  SWIFT X charset (`é` → `e`, `ß` → `ss`, smart quotes / dashes folded) and
+  enforces field maximum lengths, returning a `FieldCleansing` audit report of
+  what changed. Wired into the reversal path as opt-in
+  (`services.generate_reversal(xml, cleanse=True)` /
+  `services.generate(records, cleanse=True)`, default off so existing golden
+  output is unchanged) and exposed directly via
+  `services.cleanse_records(records) -> {"changed", "fields"}`. Cleansed
+  reversals still validate against the bundled XSD (#19)
 - Resilient parsing of malformed-but-recoverable statements: missing optional
   elements degrade gracefully (read as `None` / empty), unknown / extra
   elements and unexpected namespaces and prefixes are ignored rather than
