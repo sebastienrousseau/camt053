@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Resilient parsing of malformed-but-recoverable statements: missing optional
+  elements degrade gracefully (read as `None` / empty), unknown / extra
+  elements and unexpected namespaces and prefixes are ignored rather than
+  fatal, while genuinely non-well-formed XML still raises a
+  `StatementParseError` carrying precise source context (1-based `line`, plus
+  column where the parser reports one). Recovery limits are documented in the
+  parser module docstring and covered by a dedicated resilience test suite
+  (#16)
 - Configurable reason-code action policy mapping ISO return reason codes to a
   handling action (`return` / `retry` / `ignore`) with a sensible built-in
   default (account-level rejections such as AC01/AC04/AC06/AC13 return,

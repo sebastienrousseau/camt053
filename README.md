@@ -304,6 +304,27 @@ except Camt053Error as exc:
     log.error("[%s] %s", exc.code, exc)
 ```
 
+## Robustness
+
+The statement parser is built for the messy reality of inbound bank files:
+malformed-but-recoverable statements degrade gracefully rather than failing
+outright.
+
+- **Missing optional elements** (owner name, currency, balances, booking date,
+  return reason, ...) read as `None` / empty — only the `<Document>` envelope
+  wrapping a recognised camt.05x container is mandatory.
+- **Unknown or extra elements** (vendor extensions, unexpected siblings) are
+  ignored: children are matched by local name, not by a fixed schema.
+- **Unexpected namespaces and prefixes** are tolerated — a prefixed
+  `<camt:Document>` root, a missing namespace, or a non-ISO namespace URI all
+  parse the same way.
+
+Genuinely non-well-formed XML (unclosed / mismatched tags, bad entities) still
+raises `StatementParseError`, which carries the 1-based source `line` (and
+column, where reported) so the offending byte can be located. See
+[`camt053/parse/statement_parser.py`](camt053/parse/statement_parser.py) for
+the documented recovery limits.
+
 ## Examples
 
 Runnable, self-contained scripts live in [`examples/`](examples/):
