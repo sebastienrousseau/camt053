@@ -121,6 +121,10 @@ camt053 reverse -i statement.xml -r AC04 -o reversal.xml
 camt053 entries -i statement.xml -r AC04
 camt053 entries -i statement.xml --status BOOK --from 2026-06-01 --min 1000
 
+# Export the (filtered) entries as CSV or JSON, to stdout or a file
+camt053 entries -i statement.xml --export csv -o entries.csv
+camt053 entries -i statement.xml -r AC04 --export json
+
 # Inspect the parsed statement as JSON, or validate an identifier
 camt053 parse -i statement.xml
 camt053 validate-id -k iban -v GB29NWBK60161331926819
@@ -141,6 +145,10 @@ so they compose in a pipeline.
   MD07, …), and by **status**, **booking-date range**, and **amount range**
   (all ANDed) via `services.filter_entries(...)` or the `camt053 entries`
   flags.
+- **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
+  --export {csv,json} [-o file]`); CSV columns are `reference, amount,
+  currency, credit_debit_indicator, status, booking_date, value_date,
+  reason_code`.
 - **Reverse** — generate a `camt.053.001.14` reversing entry from the matching
   entries (credit/debit indicator flipped, `RvslInd` set, return reason carried
   in `RtrInf`), in one call.

@@ -15,6 +15,7 @@
 
 """Tests for the command-line interface."""
 
+import json
 import os
 
 from click.testing import CliRunner
@@ -131,6 +132,87 @@ def test_entries_command_bad_filter_value(tmp_path, statement_xml):
     result = CliRunner().invoke(main, ["entries", "-i", path, "--min", "abc"])
     assert result.exit_code == 1
     assert "Failed" in result.output
+
+
+def test_entries_export_csv_stdout(tmp_path, statement_xml):
+    """Exporting CSV to stdout emits a header and one row per entry (#23)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "--export", "csv"]
+    )
+    assert result.exit_code == 0
+    lines = [line for line in result.output.splitlines() if line]
+    assert lines[0].startswith(
+        "reference,amount,currency,credit_debit_indicator,status"
+    )
+    assert len(lines) == 4  # header + 3 entries
+    assert "NTRY-0001,1500.00,EUR,CRDT,BOOK" in result.output
+
+
+def test_entries_export_json_stdout(tmp_path, statement_xml):
+    """Exporting JSON to stdout emits the list of entry dicts (#23)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "--export", "json"]
+    )
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert len(data) == 3
+    assert data[0]["reference"] == "NTRY-0001"
+
+
+def test_entries_export_csv_to_file(tmp_path, statement_xml):
+    """Exporting CSV to a file writes it and reports success (#23)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    out = str(tmp_path / "entries.csv")
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "--export", "csv", "-o", out]
+    )
+    assert result.exit_code == 0
+    assert "Exported 3 entries to" in result.output
+    content = open(out, encoding="utf-8").read()
+    assert content.startswith("reference,amount,currency")
+    assert "NTRY-0002" in content
+
+
+def test_entries_export_json_to_file(tmp_path, statement_xml):
+    """Exporting JSON to a file writes the list of entry dicts (#23)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    out = str(tmp_path / "entries.json")
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "--export", "json", "-o", out]
+    )
+    assert result.exit_code == 0
+    data = json.loads(open(out, encoding="utf-8").read())
+    assert len(data) == 3
+
+
+def test_entries_export_empty(tmp_path, statement_xml):
+    """An empty result exports a header-only CSV and an empty JSON list (#23)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    csv_result = CliRunner().invoke(
+        main, ["entries", "-i", path, "-r", "MD07", "--export", "csv"]
+    )
+    assert csv_result.exit_code == 0
+    csv_lines = [line for line in csv_result.output.splitlines() if line]
+    assert len(csv_lines) == 1  # header only
+    json_result = CliRunner().invoke(
+        main, ["entries", "-i", path, "-r", "MD07", "--export", "json"]
+    )
+    assert json_result.exit_code == 0
+    assert json.loads(json_result.output) == []
+
+
+def test_entries_export_single_entry_message(tmp_path, statement_xml):
+    """The success message uses the singular for a single exported entry (#23)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    out = str(tmp_path / "one.csv")
+    result = CliRunner().invoke(
+        main,
+        ["entries", "-i", path, "-r", "AC04", "--export", "csv", "-o", out],
+    )
+    assert result.exit_code == 0
+    assert "Exported 1 entry to" in result.output
 
 
 def test_parse_command(tmp_path, statement_xml):

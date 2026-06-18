@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with the existing reason filter — via `services.filter_entries(...)` and
   new `--status` / `--from` / `--to` / `--min` / `--max` flags on the
   `camt053 entries` command (#21)
+- Export parsed (and optionally filtered) entries to CSV or JSON via the
+  `camt053 entries --export {csv,json}` option, to stdout or a file
+  (`-o/--output`); CSV ships a stable, documented column set and an empty
+  statement yields a header-only CSV / `[]` JSON (#23)
 
 ### Fixed
 

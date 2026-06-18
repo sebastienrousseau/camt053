@@ -21,7 +21,11 @@ entries. Every command is a thin wrapper over :mod:`camt053.services`, so the
 CLI behaves identically to the REST API, MCP server, and LSP server.
 """
 
+import csv
+import io
+import json
 import sys
+from typing import Any
 
 import click
 from rich import box
@@ -34,6 +38,18 @@ from camt053.exceptions import Camt053Error
 
 console = Console()
 
+# Stable, documented column order for entry exports.
+_EXPORT_COLUMNS = [
+    "reference",
+    "amount",
+    "currency",
+    "credit_debit_indicator",
+    "status",
+    "booking_date",
+    "value_date",
+    "reason_code",
+]
+
 
 def _read_input(input_file: str) -> str:
     """Read statement XML from a file path or ``-`` for stdin."""
@@ -41,6 +57,25 @@ def _read_input(input_file: str) -> str:
         return sys.stdin.read()
     with open(input_file, encoding="utf-8") as handle:
         return handle.read()
+
+
+def _export_entries(rows: list[dict[str, Any]], fmt: str) -> str:
+    """Render entry dicts as a CSV or JSON document.
+
+    CSV always carries a header row (so an empty statement yields a
+    header-only file); JSON renders the list of entry dicts (``[]`` when
+    empty).
+    """
+    if fmt == "json":
+        return json.dumps(rows, indent=2)
+    buffer = io.StringIO()
+    writer = csv.DictWriter(
+        buffer, fieldnames=_EXPORT_COLUMNS, extrasaction="ignore"
+    )
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({col: row.get(col, "") for col in _EXPORT_COLUMNS})
+    return buffer.getvalue()
 
 
 @click.group(
@@ -180,6 +215,20 @@ def validate(input_file: str) -> None:
     default=None,
     help="Only show entries with an amount <= this value.",
 )
+@click.option(
+    "--export",
+    "export_format",
+    type=click.Choice(["csv", "json"], case_sensitive=False),
+    default=None,
+    help="Export the (filtered) entries as CSV or JSON instead of a table.",
+)
+@click.option(
+    "-o",
+    "--output",
+    "output_file",
+    default=None,
+    help="Write the export here (default: stdout).",
+)
 def entries(
     input_file: str,
     reason_code: str | None,
@@ -188,8 +237,10 @@ def entries(
     date_to: str | None,
     min_amount: str | None,
     max_amount: str | None,
+    export_format: str | None,
+    output_file: str | None,
 ) -> None:
-    """List the entries on a statement (optionally filtered)."""
+    """List the entries on a statement (optionally filtered or exported)."""
     filtered = any(
         v is not None
         for v in (
@@ -219,6 +270,20 @@ def entries(
     except (OSError, ValueError, Camt053Error) as exc:
         console.print(f"[bold red]✗ Failed:[/bold red] {exc}")
         sys.exit(1)
+
+    if export_format:
+        document = _export_entries(rows, export_format.lower())
+        if output_file:
+            with open(output_file, "w", encoding="utf-8") as handle:
+                handle.write(document)
+            console.print(
+                f"[bold green]✓ Exported {len(rows)} entr"
+                f"{'y' if len(rows) == 1 else 'ies'} to[/bold green] "
+                f"{output_file}"
+            )
+        else:
+            click.echo(document)
+        return
 
     table = Table(box=box.SIMPLE, title="Statement entries")
     table.add_column("Reference", style="cyan")
