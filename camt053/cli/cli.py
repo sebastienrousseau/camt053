@@ -150,16 +150,73 @@ def validate(input_file: str) -> None:
     default=None,
     help="Only show entries carrying this return reason code (e.g. AC04).",
 )
-def entries(input_file: str, reason_code: str | None) -> None:
-    """List the entries on a statement (optionally filtered by reason)."""
+@click.option(
+    "--status",
+    "status",
+    default=None,
+    help="Only show entries with this status (e.g. BOOK).",
+)
+@click.option(
+    "--from",
+    "date_from",
+    default=None,
+    help="Only show entries booked on or after this ISO date.",
+)
+@click.option(
+    "--to",
+    "date_to",
+    default=None,
+    help="Only show entries booked on or before this ISO date.",
+)
+@click.option(
+    "--min",
+    "min_amount",
+    default=None,
+    help="Only show entries with an amount >= this value.",
+)
+@click.option(
+    "--max",
+    "max_amount",
+    default=None,
+    help="Only show entries with an amount <= this value.",
+)
+def entries(
+    input_file: str,
+    reason_code: str | None,
+    status: str | None,
+    date_from: str | None,
+    date_to: str | None,
+    min_amount: str | None,
+    max_amount: str | None,
+) -> None:
+    """List the entries on a statement (optionally filtered)."""
+    filtered = any(
+        v is not None
+        for v in (
+            reason_code,
+            status,
+            date_from,
+            date_to,
+            min_amount,
+            max_amount,
+        )
+    )
     try:
         xml = _read_input(input_file)
         rows = (
-            services.filter_entries(xml, reason_code)
-            if reason_code
+            services.filter_entries(
+                xml,
+                reason_code,
+                status=status,
+                date_from=date_from,
+                date_to=date_to,
+                min_amount=min_amount,
+                max_amount=max_amount,
+            )
+            if filtered
             else services.list_entries(xml)
         )
-    except (OSError, Camt053Error) as exc:
+    except (OSError, ValueError, Camt053Error) as exc:
         console.print(f"[bold red]✗ Failed:[/bold red] {exc}")
         sys.exit(1)
 

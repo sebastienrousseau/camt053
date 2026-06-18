@@ -95,6 +95,44 @@ def test_validate_command_bad_file():
     assert "Validation failed" in result.output
 
 
+def test_entries_command_filtered_by_amount(tmp_path, statement_xml):
+    """The entries command filters by amount bounds (#21)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["entries", "-i", path, "--min", "1000"])
+    assert result.exit_code == 0
+    assert "1 entry" in result.output
+    assert "NTRY-0001" in result.output
+
+
+def test_entries_command_filtered_by_status_and_date(tmp_path, statement_xml):
+    """The entries command filters by status and date range (#21)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main,
+        [
+            "entries",
+            "-i",
+            path,
+            "--status",
+            "BOOK",
+            "--from",
+            "2026-06-15",
+            "--to",
+            "2026-06-15",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "2 entries" in result.output
+
+
+def test_entries_command_bad_filter_value(tmp_path, statement_xml):
+    """The entries command exits non-zero on a bad filter value (#21)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(main, ["entries", "-i", path, "--min", "abc"])
+    assert result.exit_code == 1
+    assert "Failed" in result.output
+
+
 def test_parse_command(tmp_path, statement_xml):
     """The parse command prints JSON."""
     path = _write(tmp_path, "stmt.xml", statement_xml)

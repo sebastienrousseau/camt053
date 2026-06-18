@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that validate an incoming camt.052 / camt.053 / camt.054 document against
   the matching official ISO 20022 XSD (detected from its namespace),
   returning a `{"valid", "message_type", "errors"}` report (#17)
+- Filter statement entries by `status`, booking-date range (`date_from` /
+  `date_to`), and amount range (`min_amount` / `max_amount`) — all ANDed
+  with the existing reason filter — via `services.filter_entries(...)` and
+  new `--status` / `--from` / `--to` / `--min` / `--max` flags on the
+  `camt053 entries` command (#21)
 
 ### Fixed
 

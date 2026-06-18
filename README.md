@@ -117,8 +117,9 @@ Or from the command line:
 # Generate a reversing entry for every AC04 entry on a statement
 camt053 reverse -i statement.xml -r AC04 -o reversal.xml
 
-# List the entries on a statement (optionally filtered by reason)
+# List the entries on a statement (filter by reason, status, date, or amount)
 camt053 entries -i statement.xml -r AC04
+camt053 entries -i statement.xml --status BOOK --from 2026-06-01 --min 1000
 
 # Inspect the parsed statement as JSON, or validate an identifier
 camt053 parse -i statement.xml
@@ -137,7 +138,9 @@ so they compose in a pipeline.
   model. Parsing is **namespace-agnostic**, so every ISO version (`.001.01`
   through `.001.14`) and real-world bank file is read.
 - **Filter** booked entries by ISO external return reason code (AC04, AC06,
-  MD07, …).
+  MD07, …), and by **status**, **booking-date range**, and **amount range**
+  (all ANDed) via `services.filter_entries(...)` or the `camt053 entries`
+  flags.
 - **Reverse** — generate a `camt.053.001.14` reversing entry from the matching
   entries (credit/debit indicator flipped, `RvslInd` set, return reason carried
   in `RtrInf`), in one call.

@@ -33,6 +33,8 @@ Example:
 """
 
 import json
+from datetime import date
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from camt053.constants import message_names, valid_xml_types
@@ -233,29 +235,107 @@ def list_entries(xml: str) -> list[dict[str, Any]]:
     return [e.to_dict() for e in _parse_document(xml).all_entries()]
 
 
+def _parse_amount(value: str | None, label: str) -> Decimal | None:
+    """Parse an amount string into a Decimal, or raise a clear ValueError."""
+    if value is None:
+        return None
+    try:
+        return Decimal(value)
+    except InvalidOperation as exc:
+        raise ValueError(f"Invalid {label} amount: {value!r}.") from exc
+
+
+def _entry_amount(entry: Any) -> Decimal | None:
+    """Return an entry's amount as a Decimal, or None if absent / unparsable."""
+    if not entry.amount:
+        return None
+    try:
+        return Decimal(entry.amount)
+    except InvalidOperation:
+        return None
+
+
+def _check_date(value: str | None, label: str) -> str | None:
+    """Validate an ISO date filter bound, returning its date portion."""
+    if value is None:
+        return None
+    text = value.strip()
+    try:
+        date.fromisoformat(text[:10])
+    except ValueError as exc:
+        raise ValueError(f"Invalid {label} date: {value!r}.") from exc
+    return text[:10]
+
+
 def filter_entries(
-    xml: str, reason_code: str = DEFAULT_REASON_CODE
+    xml: str,
+    reason_code: str | None = DEFAULT_REASON_CODE,
+    *,
+    status: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    min_amount: str | None = None,
+    max_amount: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Return the statement entries carrying a given return reason code.
+    """Return statement entries matching every supplied filter (ANDed).
+
+    Called as before, ``filter_entries(xml)`` keeps the default-AC04 reason
+    behaviour. Passing ``reason_code=None`` (or an empty string) drops the
+    reason filter, so the other criteria can be used on their own.
 
     Args:
         xml: The raw statement XML as a string.
-        reason_code: The ISO external return reason to match (default
-            ``"AC04"`` Closed Account).
+        reason_code: ISO external return reason to match (default ``"AC04"``);
+            ``None`` / empty disables the reason filter.
+        status: If given, only entries with this status (e.g. ``"BOOK"``).
+        date_from: If given, only entries booked on or after this ISO date.
+        date_to: If given, only entries booked on or before this ISO date.
+        min_amount: If given, only entries with an amount >= this value.
+        max_amount: If given, only entries with an amount <= this value.
 
     Returns:
         A list of matching entry dicts.
 
     Raises:
         StatementParseError: If the XML is malformed or unrecognised.
+        ValueError: If a date or amount filter value is invalid.
     """
     document = _parse_document(xml)
-    wanted = reason_code.upper()
+    wanted = reason_code.upper() if reason_code else None
+    wanted_status = status.upper() if status else None
+    low = _parse_amount(min_amount, "minimum")
+    high = _parse_amount(max_amount, "maximum")
+    after = _check_date(date_from, "from")
+    before = _check_date(date_to, "to")
 
     def matches(entry: Any) -> bool:
-        """Return True if the entry carries the wanted return reason code."""
-        codes = {entry.reason_code} | {d.reason_code for d in entry.details}
-        return any((c or "").upper() == wanted for c in codes)
+        """Return True if the entry satisfies every active filter."""
+        if wanted is not None:
+            codes = {entry.reason_code} | {
+                d.reason_code for d in entry.details
+            }
+            if not any((c or "").upper() == wanted for c in codes):
+                return False
+        if wanted_status is not None:
+            if (entry.status or "").upper() != wanted_status:
+                return False
+        if after is not None or before is not None:
+            booked = (entry.booking_date or "")[:10]
+            if not booked:
+                return False
+            if after is not None and booked < after:
+                return False
+            if before is not None and booked > before:
+                return False
+        if low is not None or high is not None:
+            amount = _entry_amount(entry)
+            if amount is None:
+                return False
+            if low is not None and amount < low:
+                return False
+            if high is not None and amount > high:
+                return False
+        return True
 
     return [e.to_dict() for e in document.all_entries() if matches(e)]
 
