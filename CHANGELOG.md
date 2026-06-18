@@ -53,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   coordinated-disclosure process, a Dependabot configuration keeping the `pip`
   and `github-actions` ecosystems up to date weekly, and a weekly CodeQL code
   scanning workflow for Python (#14)
+- Add GitHub issue templates (bug report and feature request, the latter
+  prompting for an `As a / I want / So that` user story and `Given/When/Then`
+  acceptance criteria), a pull-request template, and a `CODEOWNERS` file;
+  expand `CONTRIBUTING.md` with the protected-branch requirements, the 100%
+  coverage gate, the ruff / black / mypy toolchain, and signed-commit
+  guidance (#34)
 
 ### Fixed
 
