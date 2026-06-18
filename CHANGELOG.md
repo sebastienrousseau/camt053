@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.2] - 2026-06-18
 
 ### Added
 
@@ -89,6 +89,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consumers can switch on `exc.code` without depending on class names or
   message text; documented as a code → meaning table in the module
   docstring and the README (#30)
+- Add a security policy (`SECURITY.md`) describing supported versions and the
+  coordinated-disclosure process, a Dependabot configuration keeping the `pip`
+  and `github-actions` ecosystems up to date weekly, and a weekly CodeQL code
+  scanning workflow for Python (#14)
+- Add GitHub issue templates (bug report and feature request, the latter
+  prompting for an `As a / I want / So that` user story and `Given/When/Then`
+  acceptance criteria), a pull-request template, and a `CODEOWNERS` file;
+  expand `CONTRIBUTING.md` with the protected-branch requirements, the 100%
+  coverage gate, the ruff / black / mypy toolchain, and signed-commit
+  guidance (#34)
 
 ### Fixed
 
@@ -131,4 +141,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[0.0.2]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.1
