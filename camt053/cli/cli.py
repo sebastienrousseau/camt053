@@ -33,7 +33,7 @@ from rich.console import Console
 from rich.table import Table
 
 from camt053 import services
-from camt053.constants import VERSION
+from camt053.constants import REVERSAL_MESSAGE_TYPE, VERSION
 from camt053.exceptions import Camt053Error
 
 console = Console()
@@ -128,10 +128,16 @@ def reasons() -> None:
     required=True,
     help="Path to the statement XML file ('-' for stdin).",
 )
-def parse(input_file: str) -> None:
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["json"], case_sensitive=False),
+    default="json",
+    show_default=True,
+    help="Output format (parse always prints JSON; accepted for symmetry).",
+)
+def parse(input_file: str, output_format: str) -> None:
     """Parse a statement and print it as JSON."""
-    import json
-
     try:
         document = services.parse_statement(_read_input(input_file))
     except (OSError, Camt053Error) as exc:
@@ -216,6 +222,14 @@ def validate(input_file: str) -> None:
     help="Only show entries with an amount <= this value.",
 )
 @click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"], case_sensitive=False),
+    default="table",
+    show_default=True,
+    help="Output format: a Rich table or a JSON array.",
+)
+@click.option(
     "--export",
     "export_format",
     type=click.Choice(["csv", "json"], case_sensitive=False),
@@ -237,6 +251,7 @@ def entries(
     date_to: str | None,
     min_amount: str | None,
     max_amount: str | None,
+    output_format: str,
     export_format: str | None,
     output_file: str | None,
 ) -> None:
@@ -271,8 +286,13 @@ def entries(
         console.print(f"[bold red]✗ Failed:[/bold red] {exc}")
         sys.exit(1)
 
-    if export_format:
-        document = _export_entries(rows, export_format.lower())
+    # ``--export`` takes precedence; ``--format json`` is a shorthand for a
+    # JSON array export (``--format table`` keeps the default table view).
+    fmt = export_format or (
+        "json" if output_format.lower() == "json" else None
+    )
+    if fmt:
+        document = _export_entries(rows, fmt.lower())
         if output_file:
             with open(output_file, "w", encoding="utf-8") as handle:
                 handle.write(document)
@@ -320,6 +340,17 @@ def entries(
     help="Return reason code whose entries are reversed.",
 )
 @click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"], case_sensitive=False),
+    default="table",
+    show_default=True,
+    help=(
+        "Output format: raw reversal XML (table) or a JSON envelope "
+        "carrying the message type, reason code, and XML."
+    ),
+)
+@click.option(
     "-o",
     "--output",
     "output_file",
@@ -327,7 +358,10 @@ def entries(
     help="Write the reversing entry here (default: stdout).",
 )
 def reverse(
-    input_file: str, reason_code: str, output_file: str | None
+    input_file: str,
+    reason_code: str,
+    output_format: str,
+    output_file: str | None,
 ) -> None:
     """Generate a reversing entry for matching statement entries."""
     try:
@@ -337,15 +371,29 @@ def reverse(
         console.print(f"[bold red]✗ Reversal failed:[/bold red] {exc}")
         sys.exit(1)
 
+    # ``--format json`` wraps the reversal XML in a JSON envelope; the default
+    # ``table`` format emits the raw reversal XML for XML-native pipelines.
+    if output_format.lower() == "json":
+        document = json.dumps(
+            {
+                "message_type": REVERSAL_MESSAGE_TYPE,
+                "reason_code": reason_code,
+                "xml": reversal,
+            },
+            indent=2,
+        )
+    else:
+        document = reversal
+
     if output_file:
         with open(output_file, "w", encoding="utf-8") as handle:
-            handle.write(reversal)
+            handle.write(document)
         console.print(
             f"[bold green]✓ Reversing entry written to[/bold green] "
             f"{output_file}"
         )
     else:
-        click.echo(reversal)
+        click.echo(document)
 
 
 @main.command("validate-id")

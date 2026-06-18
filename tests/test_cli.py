@@ -215,10 +215,62 @@ def test_entries_export_single_entry_message(tmp_path, statement_xml):
     assert "Exported 1 entry to" in result.output
 
 
+def test_entries_format_table_default(tmp_path, statement_xml):
+    """``--format table`` keeps the Rich table view (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "--format", "table"]
+    )
+    assert result.exit_code == 0
+    assert "3 entries" in result.output
+
+
+def test_entries_format_json(tmp_path, statement_xml):
+    """``--format json`` emits the entries as a JSON array (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "--format", "json"]
+    )
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert len(data) == 3
+    assert data[0]["reference"] == "NTRY-0001"
+
+
+def test_entries_format_json_filtered(tmp_path, statement_xml):
+    """``--format json`` honours the entry filters (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["entries", "-i", path, "-r", "AC04", "--format", "json"]
+    )
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert len(data) == 1
+
+
+def test_entries_format_json_bad_file():
+    """``--format json`` reports a missing file and exits non-zero (#9)."""
+    result = CliRunner().invoke(
+        main, ["entries", "-i", "/no/such/file.xml", "--format", "json"]
+    )
+    assert result.exit_code == 1
+    assert "Failed" in result.output
+
+
 def test_parse_command(tmp_path, statement_xml):
     """The parse command prints JSON."""
     path = _write(tmp_path, "stmt.xml", statement_xml)
     result = CliRunner().invoke(main, ["parse", "-i", path])
+    assert result.exit_code == 0
+    assert "STMT-MSG-0001" in result.output
+
+
+def test_parse_command_format_alias(tmp_path, statement_xml):
+    """The parse command accepts ``--format json`` as a no-op alias (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["parse", "-i", path, "--format", "json"]
+    )
     assert result.exit_code == 0
     assert "STMT-MSG-0001" in result.output
 
@@ -266,6 +318,53 @@ def test_reverse_command_no_match(tmp_path, statement_xml):
     """A reason with no match exits non-zero."""
     path = _write(tmp_path, "stmt.xml", statement_xml)
     result = CliRunner().invoke(main, ["reverse", "-i", path, "-r", "MD07"])
+    assert result.exit_code == 1
+    assert "Reversal failed" in result.output
+
+
+def test_reverse_command_format_table_default(tmp_path, statement_xml):
+    """``--format table`` emits raw reversal XML (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["reverse", "-i", path, "-r", "AC04", "--format", "table"]
+    )
+    assert result.exit_code == 0
+    assert "<RvslInd>true</RvslInd>" in result.output
+
+
+def test_reverse_command_format_json(tmp_path, statement_xml):
+    """``--format json`` wraps the reversal in a JSON envelope (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["reverse", "-i", path, "-r", "AC04", "--format", "json"]
+    )
+    assert result.exit_code == 0
+    envelope = json.loads(result.output)
+    assert envelope["message_type"] == "camt.053.001.14"
+    assert envelope["reason_code"] == "AC04"
+    assert "<RvslInd>true</RvslInd>" in envelope["xml"]
+
+
+def test_reverse_command_format_json_to_file(tmp_path, statement_xml):
+    """``--format json`` writes the envelope to a file (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    out = str(tmp_path / "rev.json")
+    result = CliRunner().invoke(
+        main,
+        ["reverse", "-i", path, "-r", "AC04", "--format", "json", "-o", out],
+    )
+    assert result.exit_code == 0
+    assert "written to" in result.output
+    envelope = json.loads(open(out, encoding="utf-8").read())
+    assert envelope["message_type"] == "camt.053.001.14"
+
+
+def test_reverse_command_format_json_no_match(tmp_path, statement_xml):
+    """``--format json`` keeps the non-zero exit on no match (#9)."""
+    path = _write(tmp_path, "stmt.xml", statement_xml)
+    result = CliRunner().invoke(
+        main, ["reverse", "-i", path, "-r", "MD07", "--format", "json"]
+    )
     assert result.exit_code == 1
     assert "Reversal failed" in result.output
 

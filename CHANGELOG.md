@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a `--format {table,json}` option to the `camt053 entries` and
+  `camt053 reverse` commands (`table` is the default). For `entries`, `json`
+  emits the (optionally filtered) entries as a JSON array; for `reverse`,
+  `json` emits a `{"message_type", "reason_code", "xml"}` envelope instead
+  of raw XML. The `parse` command accepts `--format json` as a no-op alias
+  for symmetry. Exit codes are unchanged (#9)
 - Ship a PEP 561 `py.typed` marker so downstream projects pick up the
   library's inline type hints (#3)
 - `services.validate_statement(xml)` and a `camt053 validate` CLI command

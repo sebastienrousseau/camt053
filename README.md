@@ -125,6 +125,10 @@ camt053 entries -i statement.xml --status BOOK --from 2026-06-01 --min 1000
 camt053 entries -i statement.xml --export csv -o entries.csv
 camt053 entries -i statement.xml -r AC04 --export json
 
+# Choose the output format: a Rich table (default) or structured JSON
+camt053 entries -i statement.xml --format json
+camt053 reverse -i statement.xml -r AC04 --format json   # JSON envelope
+
 # Inspect the parsed statement as JSON, or validate an identifier
 camt053 parse -i statement.xml
 camt053 validate-id -k iban -v GB29NWBK60161331926819
@@ -153,6 +157,10 @@ so they compose in a pipeline.
   --export {csv,json} [-o file]`); CSV columns are `reference, amount,
   currency, credit_debit_indicator, status, booking_date, value_date,
   reason_code`.
+- **Structured output** — `camt053 entries --format json` emits the entries
+  as a JSON array, and `camt053 reverse --format json` emits a
+  `{"message_type", "reason_code", "xml"}` envelope instead of raw XML
+  (`--format table`, the default, keeps the Rich table / raw XML).
 - **Reverse** — generate a `camt.053.001.14` reversing entry from the matching
   entries (credit/debit indicator flipped, `RvslInd` set, return reason carried
   in `RtrInf`), in one call.
