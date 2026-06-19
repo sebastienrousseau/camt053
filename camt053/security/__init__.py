@@ -16,5 +16,16 @@
 """Security utilities for Camt053."""
 
 from camt053.security.path_validator import sanitize_for_log, validate_path
+from camt053.security.xml_guard import (
+    DEFAULT_MAX_XML_BYTES,
+    XmlSecurityError,
+    guard_xml_payload,
+)
 
-__all__ = ["validate_path", "sanitize_for_log"]
+__all__ = [
+    "validate_path",
+    "sanitize_for_log",
+    "guard_xml_payload",
+    "XmlSecurityError",
+    "DEFAULT_MAX_XML_BYTES",
+]
