@@ -15,18 +15,16 @@
 
 """Security tests hardening the REST API against malicious XML."""
 
+import importlib
 import json
-import sys
 
 import pytest
 from fastapi.testclient import TestClient
 
-import camt053.api.app  # noqa: F401  (ensure the submodule is imported)
-
 # ``camt053.api.__init__`` rebinds the ``app`` attribute on the package to the
-# FastAPI instance, so ``camt053.api.app`` no longer resolves to the module.
-# Reach the real module object through ``sys.modules``.
-app_module = sys.modules["camt053.api.app"]
+# FastAPI instance, so a plain ``import camt053.api.app`` would not resolve to
+# the module. ``import_module`` returns the real module object directly.
+app_module = importlib.import_module("camt053.api.app")
 
 pytestmark = pytest.mark.security
 

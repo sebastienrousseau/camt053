@@ -83,6 +83,9 @@ class BodySizeLimitMiddleware(BaseHTTPMiddleware):
                 if int(declared) > max_bytes:
                     return _too_large_response(max_bytes)
             except ValueError:
+                # A non-integer Content-Length is ignored here; the streamed
+                # body below is measured directly, which rejects oversized
+                # payloads regardless of a malformed declared length.
                 pass
         body = await request.body()
         if len(body) > max_bytes:
