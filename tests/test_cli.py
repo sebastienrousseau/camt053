@@ -303,7 +303,7 @@ def test_version_flag():
     """The --version flag reports the version."""
     result = CliRunner().invoke(main, ["--version"])
     assert result.exit_code == 0
-    assert "0.0.3" in result.output
+    assert "0.0.4" in result.output
 
 
 def test_reverse_command_to_stdout(tmp_path, statement_xml):
