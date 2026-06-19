@@ -35,6 +35,7 @@ Example:
 import glob
 import json
 import os
+from collections.abc import Iterator
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -59,6 +60,9 @@ from camt053.parse.reason_codes import (
 )
 from camt053.parse.reason_codes import (
     validate_reason_code as _validate_reason_code,
+)
+from camt053.parse.statement_parser import (
+    iter_statement_entries as _iter_statement_entries,
 )
 from camt053.parse.statement_parser import parse_document as _parse_document
 from camt053.reversal.reversal import (
@@ -97,6 +101,7 @@ __all__ = [
     "serialize_statement",
     "validate_statement",
     "list_entries",
+    "iter_entries",
     "filter_entries",
     "build_reversal",
     "cleanse_records",
@@ -358,11 +363,19 @@ def validate_statement(xml: str) -> dict[str, Any]:
     return _validate_statement(xml)
 
 
-def list_entries(xml: str) -> list[dict[str, Any]]:
+def list_entries(xml: str, *, streaming: bool = False) -> list[dict[str, Any]]:
     """Parse a statement and return every entry across all its statements.
+
+    With ``streaming=False`` (default) the whole tree is parsed at once. With
+    ``streaming=True`` the entries are read incrementally via
+    :func:`camt053.parse.statement_parser.iter_statement_entries`, which bounds
+    peak memory to a single entry; the returned list is identical either way.
+    Callers that want to consume entries one at a time without materialising the
+    full list should use :func:`iter_entries` instead.
 
     Args:
         xml: The raw statement XML as a string.
+        streaming: If ``True``, use the memory-bounded ``iterparse`` path.
 
     Returns:
         A list of entry dicts.
@@ -370,7 +383,33 @@ def list_entries(xml: str) -> list[dict[str, Any]]:
     Raises:
         StatementParseError: If the XML is malformed or unrecognised.
     """
+    if streaming:
+        return [e.to_dict() for e in _iter_statement_entries(xml)]
     return [e.to_dict() for e in _parse_document(xml).all_entries()]
+
+
+def iter_entries(xml: str) -> Iterator[dict[str, Any]]:
+    """Stream a statement's entries as dicts without building the whole tree.
+
+    Memory-bounded, forward-only counterpart to :func:`list_entries`: each entry
+    dict is produced the moment its ``<Ntry>`` element closes (via
+    :func:`camt053.parse.statement_parser.iter_statement_entries`), so large
+    statements can be processed without loading the entire document. For a
+    well-formed statement it yields exactly the entries :func:`list_entries`
+    returns, in document order.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Yields:
+        Each entry as a JSON-serialisable dict, in document order.
+
+    Raises:
+        StatementParseError: If the XML is empty or becomes malformed while
+            streaming (after any already-parsed entries have been yielded).
+    """
+    for entry in _iter_statement_entries(xml):
+        yield entry.to_dict()
 
 
 def _parse_amount(value: str | None, label: str) -> Decimal | None:
