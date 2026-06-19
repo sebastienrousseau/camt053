@@ -24,6 +24,7 @@ CLI behaves identically to the REST API, MCP server, and LSP server.
 import csv
 import io
 import json
+import os
 import sys
 from typing import Any
 
@@ -33,7 +34,14 @@ from rich.console import Console
 from rich.table import Table
 
 from camt053 import services
-from camt053.constants import REVERSAL_MESSAGE_TYPE, VERSION
+from camt053.constants import (
+    OUTPUT_FORMAT_CAMT053,
+    OUTPUT_FORMAT_PACS004,
+    PACS_RETURN_MESSAGE_TYPE,
+    REVERSAL_CAMT_VERSIONS,
+    REVERSAL_MESSAGE_TYPE,
+    VERSION,
+)
 from camt053.exceptions import Camt053Error
 
 console = Console()
@@ -344,13 +352,63 @@ def entries(
     console.print(f"[cyan]{len(rows)} entr{'y' if len(rows) == 1 else 'ies'}.")
 
 
+def _resolved_message_type(out_format: str, out_version: str | None) -> str:
+    """Return the message type a reversal will carry for reporting / JSON."""
+    if out_format.lower() == OUTPUT_FORMAT_PACS004:
+        return PACS_RETURN_MESSAGE_TYPE
+    return out_version or REVERSAL_MESSAGE_TYPE
+
+
+def _run_batch(
+    batch: str,
+    reason_code: str,
+    out_format: str,
+    out_version: str | None,
+    output_file: str | None,
+) -> None:
+    """Reverse every statement file in a batch, writing per-file outputs."""
+    summary = services.generate_batch(
+        batch,
+        reason_code=reason_code,
+        output_format=out_format,
+        version=out_version,
+    )
+    if output_file:
+        os.makedirs(output_file, exist_ok=True)
+    for result in summary["results"]:
+        if result["ok"] and output_file:
+            name = os.path.splitext(os.path.basename(result["path"]))[0]
+            dest = os.path.join(output_file, f"{name}.reversal.xml")
+            with open(dest, "w", encoding="utf-8") as handle:
+                handle.write(result["xml"])
+        if result["ok"]:
+            console.print(f"[green]✓[/green] {result['path']}")
+        else:
+            console.print(f"[red]✗[/red] {result['path']}: {result['error']}")
+    console.print(
+        f"[cyan]{summary['succeeded']} succeeded, "
+        f"{summary['failed']} failed of {summary['total']}.[/cyan]"
+    )
+    if summary["failed"]:
+        sys.exit(1)
+
+
 @main.command("reverse")
 @click.option(
     "-i",
     "--input",
     "input_file",
-    required=True,
+    default=None,
     help="Path to the incoming statement XML file ('-' for stdin).",
+)
+@click.option(
+    "--batch",
+    "batch",
+    default=None,
+    help=(
+        "Batch mode: a directory, glob, or file path to reverse many "
+        "statements at once (use -o to name an output directory)."
+    ),
 )
 @click.option(
     "-r",
@@ -372,22 +430,61 @@ def entries(
     ),
 )
 @click.option(
+    "--output-format",
+    "reversal_format",
+    type=click.Choice(
+        [OUTPUT_FORMAT_CAMT053, OUTPUT_FORMAT_PACS004], case_sensitive=False
+    ),
+    default=OUTPUT_FORMAT_CAMT053,
+    show_default=True,
+    help="Reversal document format: camt.053 statement or pacs.004 return.",
+)
+@click.option(
+    "--out-version",
+    "out_version",
+    type=click.Choice(list(REVERSAL_CAMT_VERSIONS), case_sensitive=False),
+    default=None,
+    help=(
+        "camt.053 output schema version to emit "
+        f"(default: {REVERSAL_MESSAGE_TYPE})."
+    ),
+)
+@click.option(
     "-o",
     "--output",
     "output_file",
     default=None,
-    help="Write the reversing entry here (default: stdout).",
+    help="Write the reversing entry here (a directory in --batch mode).",
 )
 def reverse(
-    input_file: str,
+    input_file: str | None,
+    batch: str | None,
     reason_code: str,
     output_format: str,
+    reversal_format: str,
+    out_version: str | None,
     output_file: str | None,
 ) -> None:
     """Generate a reversing entry for matching statement entries."""
+    if batch:
+        _run_batch(
+            batch, reason_code, reversal_format, out_version, output_file
+        )
+        return
+    if not input_file:
+        console.print(
+            "[bold red]✗ Reversal failed:[/bold red] "
+            "either --input or --batch is required."
+        )
+        sys.exit(1)
     try:
         xml = _read_input(input_file)
-        reversal = services.generate_reversal(xml, reason_code)
+        reversal = services.generate_reversal(
+            xml,
+            reason_code,
+            output_format=reversal_format,
+            version=out_version,
+        )
     except (OSError, Camt053Error) as exc:
         console.print(f"[bold red]✗ Reversal failed:[/bold red] {exc}")
         sys.exit(1)
@@ -397,7 +494,9 @@ def reverse(
     if output_format.lower() == "json":
         document = json.dumps(
             {
-                "message_type": REVERSAL_MESSAGE_TYPE,
+                "message_type": _resolved_message_type(
+                    reversal_format, out_version
+                ),
                 "reason_code": reason_code,
                 "xml": reversal,
             },

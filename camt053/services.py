@@ -32,7 +32,9 @@ Example:
     True
 """
 
+import glob
 import json
+import os
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -40,7 +42,12 @@ from typing import Any
 from camt053.compliance.swift_charset import (
     cleanse_records as _cleanse_records,
 )
-from camt053.constants import message_names, valid_xml_types
+from camt053.constants import (
+    OUTPUT_FORMAT_CAMT053,
+    message_names,
+    valid_xml_types,
+)
+from camt053.exceptions import Camt053Error
 from camt053.parse.reason_codes import (
     classify_reason as _classify_reason,
 )
@@ -95,6 +102,7 @@ __all__ = [
     "cleanse_records",
     "generate_reversal",
     "generate",
+    "generate_batch",
 ]
 
 _IDENTIFIER_VALIDATORS = {
@@ -525,18 +533,65 @@ def cleanse_records(
     }
 
 
+def _read_path(path: str) -> str:
+    """Read a statement file's text, raising OSError on failure."""
+    with open(path, encoding="utf-8") as handle:
+        return handle.read()
+
+
+def _resolve_batch_paths(paths: list[str] | str) -> list[str]:
+    """Expand directories / globs / file lists into an ordered file list.
+
+    Each input is resolved independently: a directory contributes its sorted
+    recursive ``*.xml`` files, a glob contributes its sorted matches, and any
+    other value is kept as-is (so a missing path surfaces as a per-file error
+    rather than silently vanishing). Duplicates are removed, first-seen order
+    preserved.
+
+    Args:
+        paths: A single path / glob / directory, or a list mixing them.
+
+    Returns:
+        The ordered, de-duplicated list of file paths to process.
+    """
+    items = [paths] if isinstance(paths, str) else list(paths)
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        if os.path.isdir(item):
+            matches = sorted(
+                glob.glob(os.path.join(item, "**", "*.xml"), recursive=True)
+            )
+        else:
+            globbed = sorted(glob.glob(item, recursive=True))
+            matches = globbed or [item]
+        for match in matches:
+            if match not in seen:
+                seen.add(match)
+                resolved.append(match)
+    return resolved
+
+
 def generate_reversal(
     xml: str,
     reason_code: str = DEFAULT_REASON_CODE,
     msg_id: str | None = None,
     creation_date_time: str | None = None,
     cleanse: bool = False,
+    output_format: str = OUTPUT_FORMAT_CAMT053,
+    version: str | None = None,
 ) -> str:
     """Read a statement and generate a validated reversing-entry document.
 
     This is the headline one-shot workflow: parse the incoming camt.053, pick
     the entries with the requested return reason (e.g. AC04 Closed Account),
-    and emit a validated camt.053.001.08 reversal statement.
+    and emit a validated reversal document.
+
+    By default the reversal is a camt.053.001.14 reversing-entry statement.
+    Callers can select a different bundled camt.053 schema version via
+    ``version`` (one of :data:`camt053.constants.REVERSAL_CAMT_VERSIONS`), or
+    switch to a pacs.004 PaymentReturn document with
+    ``output_format="pacs004"``.
 
     Args:
         xml: The raw incoming statement XML as a string.
@@ -547,13 +602,18 @@ def generate_reversal(
         cleanse: Opt-in SWIFT charset cleansing of the reversal's name /
             narrative fields before rendering (default ``False``, leaving the
             existing output byte-for-byte unchanged).
+        output_format: ``"camt053"`` (default) emits a camt.053 reversing-entry
+            statement; ``"pacs004"`` emits a pacs.004 PaymentReturn document.
+        version: For the camt.053 format, the schema version to emit; ``None``
+            keeps the default :data:`camt053.constants.REVERSAL_MESSAGE_TYPE`.
 
     Returns:
-        The validated camt.053.001.08 reversal document as a string.
+        The validated reversal document as a string.
 
     Raises:
         StatementParseError: If the XML cannot be parsed.
-        ReversalGenerationError: If no entry matches or validation fails.
+        ReversalGenerationError: If no entry matches, the format / version is
+            unknown, or validation fails.
     """
     document = _parse_document(xml)
     if not document.statements:
@@ -568,11 +628,18 @@ def generate_reversal(
     )
     if cleanse:
         _cleanse_records(records)
-    return generate_reversal_xml(records)
+    return generate_reversal_xml(
+        records, output_format=output_format, version=version
+    )
 
 
-def generate(records: list[dict[str, Any]], cleanse: bool = False) -> str:
-    """Render flat reversing-entry records into validated camt.053 XML.
+def generate(
+    records: list[dict[str, Any]],
+    cleanse: bool = False,
+    output_format: str = OUTPUT_FORMAT_CAMT053,
+    version: str | None = None,
+) -> str:
+    """Render flat reversing-entry records into a validated reversal document.
 
     The in-process entry point for callers that already hold reversing-entry
     records (e.g. built elsewhere or loaded from a data file).
@@ -581,16 +648,82 @@ def generate(records: list[dict[str, Any]], cleanse: bool = False) -> str:
         records: One or more flat reversing-entry records.
         cleanse: Opt-in SWIFT charset cleansing of the records' name /
             narrative fields before rendering (default ``False``).
+        output_format: ``"camt053"`` (default) or ``"pacs004"``.
+        version: Optional camt.053 schema version to emit (default keeps
+            :data:`camt053.constants.REVERSAL_MESSAGE_TYPE`).
 
     Returns:
-        The validated camt.053.001.08 reversal document as a string.
+        The validated reversal document as a string.
 
     Raises:
-        ReversalGenerationError: If records are empty or validation fails.
+        ReversalGenerationError: If records are empty, the format / version is
+            unknown, or validation fails.
     """
     if cleanse:
         _cleanse_records(records)
-    return generate_reversal_xml(records)
+    return generate_reversal_xml(
+        records, output_format=output_format, version=version
+    )
+
+
+def generate_batch(
+    paths: list[str] | str,
+    reason_code: str = DEFAULT_REASON_CODE,
+    cleanse: bool = False,
+    output_format: str = OUTPUT_FORMAT_CAMT053,
+    version: str | None = None,
+) -> dict[str, Any]:
+    """Generate reversals for many statement files in one call.
+
+    Processes a list of file paths, a glob pattern, or a directory (every
+    ``*.xml`` file inside it, recursively), reversing each statement
+    independently. Each file is isolated: a parse / generation failure on one
+    file is captured as an error result and does not abort the batch.
+
+    Args:
+        paths: A directory path, a glob pattern, a single file path, or a list
+            mixing any of those. Directories are scanned recursively for
+            ``*.xml`` files; bare paths that are neither a file, directory, nor
+            matching glob are reported as a not-found error.
+        reason_code: The ISO external return reason to reverse (default
+            ``"AC04"``).
+        cleanse: Opt-in SWIFT charset cleansing before rendering.
+        output_format: ``"camt053"`` (default) or ``"pacs004"``.
+        version: Optional camt.053 schema version to emit.
+
+    Returns:
+        ``{"total": int, "succeeded": int, "failed": int,
+        "results": [{"path": str, "ok": bool, "xml": str | None,
+        "error": str | None}, ...]}``. Results preserve discovery order.
+    """
+    resolved = _resolve_batch_paths(paths)
+    results: list[dict[str, Any]] = []
+    succeeded = 0
+    for path in resolved:
+        try:
+            xml = _read_path(path)
+            reversal = generate_reversal(
+                xml,
+                reason_code=reason_code,
+                cleanse=cleanse,
+                output_format=output_format,
+                version=version,
+            )
+        except (OSError, Camt053Error) as exc:
+            results.append(
+                {"path": path, "ok": False, "xml": None, "error": str(exc)}
+            )
+            continue
+        succeeded += 1
+        results.append(
+            {"path": path, "ok": True, "xml": reversal, "error": None}
+        )
+    return {
+        "total": len(resolved),
+        "succeeded": succeeded,
+        "failed": len(resolved) - succeeded,
+        "results": results,
+    }
 
 
 def load_openapi(app: Any | None = None) -> str:
