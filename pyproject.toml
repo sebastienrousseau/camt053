@@ -53,6 +53,7 @@ ruff = "^0.1.0"
 types-defusedxml = "^0.7.0"
 types-setuptools = "^65.0.0"
 hypothesis = "^6.0.0"
+mutmut = "^3.0.0"
 sphinx = "^7.0.0"
 sphinx-rtd-theme = "^1.0.0"
 sphinx-autodoc-typehints = "^1.0.0"
@@ -103,7 +104,11 @@ addopts = [
     "--tb=short",
     "-ra",
     "--strict-markers",
-    "--disable-warnings"
+    "--disable-warnings",
+    # Benchmarks (marker ``perf``) are excluded from the coverage gate; they
+    # run on their own in the CI ``performance`` job (see #11). Select them
+    # explicitly with ``-m perf --benchmark-only --no-cov``.
+    "-m", "not perf"
 ]
 markers = [
     "integration: end-to-end workflow tests",
@@ -125,6 +130,42 @@ exclude_also = [
     "if sys.platform",
     "except Exception:",
     "except \\(RuntimeError, OSError\\)",
+]
+
+# Mutation testing (#26). Advisory only -- this is *not* a blocking gate.
+# mutmut mutates the package source and re-runs the suite to surface tests that
+# pass even when the code is broken. Run with ``mutmut run`` (see CONTRIBUTING).
+# Benchmarks are excluded from the test selection so each mutant is checked
+# quickly; ``--no-cov`` avoids the 100% coverage gate aborting mutant runs.
+[tool.mutmut]
+source_paths = ["camt053"]
+# mutmut's covered-lines pre-pass re-runs the suite under its own coverage and
+# clashes with this project's ``--cov-fail-under=100`` gate; disable it so the
+# advisory run starts cleanly. Mutants are still generated for the whole package.
+mutate_only_covered_lines = false
+# The two filesystem tests below ``monkeypatch.chdir`` into a temp directory,
+# which trips mutmut 3.x's relative-``source_paths`` resolution during a mutant
+# run; they are deselected from the mutation suite (they still run in the normal
+# coverage-gated suite). Benchmarks (``perf``) are excluded for speed, and
+# ``--no-cov`` keeps the 100% coverage gate from aborting each mutant run.
+# ``pytest_add_cli_args`` is appended to *every* mutmut pytest invocation
+# (including the per-mutant "clean test" runs that select only a subset of
+# tests), so the coverage gate must be neutralised here -- ``-o addopts=``
+# clears this project's ``--cov-fail-under=100`` default that would otherwise
+# abort each partial run.
+pytest_add_cli_args = ["-o", "addopts=", "-p", "no:cacheprovider"]
+pytest_add_cli_args_test_selection = [
+    "tests",
+    "--deselect=tests/test_generate_xml.py",
+    "--deselect=tests/test_path_validator.py",
+    "-x",
+    "-m",
+    "not perf",
+    "-q",
+]
+do_not_mutate = [
+    "*/templates/*",
+    "*/__main__.py",
 ]
 
 [tool.ruff]

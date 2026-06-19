@@ -118,3 +118,75 @@ jobs:
 
       - name: Bandit
         run: poetry run bandit -r camt053/ -c pyproject.toml || poetry run bandit -r camt053/ -s B101
+
+  performance:
+    # Benchmark suite + performance-regression guard (#11). Runs the ``perf``
+    # benchmarks (parse + reversal generation on a representative statement)
+    # outside the coverage gate and compares them against the committed
+    # baseline, failing only on a large (>200% mean) regression so ordinary
+    # runner-to-runner hardware variance does not produce false failures.
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run benchmarks (regression guard)
+        run: >
+          poetry run pytest tests/test_benchmarks.py
+          -m perf --no-cov --benchmark-only
+          --benchmark-compare=.benchmarks/baseline/0001_baseline.json
+          --benchmark-compare-fail=mean:200%
+          --benchmark-json=benchmark-results.json
+          --tb=short
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.json
+
+  mutation:
+    # Mutation testing (#26) -- advisory, NOT a required gate. It mutates the
+    # package and re-runs the suite to surface weak tests. Allowed to fail so
+    # surviving mutants are informational and never block a merge.
+    name: Mutation Testing (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run mutmut (advisory)
+        # Limit to the small, pure modules so the advisory run stays fast in
+        # CI; drop the filter for a full local run (see CONTRIBUTING.md).
+        run: |
+          poetry run mutmut run "camt053.constants.*" || true
+          poetry run mutmut run "camt053.models.*" || true
+
+      - name: Mutation results summary
+        if: always()
+        run: poetry run mutmut results || true

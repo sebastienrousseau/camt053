@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Property-based (Hypothesis) tests for parser robustness and reversal
+  invariants (#25): a new `tests/test_property_based.py` generates plausible
+  and edge-case inputs and asserts that a reversing entry flips `CdtDbtInd`,
+  sets the reversal indicator, and preserves amount/currency; that the parser
+  never crashes on structurally-odd-but-well-formed XML and only ever raises
+  `StatementParseError`; that `reverse_credit_debit` is an involution; and that
+  serialise→parse round-trips preserve entries (the slower round-trip property
+  is marked `slow`).
+- Mutation testing with mutmut (#26): `[tool.mutmut]` configuration targeting
+  `camt053/`, a documented "Mutation testing" workflow in `CONTRIBUTING.md`,
+  and an advisory, non-blocking `mutation` CI job (`continue-on-error`). Not a
+  required 100% gate.
+- Performance benchmark suite and CI regression guard (#11): a new
+  `tests/test_benchmarks.py` (marker `perf`) benchmarks parse + reversal
+  generation on a representative statement with pytest-benchmark, a committed
+  baseline under `.benchmarks/baseline/`, and a `performance` CI job that
+  compares against it and fails only on a large (>200% mean) regression.
+  Benchmarks are excluded from the 100% coverage gate (`-m "not perf"` by
+  default).
+
 ## [0.0.4] - 2026-06-19
 
 ### Changed
