@@ -90,6 +90,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   document order. XXE / billion-laughs protection is preserved (DTDs and
   external/general entities are still rejected). The parser module docstring
   documents the streaming vs. whole-tree memory trade-offs.
+- Dependency vulnerability audit and coverage reporting in CI (#15): a new
+  advisory `audit` job runs `pip-audit` against the resolved Poetry environment
+  on every push/PR, and the `test` job now uploads the generated `coverage.xml`
+  as a build artifact. The audit is advisory (`continue-on-error`) because the
+  only outstanding findings are CVEs in the runner's own `pip` build tool, not
+  in any project runtime dependency (the project's dependencies audit clean).
+- GHCR Docker image publishing for the REST API (#31): a new
+  `.github/workflows/docker.yml` builds the existing `Dockerfile` and pushes
+  `ghcr.io/sebastienrousseau/camt053` tagged with the release version and
+  `latest` on `release: published` (and `workflow_dispatch`), independent of the
+  PyPI publish job and never running on PRs. A PR-safe `docker-build`
+  validation job in CI builds the image (no push) to catch Dockerfile breakage.
+- CycloneDX SBOM attached to releases (#32): a separate `sbom` job in the
+  release workflow generates a CycloneDX SBOM with `cyclonedx-bom` and uploads
+  it as a release asset via `gh release upload`. It is isolated from the PyPI
+  `publish` job so an SBOM failure cannot block the package release.
+- OpenSSF Scorecard workflow and README badge (#33): a new
+  `.github/workflows/scorecard.yml` runs `ossf/scorecard-action` on a schedule,
+  on push to `main`, and on `branch_protection_rule` (not on pull requests, so
+  its code-scanning findings cannot block merges), publishing results and a
+  Scorecard badge now shown in the README.
 
 ### Changed
 
