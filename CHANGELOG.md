@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Streaming, memory-bounded statement parsing (#10): a new
+  `camt053.parse.statement_parser.iter_statement_entries(xml)` generator walks a
+  statement with `defusedxml`'s `iterparse`, yielding each `Entry` as its
+  `<Ntry>` element closes and clearing the consumed subtree so peak memory stays
+  bounded by a single entry rather than the whole document. Exposed via the
+  service facade as `services.iter_entries(xml)` and
+  `services.list_entries(xml, streaming=True)`; for well-formed input the
+  streamed entries are identical to the whole-tree `list_entries(xml)`, in
+  document order. XXE / billion-laughs protection is preserved (DTDs and
+  external/general entities are still rejected). The parser module docstring
+  documents the streaming vs. whole-tree memory trade-offs.
+
+### Changed
+
+- Cache compiled XSDs and the Jinja2 environment for faster repeated parsing,
+  validation, and generation (#27): a new `camt053.xml.template_env` module
+  memoises one autoescaping Jinja2 `Environment` per template directory and one
+  compiled template per `(directory, name)` pair, so repeated `generate` /
+  `serialize` calls reuse the compiled template instead of rebuilding it. The
+  compiled XSD schema cache (`functools.lru_cache`) is now also exercised by the
+  statement serialiser. Public APIs are unchanged and the cached artefacts are
+  read-only, so no state leaks between documents.
+
 ## [0.0.4] - 2026-06-19
 
 ### Changed
