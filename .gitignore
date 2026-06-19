@@ -9,6 +9,7 @@ build/
 
 # Virtual environments
 .venv/
+.wtvenv/
 venv/
 env/
 
@@ -23,6 +24,12 @@ env/
 htmlcov/
 coverage.xml
 .coverage
+.hypothesis/
+
+# Mutation testing (mutmut)
+mutants/
+.mutmut-cache
+mutmut-stats.json
 
 # OS
 .DS_Store
@@ -36,8 +43,9 @@ tmp/
 camt053/tmp/
 *.tmp
 
-# Benchmarks
-.benchmarks/
+# Benchmarks: ignore generated runs, but keep the committed regression baseline
+.benchmarks/*
+!.benchmarks/baseline/
 camt053.egg-info/
 
 # Lint / type caches

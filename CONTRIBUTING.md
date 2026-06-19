@@ -141,6 +141,71 @@ poetry run pytest -m security         # Security tests
 poetry run pytest tests/test_version_matrix.py -v
 ```
 
+### Property-based tests
+
+`tests/test_property_based.py` uses [Hypothesis](https://hypothesis.works/) to
+generate plausible and edge-case inputs and assert library invariants — for
+example that a reversing entry always flips `CdtDbtInd`, sets the reversal
+indicator, and preserves the amount and currency; that the parser never
+crashes on structurally-odd-but-well-formed XML; and that
+serialise→parse round-trips preserve entries. The slower round-trip property
+is marked `slow`.
+
+```bash
+poetry run pytest tests/test_property_based.py -v --no-cov
+```
+
+### Performance benchmarks
+
+`tests/test_benchmarks.py` (marker `perf`) benchmarks the two hot paths —
+parsing and reversal generation — on a representative multi-entry statement
+using [pytest-benchmark](https://pytest-benchmark.readthedocs.io/). The `perf`
+benchmarks are **excluded from the coverage gate** (`-m "not perf"` is the
+default) and run on their own:
+
+```bash
+# Run the benchmarks
+poetry run pytest tests/test_benchmarks.py -m perf --no-cov --benchmark-only
+
+# Compare against the committed baseline (the CI ``performance`` job does this
+# and fails only on a >200% mean regression to tolerate hardware variance)
+poetry run pytest tests/test_benchmarks.py -m perf --no-cov --benchmark-only \
+  --benchmark-compare=.benchmarks/baseline/0001_baseline.json \
+  --benchmark-compare-fail=mean:200%
+
+# Refresh the baseline (do this on the reference machine after an intentional,
+# reviewed performance change)
+poetry run pytest tests/test_benchmarks.py -m perf --no-cov --benchmark-only \
+  --benchmark-json=.benchmarks/baseline/0001_baseline.json
+```
+
+### Mutation testing
+
+Mutation testing with [mutmut](https://mutmut.readthedocs.io/) checks how good
+the suite is at *detecting* bugs: it introduces small changes (mutants) into
+`camt053/` and re-runs the tests, reporting any mutant the suite fails to kill.
+It is **advisory only** — it is not a blocking gate and is not required to be
+at 100%. The configuration lives in `[tool.mutmut]` in `pyproject.toml`.
+
+```bash
+# Mutate a single small module (fast — good first run)
+poetry run mutmut run "camt053.constants.*"
+
+# Mutate the whole package (slow)
+poetry run mutmut run
+
+# Inspect results and a specific surviving mutant
+poetry run mutmut results
+poetry run mutmut show <mutant-name>
+```
+
+The two filesystem tests that `monkeypatch.chdir` into a temp directory are
+deselected from the mutation suite (a known mutmut interaction with relative
+`source_paths`); they still run in the normal coverage-gated suite. The CI
+`mutation` job runs mutmut over the small pure modules with
+`continue-on-error`, so surviving mutants surface as information without
+blocking a merge.
+
 ## Pull Request Checklist
 
 The PR template captures this checklist; the essentials are:
