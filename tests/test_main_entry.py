@@ -28,7 +28,7 @@ def test_module_runs_as_main():
         check=False,
     )
     assert result.returncode == 0
-    assert "0.0.1" in result.stdout
+    assert "0.0.3" in result.stdout
 
 
 def test_main_callable():
