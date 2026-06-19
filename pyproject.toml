@@ -13,6 +13,7 @@ packages = [
 include = [
     "camt053/schemas/*",
     "camt053/templates/*",
+    "camt053/templates/**/*",
     "camt053/xsd/*",
     "camt053/py.typed",
 ]

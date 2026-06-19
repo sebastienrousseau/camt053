@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Output camt.053 version selection for generated reversing entries (#8). The
+  reversal services now accept a `version` argument selecting the bundled
+  camt.053 schema version to emit, validated against the matching official ISO
+  XSD. The default is unchanged (`camt.053.001.14`); `camt.053.001.08` is now
+  also bundled (template + official XSD) so the selection is real. An unknown
+  version raises a clear `ReversalGenerationError`. Surfaced via
+  `services.generate_reversal(..., version=...)` / `services.generate(...)` and
+  the CLI `camt053 reverse --out-version`.
+- Optional pacs.004 PaymentReturn output as an alternative reversal format
+  (#7). The same reversing-entry records can now be emitted as a pacs.004
+  PaymentReturn document (the canonical ISO "payment return" message) carrying
+  and echoing the return reason, validated against a bundled pacs.004.001.11
+  XSD. Selected via `services.generate_reversal(..., output_format="pacs004")`
+  and the CLI `camt053 reverse --output-format pacs004`. camt.053 remains the
+  default.
+- Batch processing of multiple statements or a directory (#13). A new
+  `services.generate_batch(paths)` processes a list of files, a glob pattern, or
+  a directory (scanned recursively for `*.xml`) in one call, producing per-file
+  results with an aggregate summary and per-file error isolation (one bad file
+  does not abort the batch). Exposed on the CLI as
+  `camt053 reverse --batch DIR -o OUTDIR`, writing a per-file reversal to the
+  output directory and reporting a succeeded/failed summary.
 - Streaming, memory-bounded statement parsing (#10): a new
   `camt053.parse.statement_parser.iter_statement_entries(xml)` generator walks a
   statement with `defusedxml`'s `iterparse`, yielding each `Entry` as its

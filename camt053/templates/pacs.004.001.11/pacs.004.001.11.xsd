@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Focused ISO 20022 pacs.004.001.11 (FIToFIPaymentReturn / PaymentReturn) schema.
+
+  This is a deliberately scoped subset of the official ISO 20022 PaymentReturn
+  message, covering the elements emitted by the camt053 pacs.004 reversal
+  template (group header, settlement information, and per-transaction return
+  identification, returned amount, return reason, and original transaction
+  reference). Element names, ordering, and the ISO base data types match the
+  official message so generated documents are interoperable with consumers that
+  accept the corresponding subset. It is bundled solely to validate the
+  library's own output; it is not a full reproduction of the ISO schema.
+-->
+<xs:schema xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.004.001.11"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:iso:std:iso:20022:tech:xsd:pacs.004.001.11"
+           elementFormDefault="qualified">
+
+  <xs:element name="Document" type="Document"/>
+
+  <xs:complexType name="Document">
+    <xs:sequence>
+      <xs:element name="PmtRtr" type="PaymentReturnV11"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PaymentReturnV11">
+    <xs:sequence>
+      <xs:element name="GrpHdr" type="GroupHeader" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="TxInf" type="PaymentTransaction" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="GroupHeader">
+    <xs:sequence>
+      <xs:element name="MsgId" type="Max35Text"/>
+      <xs:element name="CreDtTm" type="ISODateTime"/>
+      <xs:element name="NbOfTxs" type="Max15NumericText"/>
+      <xs:element name="SttlmInf" type="SettlementInstruction"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SettlementInstruction">
+    <xs:sequence>
+      <xs:element name="SttlmMtd" type="SettlementMethodCode"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="SettlementMethodCode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="INDA"/>
+      <xs:enumeration value="INGA"/>
+      <xs:enumeration value="COVE"/>
+      <xs:enumeration value="CLRG"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="PaymentTransaction">
+    <xs:sequence>
+      <xs:element name="RtrId" type="Max35Text" minOccurs="0"/>
+      <xs:element name="OrgnlInstrId" type="Max35Text" minOccurs="0"/>
+      <xs:element name="OrgnlEndToEndId" type="Max35Text" minOccurs="0"/>
+      <xs:element name="OrgnlTxId" type="Max35Text" minOccurs="0"/>
+      <xs:element name="RtrdInstdAmt" type="ActiveCurrencyAndAmount"/>
+      <xs:element name="RtrRsnInf" type="ReturnReasonInformation" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="OrgnlTxRef" type="OriginalTransactionReference" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReturnReasonInformation">
+    <xs:sequence>
+      <xs:element name="Rsn" type="ReturnReason" minOccurs="0"/>
+      <xs:element name="AddtlInf" type="Max105Text" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReturnReason">
+    <xs:choice>
+      <xs:element name="Cd" type="ExternalReturnReason1Code"/>
+      <xs:element name="Prtry" type="Max35Text"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="OriginalTransactionReference">
+    <xs:sequence>
+      <xs:element name="Amt" type="AmountType" minOccurs="0"/>
+      <xs:element name="Dbtr" type="Party" minOccurs="0"/>
+      <xs:element name="DbtrAcct" type="CashAccount" minOccurs="0"/>
+      <xs:element name="Cdtr" type="Party" minOccurs="0"/>
+      <xs:element name="CdtrAcct" type="CashAccount" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AmountType">
+    <xs:sequence>
+      <xs:element name="InstdAmt" type="ActiveCurrencyAndAmount"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Party">
+    <xs:sequence>
+      <xs:element name="Nm" type="Max140Text" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CashAccount">
+    <xs:sequence>
+      <xs:element name="Id" type="AccountIdentification"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AccountIdentification">
+    <xs:sequence>
+      <xs:element name="IBAN" type="IBAN2007Identifier"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ActiveCurrencyAndAmount">
+    <xs:simpleContent>
+      <xs:extension base="ActiveCurrencyAndAmountSimpleType">
+        <xs:attribute name="Ccy" type="ActiveCurrencyCode" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="ActiveCurrencyAndAmountSimpleType">
+    <xs:restriction base="xs:decimal">
+      <xs:fractionDigits value="5"/>
+      <xs:totalDigits value="18"/>
+      <xs:minInclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ActiveCurrencyCode">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]{3,3}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ExternalReturnReason1Code">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="4"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="IBAN2007Identifier">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ISODateTime">
+    <xs:restriction base="xs:dateTime"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="Max15NumericText">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]{1,15}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Max35Text">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="35"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Max105Text">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="105"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Max140Text">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="140"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

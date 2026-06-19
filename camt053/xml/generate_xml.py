@@ -1,9 +1,24 @@
-"""XML generator for ISO 20022 camt.053 reversing-entry statements."""
+"""XML generator for ISO 20022 reversing-entry / payment-return documents.
+
+The headline output is a camt.053 reversing-entry statement, which can be
+emitted in any bundled camt.053 schema version (see
+:data:`camt053.constants.REVERSAL_CAMT_VERSIONS`). As an alternative, the same
+reversing-entry records can be rendered as a pacs.004 PaymentReturn document
+(the canonical ISO "payment return" message), selected via ``output_format``.
+"""
 
 import os
 from typing import Any
 
-from camt053.constants import REVERSAL_MESSAGE_TYPE, TEMPLATES_DIR
+from camt053.constants import (
+    OUTPUT_FORMAT_CAMT053,
+    OUTPUT_FORMAT_PACS004,
+    OUTPUT_FORMATS,
+    PACS_RETURN_MESSAGE_TYPE,
+    REVERSAL_CAMT_VERSIONS,
+    REVERSAL_MESSAGE_TYPE,
+    TEMPLATES_DIR,
+)
 from camt053.exceptions import ReversalGenerationError
 from camt053.models import Statement
 from camt053.reversal.reversal import build_reversal_records
@@ -71,11 +86,49 @@ def _build_context(records: list[dict[str, Any]]) -> dict[str, Any]:
     return context
 
 
-def _render_and_validate(records: list[dict[str, Any]]) -> str:
-    """Render the reversal template and validate it against the bundled XSD."""
-    tdir = TEMPLATES_DIR / REVERSAL_MESSAGE_TYPE
+def _resolve_message_type(output_format: str, version: str | None) -> str:
+    """Resolve the output format + version to a bundled message type.
+
+    Args:
+        output_format: One of :data:`camt053.constants.OUTPUT_FORMATS`.
+        version: For the camt.053 format, the schema version to emit (one of
+            :data:`camt053.constants.REVERSAL_CAMT_VERSIONS`); ``None`` selects
+            the default :data:`camt053.constants.REVERSAL_MESSAGE_TYPE`. Ignored
+            for the pacs.004 format.
+
+    Returns:
+        The bundled message type whose template directory should be rendered.
+
+    Raises:
+        ReversalGenerationError: If the format or version is unknown.
+    """
+    fmt = (output_format or "").lower()
+    if fmt == OUTPUT_FORMAT_PACS004:
+        return PACS_RETURN_MESSAGE_TYPE
+    if fmt != OUTPUT_FORMAT_CAMT053:
+        supported = ", ".join(OUTPUT_FORMATS)
+        raise ReversalGenerationError(
+            f"Unknown output format {output_format!r}; "
+            f"expected one of: {supported}."
+        )
+    if version is None:
+        return REVERSAL_MESSAGE_TYPE
+    if version not in REVERSAL_CAMT_VERSIONS:
+        supported = ", ".join(REVERSAL_CAMT_VERSIONS)
+        raise ReversalGenerationError(
+            f"Unknown camt.053 output version {version!r}; "
+            f"expected one of: {supported}."
+        )
+    return version
+
+
+def _render_and_validate(
+    records: list[dict[str, Any]], message_type: str
+) -> str:
+    """Render a reversal template and validate it against its bundled XSD."""
+    tdir = TEMPLATES_DIR / message_type
     template_path = str(tdir / "template.xml")
-    xsd_path = str(tdir / f"{REVERSAL_MESSAGE_TYPE}.xsd")
+    xsd_path = str(tdir / f"{message_type}.xsd")
 
     template = get_template(
         os.path.dirname(template_path), os.path.basename(template_path)
@@ -89,25 +142,36 @@ def _render_and_validate(records: list[dict[str, Any]]) -> str:
     return xml_content
 
 
-def generate_reversal_xml(records: list[dict[str, Any]]) -> str:
-    """Render reversing-entry records into validated camt.053 XML.
+def generate_reversal_xml(
+    records: list[dict[str, Any]],
+    output_format: str = OUTPUT_FORMAT_CAMT053,
+    version: str | None = None,
+) -> str:
+    """Render reversing-entry records into a validated reversal document.
 
     Args:
         records: One or more flat reversing-entry records (as produced by
             :func:`camt053.reversal.reversal.build_reversal_records`).
+        output_format: ``"camt053"`` (default) emits a camt.053 reversing-entry
+            statement; ``"pacs004"`` emits a pacs.004 PaymentReturn document.
+        version: For the camt.053 format, the schema version to emit (one of
+            :data:`camt053.constants.REVERSAL_CAMT_VERSIONS`); ``None`` keeps
+            the default :data:`camt053.constants.REVERSAL_MESSAGE_TYPE`. Ignored
+            for the pacs.004 format.
 
     Returns:
-        The validated camt.053.001.08 reversal document as a string.
+        The validated reversal document as a string.
 
     Raises:
-        ReversalGenerationError: If records are empty or the rendered XML does
-            not validate against the bundled XSD.
+        ReversalGenerationError: If records are empty, the format / version is
+            unknown, or the rendered XML does not validate against its XSD.
     """
     if not records:
         raise ReversalGenerationError(
             "No reversing-entry records to render - records list is empty"
         )
-    return _render_and_validate(records)
+    message_type = _resolve_message_type(output_format, version)
+    return _render_and_validate(records, message_type)
 
 
 def generate_reversal_for_statement(
@@ -115,6 +179,8 @@ def generate_reversal_for_statement(
     reason_code: str | None = None,
     msg_id: str | None = None,
     creation_date_time: str | None = None,
+    output_format: str = OUTPUT_FORMAT_CAMT053,
+    version: str | None = None,
 ) -> str:
     """Build and render a reversing-entry statement for a parsed statement.
 
@@ -128,9 +194,12 @@ def generate_reversal_for_statement(
             reversed; otherwise every returnable entry is.
         msg_id: Optional reversal group-header message id.
         creation_date_time: Optional ISO 8601 timestamp for the reversal.
+        output_format: ``"camt053"`` (default) or ``"pacs004"``.
+        version: Optional camt.053 schema version to emit (default keeps
+            :data:`camt053.constants.REVERSAL_MESSAGE_TYPE`).
 
     Returns:
-        The validated camt.053.001.08 reversal document as a string.
+        The validated reversal document as a string.
 
     Raises:
         ReversalGenerationError: If no entry matches or validation fails.
@@ -141,7 +210,9 @@ def generate_reversal_for_statement(
         msg_id=msg_id,
         creation_date_time=creation_date_time,
     )
-    return generate_reversal_xml(records)
+    return generate_reversal_xml(
+        records, output_format=output_format, version=version
+    )
 
 
 def write_reversal_xml(

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.004.001.11"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<PmtRtr>
+		<GrpHdr>
+			<MsgId>{{statement_msg_id}}</MsgId>
+			<CreDtTm>{{creation_date_time}}</CreDtTm>
+			<NbOfTxs>{{records|length}}</NbOfTxs>
+			<SttlmInf>
+				<SttlmMtd>CLRG</SttlmMtd>
+			</SttlmInf>
+		</GrpHdr>
+		{% for r in records %}
+		<TxInf>
+			<RtrId>{{r.entry_ref}}</RtrId>
+			{% if r.original_ref %}<OrgnlInstrId>{{r.original_ref}}</OrgnlInstrId>{% endif %}
+			{% if r.end_to_end_id %}<OrgnlEndToEndId>{{r.end_to_end_id}}</OrgnlEndToEndId>{% endif %}
+			{% if r.tx_id %}<OrgnlTxId>{{r.tx_id}}</OrgnlTxId>{% endif %}
+			<RtrdInstdAmt Ccy="{{r.currency}}">{{r.amount}}</RtrdInstdAmt>
+			<RtrRsnInf>
+				<Rsn><Cd>{{r.reason_code}}</Cd></Rsn>
+				{% if r.additional_info %}<AddtlInf>{{r.additional_info}}</AddtlInf>{% endif %}
+			</RtrRsnInf>
+			<OrgnlTxRef>
+				<Amt>
+					<InstdAmt Ccy="{{r.currency}}">{{r.amount}}</InstdAmt>
+				</Amt>
+				{% if r.counterparty_name or r.counterparty_account %}
+				<Dbtr>
+					{% if r.counterparty_name %}<Nm>{{r.counterparty_name}}</Nm>{% endif %}
+				</Dbtr>
+				{% if r.counterparty_account %}<DbtrAcct><Id><IBAN>{{r.counterparty_account}}</IBAN></Id></DbtrAcct>{% endif %}
+				{% endif %}
+				{% if r.account_id or r.account_owner_name %}
+				<Cdtr>
+					{% if r.account_owner_name %}<Nm>{{r.account_owner_name}}</Nm>{% endif %}
+				</Cdtr>
+				{% if r.account_id %}<CdtrAcct><Id><IBAN>{{r.account_id}}</IBAN></Id></CdtrAcct>{% endif %}
+				{% endif %}
+			</OrgnlTxRef>
+		</TxInf>
+		{% endfor %}
+	</PmtRtr>
+</Document>

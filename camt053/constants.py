@@ -19,8 +19,28 @@ valid_xml_types = [
     "camt.054.001.14",
 ]
 
-# The single message type the library *generates* (the reversing entry).
+# The default message type the library *generates* (the reversing entry).
 REVERSAL_MESSAGE_TYPE = "camt.053.001.14"
+
+# The camt.053 schema versions a reversing entry can be emitted as. Each maps to
+# a bundled template directory under ``TEMPLATES_DIR`` carrying a ``template.xml``
+# and the matching official ISO XSD. The default (``REVERSAL_MESSAGE_TYPE``) is
+# unchanged so existing callers keep emitting camt.053.001.14.
+REVERSAL_CAMT_VERSIONS = (
+    "camt.053.001.08",
+    "camt.053.001.14",
+)
+
+# The pacs.004 PaymentReturn message type the library can emit as an alternative
+# reversal format (the canonical ISO "payment return" message).
+PACS_RETURN_MESSAGE_TYPE = "pacs.004.001.11"
+
+# The output formats a reversal can be generated in. ``camt053`` (the default)
+# emits a camt.053 reversing-entry statement; ``pacs004`` emits a pacs.004
+# PaymentReturn document carrying the same return reason.
+OUTPUT_FORMAT_CAMT053 = "camt053"
+OUTPUT_FORMAT_PACS004 = "pacs004"
+OUTPUT_FORMATS = (OUTPUT_FORMAT_CAMT053, OUTPUT_FORMAT_PACS004)
 
 # Human-readable name for every supported ISO 20022 cash-management message.
 message_names = {
@@ -155,7 +175,12 @@ __all__ = [
     "CREDIT",
     "DEBIT",
     "DEFAULT_REASON_ACTION",
+    "OUTPUT_FORMATS",
+    "OUTPUT_FORMAT_CAMT053",
+    "OUTPUT_FORMAT_PACS004",
+    "PACS_RETURN_MESSAGE_TYPE",
     "REASON_ACTIONS",
+    "REVERSAL_CAMT_VERSIONS",
     "REVERSAL_MESSAGE_TYPE",
     "SCHEMAS_DIR",
     "STATEMENT_CONTAINERS",
