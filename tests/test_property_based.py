@@ -306,8 +306,9 @@ def test_parser_only_raises_its_own_error_on_arbitrary_text(
     try:
         parse_document(blob)
     except StatementParseError:
+        # Expected for malformed/arbitrary text. Any other exception type
+        # would propagate out of this block and fail the test.
         pass
-    # Any other exception type would propagate and fail the test.
 
 
 # ── Round-trip stability ──────────────────────────────────────────────
