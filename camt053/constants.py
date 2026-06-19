@@ -165,7 +165,7 @@ Bank-to-Customer Statements (camt.053) and Reports
 (camt.052 / camt.054), extracts booked entries by
 return reason code (e.g. AC04 Closed Account), and
 generates validated reversing entries.\n
-https://camt053.com
+https://sebastienrousseau.github.io/camt053/
 """
 
 __all__ = [

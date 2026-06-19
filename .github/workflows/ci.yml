@@ -43,6 +43,14 @@ jobs:
           files: coverage.xml
           fail_ci_if_error: false
 
+      - name: Upload coverage.xml artifact
+        if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: error
+
   smoke:
     name: Smoke Test
     runs-on: ubuntu-latest
@@ -118,6 +126,61 @@ jobs:
 
       - name: Bandit
         run: poetry run bandit -r camt053/ -c pyproject.toml || poetry run bandit -r camt053/ -s B101
+
+  audit:
+    # Dependency vulnerability audit (#15). Runs pip-audit against the resolved
+    # runtime + dev environment on every push/PR. Advisory
+    # (``continue-on-error``) because the only outstanding findings are CVEs in
+    # the runner's own ``pip`` (the build tool), not in any project runtime
+    # dependency -- an unfixable transitive/toolchain issue we should surface
+    # without blocking merges. The project's own dependencies audit clean.
+    name: Dependency Audit (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        # Audit the resolved Poetry environment. Findings are reported but do
+        # not fail the build (job is advisory); see job comment above.
+        run: poetry run pip-audit --desc
+
+  docker-build:
+    # Dockerfile validation for the REST API image (#31). PR-safe: builds the
+    # image only (no registry login, no push) so a broken Dockerfile is caught
+    # before release. The publish-to-GHCR step lives in docker.yml and runs on
+    # release only.
+    name: Docker Build (validation)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: camt053:ci
 
   performance:
     # Benchmark suite + performance-regression guard (#11). Runs the ``perf``
