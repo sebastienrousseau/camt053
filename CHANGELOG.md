@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4] - 2026-06-19
+
+### Changed
+
+- Version-alignment release with no functional code changes. This bump keeps the
+  `camt053`, `camt053-mcp`, and `camt053-lsp` packages in lockstep at a single
+  shared version. The companion packages shipped governance and security
+  additions in their `0.0.4` releases; core's code is unchanged and is versioned
+  to `0.0.4` solely to maintain a consistent version across the suite.
+
 ## [0.0.3] - 2026-06-19
 
 ### Fixed
@@ -151,6 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[0.0.4]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.4
 [0.0.3]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.3
 [0.0.2]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.1

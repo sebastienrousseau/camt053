@@ -37,7 +37,7 @@ XSD = os.path.join(
 
 def test_version_and_exports():
     """The package exposes its version and headline API."""
-    assert camt053.__version__ == "0.0.3"
+    assert camt053.__version__ == "0.0.4"
     assert callable(camt053.parse_document)
     assert callable(camt053.generate_reversal_for_statement)
 

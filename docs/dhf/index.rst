@@ -42,7 +42,7 @@ Scope
 -----
 
 - **Product:** camt053 Python library
-- **Version:** 0.0.3
+- **Version:** 0.0.4
 - **Message standard:** ISO 20022 camt.052/053/054 Bank-to-Customer Cash Management (read; reversing entries emitted as camt.053.001.14)
 - **IEC 62304 safety classification:** Class A (voluntary Class C processes applied)
 
