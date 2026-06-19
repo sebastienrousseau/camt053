@@ -6,7 +6,7 @@ authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/camt053"
-homepage = "https://camt053.com"
+homepage = "https://sebastienrousseau.github.io/camt053/"
 packages = [
     { include = "camt053" },
 ]

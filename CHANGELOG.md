@@ -90,6 +90,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   document order. XXE / billion-laughs protection is preserved (DTDs and
   external/general entities are still rejected). The parser module docstring
   documents the streaming vs. whole-tree memory trade-offs.
+- Hosted documentation site (#5): a `.github/workflows/docs.yml` GitHub Actions
+  workflow builds the Sphinx documentation (API reference + Design History
+  File) with `sphinx-build` and deploys it to GitHub Pages via
+  `actions/configure-pages`, `actions/upload-pages-artifact`, and
+  `actions/deploy-pages`. Pull requests build the docs (warnings-as-errors) for
+  validation without deploying; pushes to `main` deploy. A new `docs/api.rst`
+  page documents the public `camt053` / `camt053.services` / `camt053.exceptions`
+  API via autodoc.
 
 ### Changed
 
@@ -101,6 +109,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compiled XSD schema cache (`functools.lru_cache`) is now also exercised by the
   statement serialiser. Public APIs are unchanged and the cached artefacts are
   read-only, so no state leaks between documents.
+
+### Fixed
+
+- Broken `camt053.com` documentation links and badges (#4): the unresolved
+  `https://camt053.com` website/documentation links and the "Docs" badge in
+  `README.md` now point at the hosted GitHub Pages site
+  (`https://sebastienrousseau.github.io/camt053/`), and the project `homepage`
+  in `pyproject.toml` is repointed to the same URL.
 
 ## [0.0.4] - 2026-06-19
 

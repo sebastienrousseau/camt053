@@ -52,7 +52,7 @@ the prompt-engineering dream:
 > *"Read this incoming bank statement XML, parse out the transactions with error
 > code AC04, and automatically generate the reversing entry."*
 
-- **Website:** <https://camt053.com>
+- **Documentation:** <https://sebastienrousseau.github.io/camt053/>
 - **Source code:** <https://github.com/sebastienrousseau/camt053>
 - **Bug reports:** <https://github.com/sebastienrousseau/camt053/issues>
 
@@ -408,8 +408,8 @@ Built on [Click](https://click.palletsprojects.com/),
 [mcp-pkg]: https://github.com/sebastienrousseau/camt053-mcp
 [lsp-pkg]: https://github.com/sebastienrousseau/camt053-lsp
 [release-004]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.4
-[docs-badge]: https://img.shields.io/badge/Docs-camt053.com-blue?style=for-the-badge
-[docs-url]: https://camt053.com/
+[docs-badge]: https://img.shields.io/badge/Docs-GitHub%20Pages-blue?style=for-the-badge
+[docs-url]: https://sebastienrousseau.github.io/camt053/
 [license-badge]: https://img.shields.io/pypi/l/camt053?style=for-the-badge
 [pypi-badge]: https://img.shields.io/pypi/v/camt053?style=for-the-badge
 [python-versions-badge]: https://img.shields.io/pypi/pyversions/camt053.svg?style=for-the-badge

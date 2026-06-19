@@ -104,14 +104,14 @@ Design Review and Change Control
    * - Participants
      - Lead Engineer, Domain Expert
    * - Findings
-     - (a) BIC validation follows ISO 9362 format rules.
-       (b) IBAN validation implements ISO 7064 mod-97-10 checksum.
-       (c) LEI validation follows ISO 17442 format and check-digit rules.
-       (d) Inbound camt.052/053/054 statements parse correctly across every
-       ISO version (namespace-agnostic), and ISO return reason codes
-       (e.g. AC04 Closed Account) drive entry filtering. (e) Reversing
-       entries flip ``CdtDbtInd``, set ``RvslInd=true``, and carry the
-       original references, reason, and counterparty.
+     - | (a) BIC validation follows ISO 9362 format rules.
+       | (b) IBAN validation implements ISO 7064 mod-97-10 checksum.
+       | (c) LEI validation follows ISO 17442 format and check-digit rules.
+       | (d) Inbound camt.052/053/054 statements parse correctly across every
+         ISO version (namespace-agnostic), and ISO return reason codes
+         (e.g. AC04 Closed Account) drive entry filtering.
+       | (e) Reversing entries flip ``CdtDbtInd``, set ``RvslInd=true``, and
+         carry the original references, reason, and counterparty.
    * - Disposition
      - Approved. Parsing, reason filtering, and reversal generation meet
        ISO 20022 message standards.

@@ -58,6 +58,15 @@ Quick Start
    ac04 = services.filter_entries(incoming_xml, "AC04")
    reversal = services.generate_reversal(incoming_xml, reason_code="AC04")
 
+API Reference
+-------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
+   api
+
 Design History File
 -------------------
 
