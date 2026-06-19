@@ -17,10 +17,10 @@ booked entries by return reason code (e.g. AC04 Closed Account), and generate
 validated reversing entries** — the core of a modern, AI-assisted treasury
 stack with native MCP and LSP integrations.
 
-> **Latest release: v0.0.4** — namespace-agnostic camt.052/053/054 parsing and
+> **Latest release: v0.0.5** — namespace-agnostic camt.052/053/054 parsing and
 > one-shot reversing-entry generation, validated against the official ISO 20022
 > `camt.053.001.14` schema, for Python 3.10+.
-> [See what's new →][release-004]
+> [See what's new →][release-005]
 
 ## Contents
 
@@ -408,7 +408,7 @@ Built on [Click](https://click.palletsprojects.com/),
 [07]: https://pypi.org/project/camt053/
 [mcp-pkg]: https://github.com/sebastienrousseau/camt053-mcp
 [lsp-pkg]: https://github.com/sebastienrousseau/camt053-lsp
-[release-004]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.4
+[release-005]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.5
 [docs-badge]: https://img.shields.io/badge/Docs-GitHub%20Pages-blue?style=for-the-badge
 [docs-url]: https://sebastienrousseau.github.io/camt053/
 [license-badge]: https://img.shields.io/pypi/l/camt053?style=for-the-badge
