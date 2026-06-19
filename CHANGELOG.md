@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2026-06-19
+
+### Fixed
+
+- The version reported by `camt053.__version__`, `camt053 --version`, and the
+  REST API now matches the package version. It was previously stuck at `0.0.1`
+  because the in-code version strings were not bumped alongside
+  `pyproject.toml`. Added a pyproject↔code version-consistency test to prevent
+  this drift recurring.
+
 ## [0.0.2] - 2026-06-18
 
 ### Added
@@ -141,5 +151,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[0.0.3]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.3
 [0.0.2]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.1
