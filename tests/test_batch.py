@@ -15,6 +15,8 @@
 
 """Tests for batch reversal generation across many statement files."""
 
+import os
+
 from camt053 import services
 
 
@@ -42,7 +44,7 @@ def test_batch_directory_mixed_good_and_bad(tmp_path, statement_xml):
     assert summary["succeeded"] == 2
     assert summary["failed"] == 2
     by_name = {
-        result["path"].rsplit("/", 1)[-1]: result
+        os.path.basename(result["path"]): result
         for result in summary["results"]
     }
     assert by_name["good1.xml"]["ok"] is True
