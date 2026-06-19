@@ -40,8 +40,6 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
-
 from camt053.constants import REVERSAL_MESSAGE_TYPE, TEMPLATES_DIR
 from camt053.exceptions import XMLGenerationError
 from camt053.models import (
@@ -51,6 +49,7 @@ from camt053.models import (
     Statement,
     TransactionDetails,
 )
+from camt053.xml.template_env import get_template
 from camt053.xml.validate_via_xsd import validate_xml_string_via_xsd
 
 __all__ = ["serialize_document", "serialize_statement"]
@@ -154,11 +153,9 @@ def _render_and_validate(document: ParsedDocument) -> str:
     template_path = str(tdir / "statement.xml")
     xsd_path = str(tdir / f"{REVERSAL_MESSAGE_TYPE}.xsd")
 
-    env = Environment(
-        loader=FileSystemLoader(os.path.dirname(template_path)),
-        autoescape=True,
+    template = get_template(
+        os.path.dirname(template_path), os.path.basename(template_path)
     )
-    template = env.get_template(os.path.basename(template_path))
     context = {
         "msg_id": document.msg_id or _DEFAULT_MSG_ID,
         "creation_date_time": (

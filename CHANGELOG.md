@@ -38,6 +38,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now returns structured 4xx error objects rather than 5xx responses or stack
   traces. Security-marked tests prove oversized payloads → 413, malformed XML →
   4xx, and XXE/entity payloads are rejected cleanly.
+- Output camt.053 version selection for generated reversing entries (#8). The
+  reversal services now accept a `version` argument selecting the bundled
+  camt.053 schema version to emit, validated against the matching official ISO
+  XSD. The default is unchanged (`camt.053.001.14`); `camt.053.001.08` is now
+  also bundled (template + official XSD) so the selection is real. An unknown
+  version raises a clear `ReversalGenerationError`. Surfaced via
+  `services.generate_reversal(..., version=...)` / `services.generate(...)` and
+  the CLI `camt053 reverse --out-version`.
+- Optional pacs.004 PaymentReturn output as an alternative reversal format
+  (#7). The same reversing-entry records can now be emitted as a pacs.004
+  PaymentReturn document (the canonical ISO "payment return" message) carrying
+  and echoing the return reason, validated against a bundled pacs.004.001.11
+  XSD. Selected via `services.generate_reversal(..., output_format="pacs004")`
+  and the CLI `camt053 reverse --output-format pacs004`. camt.053 remains the
+  default.
+- Batch processing of multiple statements or a directory (#13). A new
+  `services.generate_batch(paths)` processes a list of files, a glob pattern, or
+  a directory (scanned recursively for `*.xml`) in one call, producing per-file
+  results with an aggregate summary and per-file error isolation (one bad file
+  does not abort the batch). Exposed on the CLI as
+  `camt053 reverse --batch DIR -o OUTDIR`, writing a per-file reversal to the
+  output directory and reporting a succeeded/failed summary.
+- Streaming, memory-bounded statement parsing (#10): a new
+  `camt053.parse.statement_parser.iter_statement_entries(xml)` generator walks a
+  statement with `defusedxml`'s `iterparse`, yielding each `Entry` as its
+  `<Ntry>` element closes and clearing the consumed subtree so peak memory stays
+  bounded by a single entry rather than the whole document. Exposed via the
+  service facade as `services.iter_entries(xml)` and
+  `services.list_entries(xml, streaming=True)`; for well-formed input the
+  streamed entries are identical to the whole-tree `list_entries(xml)`, in
+  document order. XXE / billion-laughs protection is preserved (DTDs and
+  external/general entities are still rejected). The parser module docstring
+  documents the streaming vs. whole-tree memory trade-offs.
+
+### Changed
+
+- Cache compiled XSDs and the Jinja2 environment for faster repeated parsing,
+  validation, and generation (#27): a new `camt053.xml.template_env` module
+  memoises one autoescaping Jinja2 `Environment` per template directory and one
+  compiled template per `(directory, name)` pair, so repeated `generate` /
+  `serialize` calls reuse the compiled template instead of rebuilding it. The
+  compiled XSD schema cache (`functools.lru_cache`) is now also exercised by the
+  statement serialiser. Public APIs are unchanged and the cached artefacts are
+  read-only, so no state leaks between documents.
 
 ## [0.0.4] - 2026-06-19
 

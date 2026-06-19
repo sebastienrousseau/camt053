@@ -46,21 +46,53 @@ These limits are **deliberate**. The following are *not* recoverable and raise
 * Empty input, a non-``<Document>`` root, a ``<Document>`` with no container
   child, or a container whose local name is not a recognised camt.05x message.
 
+Streaming vs. whole-tree parsing
+--------------------------------
+:func:`parse_document` builds the **whole** statement tree in memory and returns
+a fully populated :class:`~camt053.models.ParsedDocument`. That is convenient
+(random access to every statement, balance, and entry; round-trip
+re-serialisation) but its peak memory grows with the size of the file, so a
+statement carrying hundreds of thousands of entries can be costly.
+
+:func:`iter_statement_entries` is an incremental, **memory-bounded** alternative
+built on :func:`defusedxml.ElementTree.iterparse`. It yields each
+:class:`~camt053.models.Entry` as soon as its ``<Ntry>`` subtree closes and then
+*clears* that subtree (and its already-consumed siblings), so peak memory is
+bounded by the size of a single entry rather than the whole document. The
+trade-offs are:
+
+* It exposes **only entries**, not the group header / account / balances, and
+  offers no random access — it is a forward-only iterator.
+* It still parses with :mod:`defusedxml` (DTDs and external/general entities
+  rejected), so it keeps the same XXE / billion-laughs protection.
+* On a syntax error mid-stream it raises the same
+  :class:`~camt053.exceptions.StatementParseError` as the whole-tree path,
+  after yielding the entries seen before the error.
+
+For the same well-formed input it yields exactly the entries
+:meth:`~camt053.models.ParsedDocument.all_entries` would return, in document
+order.
+
 Example:
     >>> from camt053.parse.statement_parser import parse_document
     >>> doc = parse_document(xml_string)           # doctest: +SKIP
     >>> [e.reason_code for e in doc.all_entries()]  # doctest: +SKIP
     ['AC04']
+    >>> from camt053.parse.statement_parser import iter_statement_entries
+    >>> for entry in iter_statement_entries(xml_string):  # doctest: +SKIP
+    ...     print(entry.reference)
 """
 
 from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Iterator
 from io import StringIO
 from xml.etree.ElementTree import Element  # nosec B405
 
 from defusedxml.ElementTree import ParseError
+from defusedxml.ElementTree import iterparse as defused_iterparse
 from defusedxml.ElementTree import parse as defused_parse
 
 from camt053.constants import (
@@ -79,7 +111,11 @@ from camt053.models import (
     TransactionDetails,
 )
 
-__all__ = ["parse_document", "parse_statement"]
+__all__ = [
+    "parse_document",
+    "parse_statement",
+    "iter_statement_entries",
+]
 
 # Map every container's local name back to its message type.
 _CONTAINER_TO_TYPE = {v: k for k, v in STATEMENT_CONTAINERS.items()}
@@ -395,3 +431,38 @@ def parse_statement(xml: str) -> Statement:
     if not document.statements:
         raise StatementParseError("Document contains no statement element")
     return document.statements[0]
+
+
+def iter_statement_entries(xml: str) -> Iterator[Entry]:
+    """Stream a statement's entries without building the whole tree.
+
+    Incremental, memory-bounded counterpart to :func:`parse_document`. Uses
+    :func:`defusedxml.ElementTree.iterparse` to walk the document, yielding each
+    :class:`~camt053.models.Entry` the moment its ``<Ntry>`` element closes and
+    then clearing that subtree, so peak memory stays bounded by a single entry
+    rather than the entire file. For a well-formed document it yields exactly
+    the entries :meth:`~camt053.models.ParsedDocument.all_entries` returns, in
+    document order. See the module docstring for the streaming trade-offs.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Yields:
+        Each :class:`~camt053.models.Entry`, in document order.
+
+    Raises:
+        StatementParseError: If the XML is empty or becomes malformed while
+            streaming (after any already-parsed entries have been yielded).
+    """
+    if not xml or not xml.strip():
+        raise StatementParseError("Statement XML is empty")
+    # forbid_dtd/entities default to the XXE-safe behaviour of defusedxml.
+    context = defused_iterparse(StringIO(xml), events=("end",))
+    try:
+        for _event, elem in context:
+            if _local(elem.tag) == "Ntry":
+                yield _parse_entry(elem)
+                # Release the consumed entry subtree to bound memory.
+                elem.clear()
+    except ParseError as exc:
+        raise _malformed_error(exc) from exc
