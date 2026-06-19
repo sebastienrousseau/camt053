@@ -1,0 +1,81 @@
+name: Docs
+
+# Build the Sphinx documentation (API reference + Design History File) and,
+# on pushes to main, deploy it to GitHub Pages.
+#
+# Pull requests BUILD ONLY (no deploy), so a PR validates that the docs build
+# cleanly without requiring Pages to be enabled on the repository.
+#
+# NOTE: the first deploy requires GitHub Pages to be enabled for the repository:
+#   Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Allow the deploy job to publish to GitHub Pages via OIDC.
+permissions:
+  contents: read
+
+# Allow one concurrent deployment; queue (do not cancel) in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the package and docs dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install \
+            sphinx \
+            sphinx-autodoc-typehints \
+            pydata-sphinx-theme \
+            sphinx-design \
+            myst-parser
+
+      - name: Configure Pages
+        # Only needed for the deploy path; harmless to skip on PRs.
+        if: github.event_name == 'push'
+        uses: actions/configure-pages@v5
+
+      - name: Build the Sphinx documentation
+        # -W turns warnings into errors so a broken build fails the PR check.
+        run: sphinx-build -b html -W docs _site
+
+      - name: Upload the Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Deploy only on pushes to main, never on pull requests.
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
