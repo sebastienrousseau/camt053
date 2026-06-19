@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Optional structured JSON logging with PII redaction (#28). A new
+  `camt053.logging` module emits one structured JSON record per log line
+  (`timestamp`, `level`, `event`, and structured `context`) and redacts
+  sensitive banking fields (IBAN keeps only its last four characters, BIC keeps
+  its institution prefix, party/owner names keep only an initial, and amounts
+  are masked) before any record reaches a handler. Logging is **off by
+  default** so importing `camt053` neither configures handlers nor changes the
+  root logger; callers opt in programmatically via
+  `services.configure_logging()` / `camt053.logging.configure_logging()` or via
+  the `CAMT053_LOG_FORMAT` (`json` / `text`) and `CAMT053_LOG_LEVEL`
+  environment variables read by `configure_logging_from_env()`. Meaningful log
+  points are wired through parsing (`statement.parsed` /
+  `statement.parse.failed`) and reversal generation (`reversal.generated`).
+  Redaction helpers (`redact_iban`, `redact_bic`, `redact_name`,
+  `redact_context`) are public.
+- Defense-in-depth hardening of the REST API against untrusted/malicious XML
+  (#29). The FastAPI app enforces a configurable maximum request-body size
+  (`CAMT053_MAX_BODY_BYTES`, default 1 MiB) via middleware, rejecting oversized
+  payloads with a structured HTTP `413` — checking both the declared
+  `Content-Length` and the measured streamed body so an understated length
+  cannot smuggle an oversized payload through. A new
+  `camt053.security.xml_guard` module (exposed as `services.guard_xml()`) runs
+  a parser-agnostic pre-flight check that rejects any inline `DOCTYPE` /
+  `ENTITY` declaration (neutralising XXE and "billion laughs" entity-expansion
+  bombs) and enforces a byte-size limit before the payload reaches the parser,
+  complementing the existing `defusedxml` parsing. Malformed or malicious input
+  now returns structured 4xx error objects rather than 5xx responses or stack
+  traces. Security-marked tests prove oversized payloads → 413, malformed XML →
+  4xx, and XXE/entity payloads are rejected cleanly.
+
 ## [0.0.4] - 2026-06-19
 
 ### Changed

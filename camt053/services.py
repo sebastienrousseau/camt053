@@ -33,6 +33,7 @@ Example:
 """
 
 import json
+import logging
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -41,6 +42,11 @@ from camt053.compliance.swift_charset import (
     cleanse_records as _cleanse_records,
 )
 from camt053.constants import message_names, valid_xml_types
+from camt053.logging import (
+    configure_logging,
+    configure_logging_from_env,
+    log_event,
+)
 from camt053.parse.reason_codes import (
     classify_reason as _classify_reason,
 )
@@ -95,7 +101,15 @@ __all__ = [
     "cleanse_records",
     "generate_reversal",
     "generate",
+    "configure_logging",
+    "configure_logging_from_env",
+    "guard_xml",
 ]
+
+from camt053.security.xml_guard import (  # noqa: E402
+    DEFAULT_MAX_XML_BYTES,
+    guard_xml_payload,
+)
 
 _IDENTIFIER_VALIDATORS = {
     "iban": validate_iban_safe,
@@ -568,7 +582,14 @@ def generate_reversal(
     )
     if cleanse:
         _cleanse_records(records)
-    return generate_reversal_xml(records)
+    xml_out = generate_reversal_xml(records)
+    log_event(
+        logging.INFO,
+        "reversal.generated",
+        reason_code=reason_code,
+        records=len(records),
+    )
+    return xml_out
 
 
 def generate(records: list[dict[str, Any]], cleanse: bool = False) -> str:
@@ -607,3 +628,21 @@ def load_openapi(app: Any | None = None) -> str:
 
         app = default_app
     return json.dumps(app.openapi())
+
+
+def guard_xml(xml: str, max_bytes: int = DEFAULT_MAX_XML_BYTES) -> None:
+    """Reject an untrusted XML payload that breaches a security limit.
+
+    A thin facade over :func:`camt053.security.xml_guard.guard_xml_payload`,
+    enforcing a maximum byte size and refusing inline DTD / entity
+    declarations before the payload reaches the parser.
+
+    Args:
+        xml: The raw XML payload as a string.
+        max_bytes: The maximum accepted UTF-8 size in bytes.
+
+    Raises:
+        XmlSecurityError: If the payload is too large or carries a DOCTYPE /
+            ENTITY declaration.
+    """
+    guard_xml_payload(xml, max_bytes=max_bytes)

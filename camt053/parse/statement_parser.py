@@ -55,6 +55,7 @@ Example:
 
 from __future__ import annotations
 
+import logging
 import re
 from io import StringIO
 from xml.etree.ElementTree import Element  # nosec B405
@@ -68,6 +69,7 @@ from camt053.constants import (
     valid_xml_types,
 )
 from camt053.exceptions import StatementParseError
+from camt053.logging import log_event
 from camt053.models import (
     Account,
     Balance,
@@ -312,11 +314,19 @@ def parse_document(xml: str) -> ParsedDocument:
             recognised camt.052 / camt.053 / camt.054 document.
     """
     if not xml or not xml.strip():
+        log_event(logging.WARNING, "statement.parse.failed", reason="empty")
         raise StatementParseError("Statement XML is empty")
     try:
         tree = defused_parse(StringIO(xml))
     except ParseError as exc:
-        raise _malformed_error(exc) from exc
+        error = _malformed_error(exc)
+        log_event(
+            logging.WARNING,
+            "statement.parse.failed",
+            reason="malformed",
+            line=error.line,
+        )
+        raise error from exc
 
     root = tree.getroot()
     if root is None:  # pragma: no cover - getroot only returns None pre-parse
@@ -332,6 +342,12 @@ def parse_document(xml: str) -> ParsedDocument:
 
     container_name = _local(container.tag)
     if container_name not in STATEMENT_CONTAINERS.values():
+        log_event(
+            logging.WARNING,
+            "statement.parse.failed",
+            reason="unrecognised_container",
+            container=container_name,
+        )
         raise StatementParseError(
             f"Unrecognised cash-management message container: "
             f"<{container_name}>. Expected one of: "
@@ -345,8 +361,15 @@ def parse_document(xml: str) -> ParsedDocument:
         if _local(stmt.tag) in STATEMENT_ELEMENTS
     ]
 
+    message_type = _message_type_for(container_name, _namespace(root.tag))
+    log_event(
+        logging.INFO,
+        "statement.parsed",
+        message_type=message_type,
+        statements=len(statements),
+    )
     return ParsedDocument(
-        message_type=_message_type_for(container_name, _namespace(root.tag)),
+        message_type=message_type,
         msg_id=_text(grp_hdr, "MsgId"),
         creation_date_time=_text(grp_hdr, "CreDtTm"),
         statements=statements,
