@@ -53,3 +53,54 @@ jobs:
           else
             gh release create "${RELEASE_TAG}" dist/* --repo "${{ github.repository }}" --title "${RELEASE_TAG}" --generate-notes
           fi
+
+  sbom:
+    # Generate a CycloneDX SBOM and attach it to the release (#32). This is a
+    # SEPARATE job from ``publish`` so an SBOM failure can never block the PyPI
+    # release: the two jobs run independently and neither depends on the other.
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install runtime dependencies
+        # Install only the runtime ("main") deps so the SBOM reflects what
+        # ships, not the dev toolchain.
+        run: poetry install --no-interaction --only main
+
+      - name: Install CycloneDX generator
+        run: pip install cyclonedx-bom
+
+      - name: Generate CycloneDX SBOM
+        # Describe the Poetry-managed virtualenv (the resolved runtime tree).
+        run: |
+          poetry run cyclonedx-py environment \
+            --of JSON \
+            -o "camt053-${RELEASE_TAG}.cdx.json"
+
+      - name: Upload SBOM to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${RELEASE_TAG}" \
+            "camt053-${RELEASE_TAG}.cdx.json" \
+            --repo "${{ github.repository }}" --clobber
+
+      - name: Upload SBOM artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: "camt053-*.cdx.json"
+          if-no-files-found: warn

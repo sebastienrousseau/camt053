@@ -20,7 +20,8 @@ COPY pyproject.toml ./
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --only main --no-root
 
-# Copy application code
+# Copy application code (README is referenced by pyproject's readme field)
+COPY README.md ./
 COPY camt053/ ./camt053/
 
 # Install the package itself
