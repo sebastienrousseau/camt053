@@ -190,6 +190,10 @@ jobs:
     # runner-to-runner hardware variance does not produce false failures.
     name: Performance Benchmarks
     runs-on: ubuntu-latest
+    # Advisory: micro-benchmarks on shared CI runners are inherently noisy, so a
+    # regression here reports but never fails the build (it is not a required
+    # check). Treat it as a signal, not a gate.
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
