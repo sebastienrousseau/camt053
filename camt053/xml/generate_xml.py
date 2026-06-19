@@ -3,13 +3,12 @@
 import os
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
-
 from camt053.constants import REVERSAL_MESSAGE_TYPE, TEMPLATES_DIR
 from camt053.exceptions import ReversalGenerationError
 from camt053.models import Statement
 from camt053.reversal.reversal import build_reversal_records
 from camt053.security import validate_path
+from camt053.xml.template_env import get_template
 from camt053.xml.validate_via_xsd import validate_xml_string_via_xsd
 
 # ── Flat reversing-entry vocabulary ──────────────────────────────────
@@ -78,11 +77,9 @@ def _render_and_validate(records: list[dict[str, Any]]) -> str:
     template_path = str(tdir / "template.xml")
     xsd_path = str(tdir / f"{REVERSAL_MESSAGE_TYPE}.xsd")
 
-    env = Environment(
-        loader=FileSystemLoader(os.path.dirname(template_path)),
-        autoescape=True,
+    template = get_template(
+        os.path.dirname(template_path), os.path.basename(template_path)
     )
-    template = env.get_template(os.path.basename(template_path))
     xml_content = template.render(**_build_context(records))
 
     if not validate_xml_string_via_xsd(xml_content, xsd_path):
