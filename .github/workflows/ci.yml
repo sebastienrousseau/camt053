@@ -36,6 +36,9 @@ jobs:
       - name: Run tests
         run: poetry run pytest tests/ -v --tb=short
 
+      - name: Enforce 100% docstring coverage
+        run: poetry run interrogate -c pyproject.toml camt053
+
       - name: Upload coverage
         if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v4

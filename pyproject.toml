@@ -44,6 +44,7 @@ pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
 pytest-benchmark = ">=5.0.0,<6.0.0"
 pytest-xdist = ">=3.6.0,<4.0.0"
+interrogate = "^1.7"
 black = "^26.3.1"
 flake8 = "^7.0.0"
 isort = "^5.13.0"
@@ -132,6 +133,12 @@ exclude_also = [
     "except Exception:",
     "except \\(RuntimeError, OSError\\)",
 ]
+
+[tool.interrogate]
+fail-under = 100
+ignore-init-module = true
+ignore-magic = true
+verbose = 1
 
 # Mutation testing (#26). Advisory only -- this is *not* a blocking gate.
 # mutmut mutates the package source and re-runs the suite to surface tests that
