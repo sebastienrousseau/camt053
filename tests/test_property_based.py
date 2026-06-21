@@ -339,3 +339,118 @@ def test_serialise_parse_roundtrip_preserves_entries(
             == original.credit_debit_indicator
         )
         assert roundtripped.reason_code == original.reason_code
+
+
+# ── B2 + B3 idempotency invariants (added for v0.0.6) ─────────────────
+
+
+# Original-reference strings that the reversal helper should handle.
+# Allow the empty string, ISO 20022 printable ASCII, and arbitrary
+# Unicode up to 200 characters so the digest-fallback path is exercised
+# by inputs that overflow the 35-char ID limit.
+_reversal_originals = st.text(max_size=200)
+
+
+@given(original=_reversal_originals)
+def test_stable_reversal_reference_is_deterministic(original: str) -> None:
+    """For ANY original reference, two calls produce byte-identical output."""
+    from camt053.reversal.reversal import stable_reversal_reference
+
+    first = stable_reversal_reference(original)
+    second = stable_reversal_reference(original)
+    assert first == second
+
+
+@given(original=_reversal_originals)
+def test_stable_reversal_reference_never_exceeds_max_length(
+    original: str,
+) -> None:
+    """For ANY original, the output is bounded by ISO 20022 Max35Text."""
+    from camt053.reversal.reversal import stable_reversal_reference
+
+    assert len(stable_reversal_reference(original)) <= 35
+
+
+@given(
+    original=_reversal_originals,
+    custom_max=st.integers(min_value=6, max_value=80),
+)
+def test_stable_reversal_reference_respects_custom_max_length(
+    original: str, custom_max: int
+) -> None:
+    """For ANY original + max_length combination, the bound holds."""
+    from camt053.reversal.reversal import stable_reversal_reference
+
+    assert (
+        len(stable_reversal_reference(original, max_length=custom_max))
+        <= custom_max
+    )
+
+
+@given(original=_reversal_originals)
+def test_stable_reversal_reference_always_starts_with_rvsl_prefix(
+    original: str,
+) -> None:
+    """The ``RVSL-`` prefix is preserved on both the readable and digest paths."""
+    from camt053.reversal.reversal import stable_reversal_reference
+
+    assert stable_reversal_reference(original).startswith("RVSL-")
+
+
+# ── dedupe key determinism ────────────────────────────────────────────
+
+
+def _build_doc_xml(msg_id: str, stmt_id: str, seq_nb: str) -> str:
+    """Render a minimal camt.053 document with the given dedupe components."""
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">'
+        "<BkToCstmrStmt>"
+        f"<GrpHdr><MsgId>{escape(msg_id)}</MsgId>"
+        f"<CreDtTm>2026-06-21T10:00:00</CreDtTm></GrpHdr>"
+        f"<Stmt><Id>{escape(stmt_id)}</Id>"
+        f"<ElctrncSeqNb>{escape(seq_nb)}</ElctrncSeqNb>"
+        f"<Acct><Id><IBAN>DE89370400440532013000</IBAN></Id></Acct>"
+        "</Stmt>"
+        "</BkToCstmrStmt></Document>"
+    )
+
+
+# Components that won't break the embedding (no <, >, &, ", ', newline,
+# control chars). Real ISO 20022 IDs are stricter still; this is the
+# permissive superset that exercises the dedupe logic.
+_id_text = st.text(
+    alphabet=st.characters(
+        whitelist_categories=("L", "N"), whitelist_characters="-_"
+    ),
+    min_size=1,
+    max_size=35,
+)
+
+
+@given(msg_id=_id_text, stmt_id=_id_text, seq_nb=_id_text)
+def test_compute_dedupe_key_deterministic_via_services(
+    msg_id: str, stmt_id: str, seq_nb: str
+) -> None:
+    """For ANY (msg_id, stmt_id, seq_nb), services.compute_dedupe_key is idempotent."""
+    from camt053 import services
+
+    xml = _build_doc_xml(msg_id, stmt_id, seq_nb)
+    first = services.compute_dedupe_key(xml)
+    second = services.compute_dedupe_key(xml)
+    assert first == second
+    assert first == f"{msg_id}:{stmt_id}:{seq_nb}"
+
+
+@given(msg_id=_id_text, stmt_id=_id_text, seq_nb=_id_text)
+def test_compute_dedupe_key_distinguishes_different_inputs(
+    msg_id: str, stmt_id: str, seq_nb: str
+) -> None:
+    """Two documents with the same components share a key; otherwise distinct."""
+    from camt053 import services
+
+    xml_a = _build_doc_xml(msg_id, stmt_id, seq_nb)
+    xml_b = _build_doc_xml(msg_id, stmt_id, seq_nb + "-X")
+    assert services.compute_dedupe_key(xml_a) != services.compute_dedupe_key(
+        xml_b
+    )

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Hypothesis property tests for the v0.0.6 idempotency helpers**
+  (#58 B8). Six new property tests pin the determinism contracts of
+  `stable_reversal_reference` (same input → same output, length always
+  bounded by the ISO 20022 `Max35Text` limit, custom `max_length`
+  respected, `RVSL-` prefix preserved on both the readable and digest
+  paths) and `compute_dedupe_key` (same XML → same key, different
+  components → distinct keys). Complements the existing example-based
+  tests and locks the contracts in against future refactors.
+
 - **`services.parse_statement_lenient(xml)` — partial-batch parsing mode**
   (#58 B4). Mirrors the strict :func:`parse_statement` for the document
   envelope (root, container, group header) but catches per-entry parse
