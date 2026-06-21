@@ -404,3 +404,84 @@ def test_reverse_reads_stdin(statement_xml):
     )
     assert result.exit_code == 0
     assert "RvslInd" in result.output
+
+
+# ─── check-cbpr-readiness (Nov 14-16 2026 cliff) ────────────────────────────
+
+_CBPR_READY_V08 = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">'
+    "<BkToCstmrStmt><GrpHdr><MsgId>M</MsgId>"
+    "<CreDtTm>2026-06-21T10:00:00</CreDtTm></GrpHdr>"
+    "<Stmt><Id>S</Id>"
+    "<Acct><Id><IBAN>DE89370400440532013000</IBAN></Id></Acct>"
+    "</Stmt></BkToCstmrStmt></Document>"
+)
+
+_CBPR_BAD_UNSTRUCTURED = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">'
+    "<BkToCstmrStmt><GrpHdr><MsgId>M</MsgId>"
+    "<CreDtTm>2026-06-21T10:00:00</CreDtTm></GrpHdr>"
+    "<Stmt><Id>S</Id>"
+    "<Acct><Id><IBAN>DE89370400440532013000</IBAN></Id></Acct>"
+    "<Ntry><NtryDtls><TxDtls><RltdPties><Cdtr>"
+    "<PstlAdr><AdrLine>Line only</AdrLine></PstlAdr>"
+    "</Cdtr></RltdPties></TxDtls></NtryDtls></Ntry>"
+    "</Stmt></BkToCstmrStmt></Document>"
+)
+
+
+def test_check_cbpr_readiness_clean_exit_zero(tmp_path):
+    """A clean v08 statement returns exit 0 and prints the ready banner."""
+    path = _write(tmp_path, "good.xml", _CBPR_READY_V08)
+    result = CliRunner().invoke(main, ["check-cbpr-readiness", "-i", path])
+    assert result.exit_code == 0
+    assert "CBPR+ ready" in result.output
+    assert "camt.053.001.08" in result.output
+    assert "2026-11-16" in result.output
+
+
+def test_check_cbpr_readiness_unstructured_exit_one(tmp_path):
+    """Unstructured-only address fails: exit 1 + issue table printed."""
+    path = _write(tmp_path, "bad.xml", _CBPR_BAD_UNSTRUCTURED)
+    result = CliRunner().invoke(main, ["check-cbpr-readiness", "-i", path])
+    assert result.exit_code == 1
+    assert "NOT CBPR+ ready" in result.output
+    # The rich-table truncates long codes; assert on the summary count
+    # plus the issue table header instead.
+    assert "1 unstructured-only" in result.output
+    assert "issue(s)" in result.output
+
+
+def test_check_cbpr_readiness_json_format(tmp_path):
+    """--format json prints the full structured report."""
+    path = _write(tmp_path, "good.xml", _CBPR_READY_V08)
+    result = CliRunner().invoke(
+        main, ["check-cbpr-readiness", "-i", path, "--format", "json"]
+    )
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["cbpr_ready"] is True
+    assert payload["cutover_date"] == "2026-11-16"
+    assert "summary" in payload
+
+
+def test_check_cbpr_readiness_bad_file_exits_one():
+    """A missing input file exits non-zero with a clear error."""
+    result = CliRunner().invoke(
+        main, ["check-cbpr-readiness", "-i", "/no/such.xml"]
+    )
+    assert result.exit_code == 1
+    assert "CBPR+ check failed" in result.output
+
+
+def test_check_cbpr_readiness_reads_stdin():
+    """A '-' input reads the payload from stdin."""
+    result = CliRunner().invoke(
+        main,
+        ["check-cbpr-readiness", "-i", "-"],
+        input=_CBPR_READY_V08,
+    )
+    assert result.exit_code == 0
+    assert "CBPR+ ready" in result.output
