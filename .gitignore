@@ -35,9 +35,6 @@ mutmut-stats.json
 .DS_Store
 Thumbs.db
 
-# Poetry
-poetry.lock
-
 # Temp
 tmp/
 camt053/tmp/
