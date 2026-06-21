@@ -59,6 +59,15 @@ from camt053.logging import (
     configure_logging_from_env,
     log_event,
 )
+from camt053.parse.dedupe import (
+    DEDUPE_KEY_SEPARATOR,
+)
+from camt053.parse.dedupe import (
+    compute_dedupe_key as _compute_dedupe_key,
+)
+from camt053.parse.dedupe import (
+    compute_dedupe_keys as _compute_dedupe_keys,
+)
 from camt053.parse.reason_codes import (
     classify_reason as _classify_reason,
 )
@@ -70,13 +79,6 @@ from camt053.parse.reason_codes import (
 )
 from camt053.parse.reason_codes import (
     validate_reason_code as _validate_reason_code,
-)
-from camt053.parse.dedupe import (
-    DEDUPE_KEY_SEPARATOR,
-    compute_dedupe_key as _compute_dedupe_key,
-)
-from camt053.parse.dedupe import (
-    compute_dedupe_keys as _compute_dedupe_keys,
 )
 from camt053.parse.statement_parser import (
     iter_statement_entries as _iter_statement_entries,

@@ -21,11 +21,11 @@ from camt053 import services
 from camt053.constants import (
     PACS_RETURN_MESSAGE_TYPE,
     REVERSAL_MESSAGE_TYPE,
+    TEMPLATES_DIR,
 )
 from camt053.exceptions import ReversalGenerationError
 from camt053.xml.generate_xml import generate_reversal_xml
 from camt053.xml.validate_via_xsd import validate_xml_string_via_xsd
-from camt053.constants import TEMPLATES_DIR
 
 
 def _xsd_for(message_type: str) -> str:

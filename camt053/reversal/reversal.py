@@ -36,9 +36,8 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any
-
 import hashlib
+from typing import Any
 
 from camt053.constants import reverse_credit_debit
 from camt053.exceptions import ReversalGenerationError
