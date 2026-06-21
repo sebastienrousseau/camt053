@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`services.compute_dedupe_key(xml)` and `compute_dedupe_keys(xml)` helpers**
+  for exactly-once statement processing (#58 B3). Returns the canonical
+  `"{MsgId}:{StmtId}:{ElctrncSeqNb}"` dedupe key per ISO 20022 conventions
+  so downstream consumers can detect bank replays (same key → already
+  processed). Multi-statement documents expose one key per statement via
+  `compute_dedupe_keys`. Colon separator (invalid in ISO 20022 ID fields)
+  guarantees the key can be split unambiguously back into its three
+  components. New module: `camt053.parse.dedupe`. Constant
+  `DEDUPE_KEY_SEPARATOR` re-exported via `camt053.services`.
+- **`services.stable_reversal_reference(original)` helper** (#58 B2)
+  exposes the deterministic algorithm that the reversal builder already
+  uses internally. Default scheme is a human-readable `RVSL-{original}`
+  prefix (preserved across releases for navigability in audit logs);
+  falls back to a `RVSL-{sha256(original|REV)}` truncated digest when
+  the prefixed form would exceed the ISO 20022 35-char ID limit, ensuring
+  collision-resistant IDs even for long or adversarial inputs. Pinned by
+  property tests; the prefix and salt are load-bearing.
+
 - **`camt053 check-cbpr-readiness -i statement.xml` CLI command**.
   Wraps `services.check_cbpr_readiness`, prints a Rich summary table
   (or `--format json` for the full structured report), and exits 0 if

@@ -59,6 +59,15 @@ from camt053.logging import (
     configure_logging_from_env,
     log_event,
 )
+from camt053.parse.dedupe import (
+    DEDUPE_KEY_SEPARATOR,
+)
+from camt053.parse.dedupe import (
+    compute_dedupe_key as _compute_dedupe_key,
+)
+from camt053.parse.dedupe import (
+    compute_dedupe_keys as _compute_dedupe_keys,
+)
 from camt053.parse.reason_codes import (
     classify_reason as _classify_reason,
 )
@@ -77,6 +86,7 @@ from camt053.parse.statement_parser import (
 from camt053.parse.statement_parser import parse_document as _parse_document
 from camt053.reversal.reversal import (
     build_reversal_records_for_statements,
+    stable_reversal_reference,
 )
 from camt053.validation.bic_validator import validate_bic_safe
 from camt053.validation.currency_validator import (
@@ -123,6 +133,10 @@ __all__ = [
     "guard_xml",
     "check_cbpr_readiness",
     "CBPR_CUTOVER_DATE",
+    "compute_dedupe_key",
+    "compute_dedupe_keys",
+    "DEDUPE_KEY_SEPARATOR",
+    "stable_reversal_reference",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
@@ -338,6 +352,46 @@ def parse_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed or unrecognised.
     """
     return _parse_document(xml).to_dict()
+
+
+def compute_dedupe_key(xml: str) -> str:
+    """Return the canonical dedupe key for an incoming statement's first stmt.
+
+    Convenience wrapper that parses the payload and returns the
+    ``"{MsgId}:{StmtId}:{ElctrncSeqNb}"`` key. Two payloads that share
+    this key represent the same statement (typically a bank replay) and
+    should be processed at most once downstream.
+
+    Args:
+        xml: The raw camt.05x statement XML as a string.
+
+    Returns:
+        The colon-joined dedupe key for the first statement.
+
+    Raises:
+        ValueError: If the document carries zero statements.
+        StatementParseError: If the XML is malformed or unrecognised.
+    """
+    return _compute_dedupe_key(_parse_document(xml))
+
+
+def compute_dedupe_keys(xml: str) -> list[str]:
+    """Return one dedupe key per statement bundled in the document.
+
+    Useful for multi-statement documents (e.g. a daily multi-account
+    report). The first key matches :func:`compute_dedupe_key`'s output.
+
+    Args:
+        xml: The raw camt.05x statement XML as a string.
+
+    Returns:
+        A list of dedupe keys in document order; empty when no
+        statements are present.
+
+    Raises:
+        StatementParseError: If the XML is malformed or unrecognised.
+    """
+    return _compute_dedupe_keys(_parse_document(xml))
 
 
 def serialize_statement(xml: str) -> str:
