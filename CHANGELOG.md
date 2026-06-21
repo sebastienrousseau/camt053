@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`check_cbpr_readiness(xml)` pre-flight checker** for the coordinated
+  CBPR+ / Fedwire / CHAPS / T2 cutover on **14-16 November 2026**.
+  Walks a camt.053 payload and reports issues that will fail the
+  Nov 2026 acceptance rules: schema-version drift (.02-.07 deprecated;
+  .08 / .13 current) and **unstructured-only postal addresses**
+  (`AdrLine` without `TwnNm` + `Ctry` siblings, the Nov 2026 reject
+  case). Returns a structured report with `cbpr_ready: bool`, per-issue
+  XPath-style paths, severities, stable codes, and an
+  address-classification summary (fully structured / hybrid /
+  unstructured-only). Available via `camt053.compliance.check_cbpr_readiness`
+  and the `CBPR_CUTOVER_DATE = "2026-11-16"` constant. Backed by
+  `defusedxml` and the existing `xml_guard` byte-cap + DOCTYPE
+  pre-flight; raises `XmlSecurityError` / `ValueError` on hostile or
+  malformed input. Part of the v0.0.6 batch tracked in #58.
+
 ## [0.0.5] - 2026-06-19
 
 ### Added
