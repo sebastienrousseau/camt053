@@ -161,9 +161,7 @@ def check_cbpr_readiness(xml: str) -> dict[str, Any]:
     _check_schema_version(schema_version, issues)
     _check_addresses(root, issues, summary)
 
-    cbpr_ready = not any(
-        issue["severity"] == "error" for issue in issues
-    )
+    cbpr_ready = not any(issue["severity"] == "error" for issue in issues)
 
     return {
         "cbpr_ready": cbpr_ready,
