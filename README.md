@@ -32,7 +32,11 @@ stack with native MCP and LSP integrations.
 - [Supported messages](#supported-messages)
 - [Architecture](#architecture)
 - [Examples](#examples)
+- [The camt053 suite](#the-camt053-suite)
+- [When not to use camt053](#when-not-to-use-camt053)
 - [Development](#development)
+- [Security](#security)
+- [Documentation](#documentation)
 - [License](#license)
 - [Contributing](#contributing)
 - [Acknowledgements](#acknowledgements)
@@ -361,6 +365,41 @@ git clone https://github.com/sebastienrousseau/camt053.git && cd camt053
 python examples/reverse_ac04.py
 ```
 
+## The camt053 suite
+
+`camt053` is the core of a set of independently installable packages
+— pick whichever ones your stack needs:
+
+| Package | Role |
+| :--- | :--- |
+| [`camt053`](https://pypi.org/project/camt053/) | **Core library + CLI + FastAPI REST API (this package)** |
+| [`camt053-mcp`](https://pypi.org/project/camt053-mcp/) | Model Context Protocol server (for AI agents) |
+| [`camt053-lsp`](https://pypi.org/project/camt053-lsp/) | Language Server Protocol server (for editors) |
+| [`camt053-writer-xlsx`](https://pypi.org/project/camt053-writer-xlsx/) | Excel `.xlsx` writer for parsed statements |
+| [`camt053-loader-mt940`](https://pypi.org/project/camt053-loader-mt940/) | SWIFT MT940 → camt.053 loader |
+
+The MCP, LSP, writer-xlsx, and loader-mt940 packages are thin wrappers
+over the shared `camt053.services` facade exported here, so every
+interface behaves identically.
+
+## When not to use camt053
+
+- **You need to generate payment files** (pain.001 Customer Credit
+  Transfer, pain.008 Direct Debit). Use
+  [`pain001`](https://github.com/sebastienrousseau/pain001) — the
+  sibling library for outbound ISO 20022.
+- **You need to parse pacs.\* (FI-to-FI) messages.** Out of scope; this
+  library targets the camt.05x (Bank-to-Customer) family only.
+- **You need bank API transport** (PSD2, EBICS, SWIFTNet). camt053
+  reads files and emits files; it does not move them. Pair with a
+  dedicated transport library.
+- **You need a GUI.** This is a library + CLI + REST API; the closest
+  thing to a UI is the LSP server's in-editor diagnostics.
+- **You need real-time processing** (FedNow / TIPS / RTP). Those rails
+  use camt.052 intraday reporting, not camt.053 end-of-day statements;
+  the parser accepts camt.052 but the reversing-entry workflow is
+  camt.053-shaped.
+
 ## Development
 
 **camt053** uses [Poetry](https://python-poetry.org/) and
@@ -382,6 +421,33 @@ make lint         # ruff + black --check
 make type-check   # mypy --strict
 make examples     # run the example scripts
 ```
+
+## Security
+
+`camt053` is the entry point for **untrusted XML from banks** for
+every consumer in the suite. Defence-in-depth is taken seriously:
+parsing uses `defusedxml` (XXE / billion-laughs neutralised), a
+pre-flight `xml_guard` enforces a configurable byte cap and refuses
+inline DOCTYPE / ENTITY declarations, and the REST API additionally
+caps request bodies via middleware. Reporting practice, supported
+versions, fix-window SLAs, and the full supply-chain posture (PyPI
+Trusted Publishing, sigstore attestations, signed tags) live in
+[`SECURITY.md`](SECURITY.md). Vulnerabilities go via GitHub Private
+Vulnerability Reporting, not public issues.
+
+## Documentation
+
+- [`README.md`](README.md) — this file
+- [`CHANGELOG.md`](CHANGELOG.md) — release notes
+- [`ROADMAP.md`](ROADMAP.md) — milestones and the explicit Declined/Deferred list
+- [`GOVERNANCE.md`](GOVERNANCE.md) — decision model + becoming a maintainer
+- [`SECURITY.md`](SECURITY.md) — disclosure + supported versions + supply chain
+- [`SUPPORT.md`](SUPPORT.md) — how to get help, by need
+- [`MAINTAINERS.md`](MAINTAINERS.md) — who can merge and cut releases
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — submission process + style
+- [`examples/`](examples/) — runnable scripts, exercised in CI
+- [`docs/`](docs/) — extended reference (API, quickstart, deployment cookbook)
+- Hosted Sphinx docs: <https://sebastienrousseau.github.io/camt053/>
 
 ## License
 
