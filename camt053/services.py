@@ -84,6 +84,9 @@ from camt053.parse.statement_parser import (
     iter_statement_entries as _iter_statement_entries,
 )
 from camt053.parse.statement_parser import parse_document as _parse_document
+from camt053.parse.statement_parser import (
+    parse_document_lenient as _parse_document_lenient,
+)
 from camt053.reversal.reversal import (
     build_reversal_records_for_statements,
     stable_reversal_reference,
@@ -137,6 +140,7 @@ __all__ = [
     "compute_dedupe_keys",
     "DEDUPE_KEY_SEPARATOR",
     "stable_reversal_reference",
+    "parse_statement_lenient",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
@@ -352,6 +356,34 @@ def parse_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed or unrecognised.
     """
     return _parse_document(xml).to_dict()
+
+
+def parse_statement_lenient(xml: str) -> dict[str, Any]:
+    """Parse an incoming statement, skipping corrupt entries instead of failing.
+
+    Strict mode (:func:`parse_statement`) aborts on the first per-entry
+    parse failure — the safe default. Lenient mode is for batch jobs
+    that prefer to process the surviving entries and surface the
+    skipped ones, rather than abandon a 10,000-entry file because one
+    ``<Ntry>`` is malformed.
+
+    Args:
+        xml: The raw camt.05x statement XML as a string.
+
+    Returns:
+        A JSON-serialisable dict ``{"document": {...},
+        "corrupt_entry_count": int, "diagnostics": [{"stmt_index": int,
+        "entry_index": int, "code": str, "message": str}, ...]}``.
+        ``document`` carries the same shape as :func:`parse_statement`'s
+        return value; ``diagnostics`` is empty when no entries were
+        skipped.
+
+    Raises:
+        StatementParseError: For document-level failures (empty XML,
+            malformed XML, unrecognised root / container). These are
+            not recoverable mid-stream.
+    """
+    return _parse_document_lenient(xml).to_dict()
 
 
 def compute_dedupe_key(xml: str) -> str:
