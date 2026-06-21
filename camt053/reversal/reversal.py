@@ -38,6 +38,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import hashlib
+
 from camt053.constants import reverse_credit_debit
 from camt053.exceptions import ReversalGenerationError
 from camt053.models import Entry, Statement
@@ -47,7 +49,55 @@ __all__ = [
     "build_reversal_record",
     "build_reversal_records",
     "build_reversal_records_for_statements",
+    "stable_reversal_reference",
 ]
+
+
+# Maximum length of an ISO 20022 ID (the EntryReference field
+# ``Max35Text``). Truncating below this bound is an XSD violation;
+# above is wasted space.
+_REVERSAL_ID_MAX_LENGTH = 35
+
+# Constant suffix folded into the sha256 input so the same original
+# reference produces a *reversal-specific* digest. Documented as
+# load-bearing for byte-identical output across releases.
+_REVERSAL_HASH_SALT = "REV"
+
+
+def stable_reversal_reference(
+    original_reference: str,
+    *,
+    max_length: int = _REVERSAL_ID_MAX_LENGTH,
+) -> str:
+    """Return a stable, idempotent reversal reference for an original entry.
+
+    Deterministic: the same input always produces byte-identical output.
+    The default scheme is a human-readable ``RVSL-{original}`` prefix
+    (preserved across releases for navigability in audit logs); when the
+    prefixed form would exceed ``max_length`` it falls back to a
+    ``RVSL-{sha256(original|REV)}`` truncated digest, ensuring
+    collision-resistant IDs even for very long or adversarial originals.
+
+    Either way the contract is: same input → identical output, bit for
+    bit. Pinned by the property tests; do not change the prefix or the
+    salt without bumping the major version.
+
+    Args:
+        original_reference: The original booked entry's reference (e.g.
+            ``NTRY-0001``). An empty string is permitted and yields the
+            bare ``"RVSL-"`` prefix.
+        max_length: ISO 20022 ID maximum length. Defaults to 35.
+
+    Returns:
+        The reversal reference, never longer than ``max_length``.
+    """
+    candidate = f"RVSL-{original_reference}"
+    if len(candidate) <= max_length:
+        return candidate
+    digest = hashlib.sha256(
+        f"{original_reference}|{_REVERSAL_HASH_SALT}".encode()
+    ).hexdigest()
+    return f"RVSL-{digest}"[:max_length]
 
 
 def _entry_reason(entry: Entry) -> str | None:
@@ -141,7 +191,9 @@ def build_reversal_record(
         "account_owner_name": account.owner_name or "",
         "account_servicer_bic": account.servicer_bic or "",
         "entry_ref": (
-            f"RVSL-{entry.reference}"[:35] if entry.reference else ""
+            stable_reversal_reference(entry.reference)
+            if entry.reference
+            else ""
         ),
         "original_ref": (entry.reference or "")[:35],
         "amount": entry.amount or "",
