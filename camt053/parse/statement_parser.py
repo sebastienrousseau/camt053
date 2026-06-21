@@ -472,6 +472,8 @@ def parse_document_lenient(xml: str) -> ParseReport:
         raise _malformed_error(exc) from exc
 
     root = tree.getroot()
+    if root is None:  # pragma: no cover — getroot only returns None pre-parse
+        raise StatementParseError("Statement XML has no root element")
     if _local(root.tag) != "Document":
         raise StatementParseError(
             f"Expected a <Document> root element, got <{_local(root.tag)}>"
