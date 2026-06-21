@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`services.parse_statement_lenient(xml)` — partial-batch parsing mode**
+  (#58 B4). Mirrors the strict :func:`parse_statement` for the document
+  envelope (root, container, group header) but catches per-entry parse
+  exceptions instead of aborting. Returns a `ParseReport` envelope:
+  `{"document", "corrupt_entry_count", "diagnostics"}` where each
+  diagnostic carries `(stmt_index, entry_index, code, message)` so
+  downstream batch jobs can process the surviving entries and surface
+  the skipped ones rather than abandoning a 10,000-entry overnight file
+  because one `<Ntry>` is malformed. Document-level failures (empty
+  XML, malformed XML, unrecognised container) still raise
+  `StatementParseError` — they are not recoverable mid-stream. New
+  helpers: `camt053.parse.statement_parser.parse_document_lenient` and
+  the `camt053.parse.report.ParseReport` / `EntryDiagnostic`
+  dataclasses.
+
 - **`services.compute_dedupe_key(xml)` and `compute_dedupe_keys(xml)` helpers**
   for exactly-once statement processing (#58 B3). Returns the canonical
   `"{MsgId}:{StmtId}:{ElctrncSeqNb}"` dedupe key per ISO 20022 conventions
