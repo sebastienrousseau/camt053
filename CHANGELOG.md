@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Append-only HMAC-SHA-256 hash-chain audit log** (#58 B6). New
+  `camt053.audit` module ships `HashChain`, `AuditEvent`,
+  `ChainVerification`, `compute_event_hmac`, `verify_chain`, and the
+  `GENESIS_HASH` constant. Each appended event records the HMAC of
+  the previous event as its `prev_hash` and a fresh HMAC over the
+  canonical JSON of `(prev_hash, sequence, timestamp_utc,
+  event_type, payload)` under a caller-supplied secret. Tampering
+  (modified field, modified hmac, deleted event, wrong secret) is
+  detected by `verify_chain` and surfaced with a stable
+  diagnostic code (`HMAC_MISMATCH`, `PREV_HASH_MISMATCH`,
+  `SEQUENCE_GAP`, `GENESIS_PREV_HASH`). Continuation segments are
+  supported via the `starting_prev_hash` parameter. No new runtime
+  deps; pure stdlib. Re-exported via `camt053.services`.
+
 - **Hypothesis property tests for the v0.0.6 idempotency helpers**
   (#58 B8). Six new property tests pin the determinism contracts of
   `stable_reversal_reference` (same input → same output, length always
