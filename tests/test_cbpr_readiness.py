@@ -154,16 +154,16 @@ def test_unstructured_only_address_is_an_error() -> None:
     assert result["cbpr_ready"] is False
     assert result["summary"]["unstructured_only"] == 1
     issue = next(
-        i
-        for i in result["issues"]
-        if i["code"] == "UNSTRUCTURED_ONLY_ADDRESS"
+        i for i in result["issues"] if i["code"] == "UNSTRUCTURED_ONLY_ADDRESS"
     )
     assert issue["severity"] == "error"
     assert "2026-11-16" in issue["message"]
     assert "PstlAdr" in issue["path"]
 
 
-def test_address_with_adrline_and_only_town_is_still_unstructured_only() -> None:
+def test_address_with_adrline_and_only_town_is_still_unstructured_only() -> (
+    None
+):
     """Town without country is treated as unstructured-only (both required)."""
     address = (
         "<Ntry><NtryDtls><TxDtls><RltdPties><Cdtr>"
