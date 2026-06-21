@@ -41,6 +41,14 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from camt053.audit import (
+    GENESIS_HASH,
+    AuditEvent,
+    ChainVerification,
+    HashChain,
+    compute_event_hmac,
+    verify_chain,
+)
 from camt053.compliance.cbpr_readiness import (
     CBPR_CUTOVER_DATE,
     check_cbpr_readiness,
@@ -141,6 +149,12 @@ __all__ = [
     "DEDUPE_KEY_SEPARATOR",
     "stable_reversal_reference",
     "parse_statement_lenient",
+    "AuditEvent",
+    "ChainVerification",
+    "HashChain",
+    "compute_event_hmac",
+    "verify_chain",
+    "GENESIS_HASH",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
