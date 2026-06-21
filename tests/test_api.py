@@ -130,3 +130,60 @@ def test_reverse_no_match_422(statement_xml):
         "/reverse", json={"xml": statement_xml, "reason_code": "MD07"}
     )
     assert resp.status_code == 422
+
+
+# ─── /check/cbpr-readiness (Nov 14-16 2026 cliff) ───────────────────────────
+
+_CBPR_READY_V08 = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">'
+    "<BkToCstmrStmt><GrpHdr><MsgId>M</MsgId>"
+    "<CreDtTm>2026-06-21T10:00:00</CreDtTm></GrpHdr>"
+    "<Stmt><Id>S</Id>"
+    "<Acct><Id><IBAN>DE89370400440532013000</IBAN></Id></Acct>"
+    "</Stmt></BkToCstmrStmt></Document>"
+)
+
+_CBPR_BAD_UNSTRUCTURED = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">'
+    "<BkToCstmrStmt><GrpHdr><MsgId>M</MsgId>"
+    "<CreDtTm>2026-06-21T10:00:00</CreDtTm></GrpHdr>"
+    "<Stmt><Id>S</Id>"
+    "<Acct><Id><IBAN>DE89370400440532013000</IBAN></Id></Acct>"
+    "<Ntry><NtryDtls><TxDtls><RltdPties><Cdtr>"
+    "<PstlAdr><AdrLine>Line only</AdrLine></PstlAdr>"
+    "</Cdtr></RltdPties></TxDtls></NtryDtls></Ntry>"
+    "</Stmt></BkToCstmrStmt></Document>"
+)
+
+
+def test_check_cbpr_readiness_clean_v08_returns_ready():
+    """Clean v08 returns 200 with cbpr_ready=True."""
+    resp = client.post("/check/cbpr-readiness", json={"xml": _CBPR_READY_V08})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["cbpr_ready"] is True
+    assert body["schema_version"] == "camt.053.001.08"
+    assert body["cutover_date"] == "2026-11-16"
+
+
+def test_check_cbpr_readiness_unstructured_address_still_200():
+    """Failing CBPR+ check is a *result*, not an error (HTTP 200)."""
+    resp = client.post(
+        "/check/cbpr-readiness", json={"xml": _CBPR_BAD_UNSTRUCTURED}
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["cbpr_ready"] is False
+    assert body["summary"]["unstructured_only"] == 1
+    codes = [i["code"] for i in body["issues"]]
+    assert "UNSTRUCTURED_ONLY_ADDRESS" in codes
+
+
+def test_check_cbpr_readiness_malformed_xml_400():
+    """Malformed XML returns 400 (parse error is a real error)."""
+    resp = client.post(
+        "/check/cbpr-readiness", json={"xml": "<Document>unclosed"}
+    )
+    assert resp.status_code == 400

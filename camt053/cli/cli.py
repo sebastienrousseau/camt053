@@ -205,6 +205,77 @@ def validate(input_file: str) -> None:
     sys.exit(1)
 
 
+@main.command("check-cbpr-readiness")
+@click.option(
+    "-i",
+    "--input",
+    "input_file",
+    required=True,
+    help="Path to the statement XML file ('-' for stdin).",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"], case_sensitive=False),
+    default="table",
+    show_default=True,
+    help="Output format: a Rich summary table or the full JSON report.",
+)
+def check_cbpr_readiness(input_file: str, output_format: str) -> None:
+    """Check a statement against the CBPR+ Nov 2026 acceptance rules.
+
+    Returns exit code 0 if the document is CBPR+ ready (no errors); 1 if any
+    error-severity issue was raised. Warnings (e.g. deprecated schema
+    version) do not affect the exit code.
+    """
+    try:
+        report = services.check_cbpr_readiness(_read_input(input_file))
+    except (OSError, ValueError, Camt053Error) as exc:
+        console.print(f"[bold red]✗ CBPR+ check failed:[/bold red] {exc}")
+        sys.exit(1)
+
+    if output_format == "json":
+        console.print_json(json.dumps(report))
+        sys.exit(0 if report["cbpr_ready"] else 1)
+
+    summary = report["summary"]
+    schema = report["schema_version"] or "(unknown)"
+    if report["cbpr_ready"]:
+        console.print(
+            f"[bold green]✓ CBPR+ ready[/bold green] ({schema}) "
+            f"— cutover {report['cutover_date']}"
+        )
+    else:
+        console.print(
+            f"[bold red]✗ NOT CBPR+ ready[/bold red] ({schema}) "
+            f"— cutover {report['cutover_date']}"
+        )
+    console.print(
+        f"  addresses: {summary['addresses_checked']} checked "
+        f"({summary['fully_structured']} structured, "
+        f"{summary['hybrid']} hybrid, "
+        f"[bold]{summary['unstructured_only']} unstructured-only[/bold])"
+    )
+    if report["issues"]:
+        table = Table(
+            box=box.SIMPLE, title=f"{len(report['issues'])} issue(s)"
+        )
+        table.add_column("Severity", style="bold")
+        table.add_column("Code", style="cyan")
+        table.add_column("Path", overflow="fold")
+        table.add_column("Message", overflow="fold")
+        for issue in report["issues"]:
+            colour = "red" if issue["severity"] == "error" else "yellow"
+            table.add_row(
+                f"[{colour}]{issue['severity']}[/{colour}]",
+                issue["code"],
+                issue["path"],
+                issue["message"],
+            )
+        console.print(table)
+    sys.exit(0 if report["cbpr_ready"] else 1)
+
+
 @main.command("entries")
 @click.option(
     "-i",

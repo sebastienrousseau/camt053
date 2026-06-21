@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`camt053 check-cbpr-readiness -i statement.xml` CLI command**.
+  Wraps `services.check_cbpr_readiness`, prints a Rich summary table
+  (or `--format json` for the full structured report), and exits 0 if
+  the document is CBPR+ ready or 1 if any error-severity issue is
+  raised. Warnings (deprecated schema versions) do not affect the
+  exit code. Reads stdin with `-i -`.
+- **`POST /check/cbpr-readiness` REST endpoint**. Wraps the same
+  underlying function and returns the structured report as JSON. HTTP
+  status is `200` for any parseable input (CBPR+-not-ready is a
+  *result*, not an error); `400` for malformed XML; the existing
+  `XmlSecurityError` handler returns `400` for hostile payloads.
+  Tagged `compliance` in the OpenAPI spec.
+- **`services.check_cbpr_readiness` re-export**. The function and
+  `CBPR_CUTOVER_DATE` constant are now available at the
+  `camt053.services` facade alongside the other public surfaces so
+  the CLI, REST, MCP, and LSP consumers all import from one place.
+
 - **`check_cbpr_readiness(xml)` pre-flight checker** for the coordinated
   CBPR+ / Fedwire / CHAPS / T2 cutover on **14-16 November 2026**.
   Walks a camt.053 payload and reports issues that will fail the

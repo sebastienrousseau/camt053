@@ -196,6 +196,27 @@ def parse(request: StatementRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/check/cbpr-readiness", tags=["compliance"])
+def check_cbpr_readiness(request: StatementRequest) -> dict[str, Any]:
+    """Check a statement against the CBPR+ Nov 2026 acceptance rules.
+
+    Walks the supplied camt.05x payload and reports every issue that will
+    fail the coordinated CBPR+ / Fedwire / CHAPS / T2 cutover on
+    **14-16 November 2026**: unstructured-only postal addresses and
+    deprecated / unrecognised schema versions.
+
+    Returns the structured report ``{"cbpr_ready": bool, ...}``. The HTTP
+    status is always ``200`` for parseable XML, even when ``cbpr_ready`` is
+    ``False`` (the absence of CBPR+ readiness is a *result*, not an error).
+    Malformed XML returns ``400``.
+    """
+    services.guard_xml(request.xml)
+    try:
+        return services.check_cbpr_readiness(request.xml)
+    except (ValueError, Camt053Error) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/entries", tags=["statements"])
 def entries(
     request: StatementRequest, reason_code: str | None = None

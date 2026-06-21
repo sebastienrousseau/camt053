@@ -41,6 +41,10 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from camt053.compliance.cbpr_readiness import (
+    CBPR_CUTOVER_DATE,
+    check_cbpr_readiness,
+)
 from camt053.compliance.swift_charset import (
     cleanse_records as _cleanse_records,
 )
@@ -117,6 +121,8 @@ __all__ = [
     "configure_logging",
     "configure_logging_from_env",
     "guard_xml",
+    "check_cbpr_readiness",
+    "CBPR_CUTOVER_DATE",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
