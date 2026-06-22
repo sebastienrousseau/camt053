@@ -67,6 +67,15 @@ API Reference
 
    api
 
+Schema-version support matrix
+-----------------------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Supported camt.05x revisions
+
+   version-matrix
+
 Design History File
 -------------------
 
