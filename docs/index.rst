@@ -76,6 +76,15 @@ Schema-version support matrix
 
    version-matrix
 
+Posts
+-----
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Release announcements
+
+   posts/2026-06-22-shipping-camt053-v006-for-the-november-2026-cliff
+
 Design History File
 -------------------
 
