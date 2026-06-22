@@ -1,8 +1,8 @@
-<!-- SPDX-License-Identifier: Apache-2.0 OR MIT -->
-
 ---
 orphan: true
 ---
+
+<!-- SPDX-License-Identifier: Apache-2.0 OR MIT -->
 
 # Hacker News submission template
 
