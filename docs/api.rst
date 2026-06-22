@@ -24,6 +24,33 @@ Services facade
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: AuditEvent, ChainVerification, HashChain,
+                     SchemaClassification, UnsupportedSchemaError
+
+The dataclasses and exception types re-exported through this facade
+(``AuditEvent``, ``ChainVerification``, ``HashChain``,
+``SchemaClassification``, ``UnsupportedSchemaError``) have their
+canonical documentation in :mod:`camt053.audit` and
+:mod:`camt053.schema_version`. They are intentionally excluded here
+so Sphinx does not emit duplicate-object-description warnings; the
+facade convenience (``services.HashChain`` etc.) still works at
+runtime.
+
+Audit log
+=========
+
+.. automodule:: camt053.audit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Schema-version negotiation
+==========================
+
+.. automodule:: camt053.schema_version
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Exceptions
 ==========
