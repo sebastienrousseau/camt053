@@ -36,21 +36,25 @@ so Sphinx does not emit duplicate-object-description warnings; the
 facade convenience (``services.HashChain`` etc.) still works at
 runtime.
 
-Audit log
-=========
+Audit log + schema-version negotiation
+======================================
 
-.. automodule:: camt053.audit
-   :members:
-   :undoc-members:
-   :show-inheritance:
+The append-only HMAC hash-chain audit primitives
+(:class:`~camt053.audit.HashChain`, :class:`~camt053.audit.AuditEvent`,
+:class:`~camt053.audit.ChainVerification`,
+:func:`~camt053.audit.verify_chain`,
+:func:`~camt053.audit.compute_event_hmac`) live in
+:mod:`camt053.audit`. Schema-version detection and classification
+(:class:`~camt053.schema_version.SchemaClassification`,
+:exc:`~camt053.schema_version.UnsupportedSchemaError`,
+:func:`~camt053.schema_version.detect_schema_version`,
+:func:`~camt053.schema_version.classify_schema_version`,
+:func:`~camt053.schema_version.validate_schema_version`) lives in
+:mod:`camt053.schema_version`.
 
-Schema-version negotiation
-==========================
-
-.. automodule:: camt053.schema_version
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Both modules are re-exported through :mod:`camt053.services` for the
+facade convenience; the docstrings on the source modules carry the
+full reference text. Cross-references resolve to the canonical home.
 
 Exceptions
 ==========
