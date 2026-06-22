@@ -100,6 +100,15 @@ from camt053.reversal.reversal import (
     build_reversal_records_for_statements,
     stable_reversal_reference,
 )
+from camt053.schema_version import (
+    CURRENT_SCHEMA_VERSIONS,
+    DEPRECATED_SCHEMA_VERSIONS,
+    SchemaClassification,
+    UnsupportedSchemaError,
+    classify_schema_version,
+    detect_schema_version,
+    validate_schema_version,
+)
 from camt053.validation.bic_validator import validate_bic_safe
 from camt053.validation.currency_validator import (
     currency_minor_units,
@@ -157,6 +166,13 @@ __all__ = [
     "verify_chain",
     "GENESIS_HASH",
     "telemetry",
+    "CURRENT_SCHEMA_VERSIONS",
+    "DEPRECATED_SCHEMA_VERSIONS",
+    "SchemaClassification",
+    "UnsupportedSchemaError",
+    "classify_schema_version",
+    "detect_schema_version",
+    "validate_schema_version",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
