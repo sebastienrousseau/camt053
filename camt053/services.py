@@ -41,6 +41,19 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from camt053 import telemetry as _telemetry
+from camt053.audit import (
+    GENESIS_HASH,
+    AuditEvent,
+    ChainVerification,
+    HashChain,
+    compute_event_hmac,
+    verify_chain,
+)
+from camt053.compliance.cbpr_readiness import (
+    CBPR_CUTOVER_DATE,
+    check_cbpr_readiness,
+)
 from camt053.compliance.swift_charset import (
     cleanse_records as _cleanse_records,
 )
@@ -54,6 +67,15 @@ from camt053.logging import (
     configure_logging,
     configure_logging_from_env,
     log_event,
+)
+from camt053.parse.dedupe import (
+    DEDUPE_KEY_SEPARATOR,
+)
+from camt053.parse.dedupe import (
+    compute_dedupe_key as _compute_dedupe_key,
+)
+from camt053.parse.dedupe import (
+    compute_dedupe_keys as _compute_dedupe_keys,
 )
 from camt053.parse.reason_codes import (
     classify_reason as _classify_reason,
@@ -71,8 +93,21 @@ from camt053.parse.statement_parser import (
     iter_statement_entries as _iter_statement_entries,
 )
 from camt053.parse.statement_parser import parse_document as _parse_document
+from camt053.parse.statement_parser import (
+    parse_document_lenient as _parse_document_lenient,
+)
 from camt053.reversal.reversal import (
     build_reversal_records_for_statements,
+    stable_reversal_reference,
+)
+from camt053.schema_version import (
+    CURRENT_SCHEMA_VERSIONS,
+    DEPRECATED_SCHEMA_VERSIONS,
+    SchemaClassification,
+    UnsupportedSchemaError,
+    classify_schema_version,
+    detect_schema_version,
+    validate_schema_version,
 )
 from camt053.validation.bic_validator import validate_bic_safe
 from camt053.validation.currency_validator import (
@@ -117,12 +152,38 @@ __all__ = [
     "configure_logging",
     "configure_logging_from_env",
     "guard_xml",
+    "check_cbpr_readiness",
+    "CBPR_CUTOVER_DATE",
+    "compute_dedupe_key",
+    "compute_dedupe_keys",
+    "DEDUPE_KEY_SEPARATOR",
+    "stable_reversal_reference",
+    "parse_statement_lenient",
+    "AuditEvent",
+    "ChainVerification",
+    "HashChain",
+    "compute_event_hmac",
+    "verify_chain",
+    "GENESIS_HASH",
+    "telemetry",
+    "CURRENT_SCHEMA_VERSIONS",
+    "DEPRECATED_SCHEMA_VERSIONS",
+    "SchemaClassification",
+    "UnsupportedSchemaError",
+    "classify_schema_version",
+    "detect_schema_version",
+    "validate_schema_version",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
     DEFAULT_MAX_XML_BYTES,
     guard_xml_payload,
 )
+
+#: Re-export the telemetry module for ``services.telemetry`` access.
+#: Already imported above; ``__all__`` carries ``"telemetry"`` so the
+#: import-star surface includes it.
+telemetry = _telemetry
 
 _IDENTIFIER_VALIDATORS = {
     "iban": validate_iban_safe,
@@ -331,7 +392,76 @@ def parse_statement(xml: str) -> dict[str, Any]:
     Raises:
         StatementParseError: If the XML is malformed or unrecognised.
     """
-    return _parse_document(xml).to_dict()
+    with _telemetry.measure("parse"):
+        return _parse_document(xml).to_dict()
+
+
+def parse_statement_lenient(xml: str) -> dict[str, Any]:
+    """Parse an incoming statement, skipping corrupt entries instead of failing.
+
+    Strict mode (:func:`parse_statement`) aborts on the first per-entry
+    parse failure — the safe default. Lenient mode is for batch jobs
+    that prefer to process the surviving entries and surface the
+    skipped ones, rather than abandon a 10,000-entry file because one
+    ``<Ntry>`` is malformed.
+
+    Args:
+        xml: The raw camt.05x statement XML as a string.
+
+    Returns:
+        A JSON-serialisable dict ``{"document": {...},
+        "corrupt_entry_count": int, "diagnostics": [{"stmt_index": int,
+        "entry_index": int, "code": str, "message": str}, ...]}``.
+        ``document`` carries the same shape as :func:`parse_statement`'s
+        return value; ``diagnostics`` is empty when no entries were
+        skipped.
+
+    Raises:
+        StatementParseError: For document-level failures (empty XML,
+            malformed XML, unrecognised root / container). These are
+            not recoverable mid-stream.
+    """
+    return _parse_document_lenient(xml).to_dict()
+
+
+def compute_dedupe_key(xml: str) -> str:
+    """Return the canonical dedupe key for an incoming statement's first stmt.
+
+    Convenience wrapper that parses the payload and returns the
+    ``"{MsgId}:{StmtId}:{ElctrncSeqNb}"`` key. Two payloads that share
+    this key represent the same statement (typically a bank replay) and
+    should be processed at most once downstream.
+
+    Args:
+        xml: The raw camt.05x statement XML as a string.
+
+    Returns:
+        The colon-joined dedupe key for the first statement.
+
+    Raises:
+        ValueError: If the document carries zero statements.
+        StatementParseError: If the XML is malformed or unrecognised.
+    """
+    return _compute_dedupe_key(_parse_document(xml))
+
+
+def compute_dedupe_keys(xml: str) -> list[str]:
+    """Return one dedupe key per statement bundled in the document.
+
+    Useful for multi-statement documents (e.g. a daily multi-account
+    report). The first key matches :func:`compute_dedupe_key`'s output.
+
+    Args:
+        xml: The raw camt.05x statement XML as a string.
+
+    Returns:
+        A list of dedupe keys in document order; empty when no
+        statements are present.
+
+    Raises:
+        StatementParseError: If the XML is malformed or unrecognised.
+    """
+    return _compute_dedupe_keys(_parse_document(xml))
 
 
 def serialize_statement(xml: str) -> str:
@@ -374,7 +504,8 @@ def validate_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed / unrecognised, or no
             official XSD is bundled for the detected message type.
     """
-    return _validate_statement(xml)
+    with _telemetry.measure("validate"):
+        return _validate_statement(xml)
 
 
 def list_entries(xml: str, *, streaming: bool = False) -> list[dict[str, Any]]:
@@ -668,29 +799,30 @@ def generate_reversal(
         ReversalGenerationError: If no entry matches, the format / version is
             unknown, or validation fails.
     """
-    document = _parse_document(xml)
-    if not document.statements:
-        from camt053.exceptions import StatementParseError
+    with _telemetry.measure("reverse"):
+        document = _parse_document(xml)
+        if not document.statements:
+            from camt053.exceptions import StatementParseError
 
-        raise StatementParseError("Document contains no statement element")
-    records = build_reversal_records_for_statements(
-        document.statements,
-        reason_code=reason_code,
-        msg_id=msg_id,
-        creation_date_time=creation_date_time,
-    )
-    if cleanse:
-        _cleanse_records(records)
-    xml_out = generate_reversal_xml(
-        records, output_format=output_format, version=version
-    )
-    log_event(
-        logging.INFO,
-        "reversal.generated",
-        reason_code=reason_code,
-        records=len(records),
-    )
-    return xml_out
+            raise StatementParseError("Document contains no statement element")
+        records = build_reversal_records_for_statements(
+            document.statements,
+            reason_code=reason_code,
+            msg_id=msg_id,
+            creation_date_time=creation_date_time,
+        )
+        if cleanse:
+            _cleanse_records(records)
+        xml_out = generate_reversal_xml(
+            records, output_format=output_format, version=version
+        )
+        log_event(
+            logging.INFO,
+            "reversal.generated",
+            reason_code=reason_code,
+            records=len(records),
+        )
+        return xml_out
 
 
 def generate(

@@ -110,9 +110,11 @@ from camt053.models import (
     Statement,
     TransactionDetails,
 )
+from camt053.parse.report import EntryDiagnostic, ParseReport
 
 __all__ = [
     "parse_document",
+    "parse_document_lenient",
     "parse_statement",
     "iter_statement_entries",
 ]
@@ -336,6 +338,22 @@ def _parse_statement(stmt: Element) -> Statement:
     )
 
 
+def _parse_statement_shell(stmt: Element) -> Statement:
+    """Build a :class:`Statement` without parsing its entries.
+
+    Internal helper for the lenient parser; callers populate
+    :attr:`Statement.entries` afterwards by iterating ``Ntry`` children
+    under their own error-handling regime.
+    """
+    return Statement(
+        id=_text(stmt, "Id"),
+        electronic_seq_nb=_text(stmt, "ElctrncSeqNb"),
+        creation_date_time=_text(stmt, "CreDtTm"),
+        account=_parse_account(stmt),
+        balances=_parse_balances(stmt),
+    )
+
+
 def parse_document(xml: str) -> ParsedDocument:
     """Parse a camt.05x statement document into the typed model.
 
@@ -409,6 +427,112 @@ def parse_document(xml: str) -> ParsedDocument:
         msg_id=_text(grp_hdr, "MsgId"),
         creation_date_time=_text(grp_hdr, "CreDtTm"),
         statements=statements,
+    )
+
+
+def parse_document_lenient(xml: str) -> ParseReport:
+    """Parse a camt.05x document, skipping individual corrupt entries.
+
+    Mirrors :func:`parse_document` for the document-level structure
+    (root element, message container, group header) but iterates entries
+    inside each statement with a per-entry try/except: a failure inside
+    a single ``<Ntry>`` does not abort the parse, it is captured in
+    :attr:`ParseReport.diagnostics` and the surviving entries are
+    returned in the :attr:`ParseReport.document`.
+
+    Document-level errors (empty XML, malformed XML, unrecognised
+    root / container) still raise :class:`StatementParseError` — they
+    are not recoverable mid-stream and the caller cannot make a
+    sensible decision without them.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Returns:
+        A :class:`~camt053.parse.report.ParseReport` carrying the
+        document, the count of skipped entries, and a per-failure
+        diagnostic with the (stmt_index, entry_index, code, message)
+        of each.
+
+    Raises:
+        StatementParseError: For document-level failures (empty,
+            malformed, unrecognised container, no root element).
+    """
+    # Reuse the strict parser for everything up to the entries: it
+    # gives us the validated document shell with an empty entries list
+    # per statement (we discard those and re-parse leniently below).
+    # Doing it this way avoids duplicating the substantial container /
+    # header / namespace logic in parse_document.
+    if not xml or not xml.strip():
+        log_event(logging.WARNING, "statement.parse.failed", reason="empty")
+        raise StatementParseError("Statement XML is empty")
+    try:
+        tree = defused_parse(StringIO(xml))
+    except ParseError as exc:
+        raise _malformed_error(exc) from exc
+
+    root = tree.getroot()
+    if root is None:  # pragma: no cover — getroot only returns None pre-parse
+        raise StatementParseError("Statement XML has no root element")
+    if _local(root.tag) != "Document":
+        raise StatementParseError(
+            f"Expected a <Document> root element, got <{_local(root.tag)}>"
+        )
+    container = next(iter(root), None)
+    if container is None:
+        raise StatementParseError("Document has no message container element")
+    container_name = _local(container.tag)
+    if container_name not in STATEMENT_CONTAINERS.values():
+        raise StatementParseError(
+            f"Unrecognised cash-management message container: "
+            f"<{container_name}>. Expected one of: "
+            f"{', '.join(sorted(STATEMENT_CONTAINERS.values()))}."
+        )
+
+    grp_hdr = _find(container, "GrpHdr")
+    diagnostics: list[EntryDiagnostic] = []
+    statements: list[Statement] = []
+    stmt_elements = [
+        s for s in container if _local(s.tag) in STATEMENT_ELEMENTS
+    ]
+    for stmt_index, stmt_element in enumerate(stmt_elements):
+        # Parse the statement shell strictly (account / balances are
+        # required); only the entries get the lenient treatment.
+        shell = _parse_statement_shell(stmt_element)
+        for entry_index, ntry in enumerate(_find_all(stmt_element, "Ntry")):
+            try:
+                shell.entries.append(_parse_entry(ntry))
+            except (
+                Exception
+            ) as exc:  # noqa: BLE001 — recover from any per-entry parse failure
+                diagnostics.append(
+                    EntryDiagnostic(
+                        stmt_index=stmt_index,
+                        entry_index=entry_index,
+                        code="ENTRY_PARSE_FAILED",
+                        message=str(exc),
+                    )
+                )
+        statements.append(shell)
+
+    message_type = _message_type_for(container_name, _namespace(root.tag))
+    document = ParsedDocument(
+        message_type=message_type,
+        msg_id=_text(grp_hdr, "MsgId"),
+        creation_date_time=_text(grp_hdr, "CreDtTm"),
+        statements=statements,
+    )
+    log_event(
+        logging.INFO,
+        "statement.parsed.lenient",
+        message_type=message_type,
+        statements=len(statements),
+        corrupt_entry_count=len(diagnostics),
+    )
+    return ParseReport(
+        document=document,
+        corrupt_entry_count=len(diagnostics),
+        diagnostics=diagnostics,
     )
 
 

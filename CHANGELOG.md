@@ -5,6 +5,135 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6] - 2026-06-22
+
+### Added
+
+- **Schema-version negotiation** (#58 B1). New
+  `camt053.schema_version` module ships `detect_schema_version(xml)`,
+  `classify_schema_version(version)`, and
+  `validate_schema_version(xml, *, strict=False)` plus the constants
+  `CURRENT_SCHEMA_VERSIONS` (CBPR+ producer-current `.001.08` for the
+  052 / 053 / 054 family, plus the T2S R2026.NOV target `.001.13`,
+  plus `camt.053.001.14`) and `DEPRECATED_SCHEMA_VERSIONS` (the
+  `.02`-`.07` range still consumed by ERPs). Four stable
+  classification codes via `SchemaClassification`: `current`,
+  `deprecated`, `unknown` (in-family, unclassified minor), and
+  `unsupported` (non-camt.05x namespace). `strict=True` mode raises
+  `UnsupportedSchemaError` for the unknown / unsupported buckets;
+  deprecated payloads are still accepted (real-world ERPs depend on
+  them). All re-exported via `camt053.services`.
+
+  *Per-version profile dispatch* (separate parser per minor revision)
+  is a v0.0.7 deliverable; the v0.0.6 surface ships the classification
+  + opt-in refusal that the wider suite (CLI / REST / MCP / LSP) will
+  reach for to gate consumer-side acceptance.
+
+- **Optional OpenTelemetry tracing + RED metrics** (#58 B7). New
+  `camt053.telemetry` module ships `trace_span`, `record_request`,
+  `record_error`, `record_duration`, `measure`, and the constants
+  `SPAN_PARSE` / `SPAN_VALIDATE` / `SPAN_REVERSE` /
+  `METRIC_REQUESTS` / `METRIC_ERRORS` / `METRIC_DURATION`. OTel is
+  an **optional dependency** (`pip install camt053[telemetry]` /
+  Poetry extra `telemetry`); when absent, every helper is a
+  zero-overhead no-op so call sites work unconditionally. The
+  services facade wraps `parse_statement`, `validate_statement`,
+  and `generate_reversal` in `telemetry.measure(...)`, emitting one
+  span + one request counter + one duration histogram observation
+  per call, plus an error counter labelled by exception class on
+  failure paths. The `safe_span_attribute` helper applies the same
+  PII redaction rules (`redact_iban` / `redact_bic` / `redact_name`)
+  as the structured-logging module for span attributes that touch
+  account fields.
+
+- **Append-only HMAC-SHA-256 hash-chain audit log** (#58 B6). New
+  `camt053.audit` module ships `HashChain`, `AuditEvent`,
+  `ChainVerification`, `compute_event_hmac`, `verify_chain`, and the
+  `GENESIS_HASH` constant. Each appended event records the HMAC of
+  the previous event as its `prev_hash` and a fresh HMAC over the
+  canonical JSON of `(prev_hash, sequence, timestamp_utc,
+  event_type, payload)` under a caller-supplied secret. Tampering
+  (modified field, modified hmac, deleted event, wrong secret) is
+  detected by `verify_chain` and surfaced with a stable
+  diagnostic code (`HMAC_MISMATCH`, `PREV_HASH_MISMATCH`,
+  `SEQUENCE_GAP`, `GENESIS_PREV_HASH`). Continuation segments are
+  supported via the `starting_prev_hash` parameter. No new runtime
+  deps; pure stdlib. Re-exported via `camt053.services`.
+
+- **Hypothesis property tests for the v0.0.6 idempotency helpers**
+  (#58 B8). Six new property tests pin the determinism contracts of
+  `stable_reversal_reference` (same input → same output, length always
+  bounded by the ISO 20022 `Max35Text` limit, custom `max_length`
+  respected, `RVSL-` prefix preserved on both the readable and digest
+  paths) and `compute_dedupe_key` (same XML → same key, different
+  components → distinct keys). Complements the existing example-based
+  tests and locks the contracts in against future refactors.
+
+- **`services.parse_statement_lenient(xml)` — partial-batch parsing mode**
+  (#58 B4). Mirrors the strict :func:`parse_statement` for the document
+  envelope (root, container, group header) but catches per-entry parse
+  exceptions instead of aborting. Returns a `ParseReport` envelope:
+  `{"document", "corrupt_entry_count", "diagnostics"}` where each
+  diagnostic carries `(stmt_index, entry_index, code, message)` so
+  downstream batch jobs can process the surviving entries and surface
+  the skipped ones rather than abandoning a 10,000-entry overnight file
+  because one `<Ntry>` is malformed. Document-level failures (empty
+  XML, malformed XML, unrecognised container) still raise
+  `StatementParseError` — they are not recoverable mid-stream. New
+  helpers: `camt053.parse.statement_parser.parse_document_lenient` and
+  the `camt053.parse.report.ParseReport` / `EntryDiagnostic`
+  dataclasses.
+
+- **`services.compute_dedupe_key(xml)` and `compute_dedupe_keys(xml)` helpers**
+  for exactly-once statement processing (#58 B3). Returns the canonical
+  `"{MsgId}:{StmtId}:{ElctrncSeqNb}"` dedupe key per ISO 20022 conventions
+  so downstream consumers can detect bank replays (same key → already
+  processed). Multi-statement documents expose one key per statement via
+  `compute_dedupe_keys`. Colon separator (invalid in ISO 20022 ID fields)
+  guarantees the key can be split unambiguously back into its three
+  components. New module: `camt053.parse.dedupe`. Constant
+  `DEDUPE_KEY_SEPARATOR` re-exported via `camt053.services`.
+- **`services.stable_reversal_reference(original)` helper** (#58 B2)
+  exposes the deterministic algorithm that the reversal builder already
+  uses internally. Default scheme is a human-readable `RVSL-{original}`
+  prefix (preserved across releases for navigability in audit logs);
+  falls back to a `RVSL-{sha256(original|REV)}` truncated digest when
+  the prefixed form would exceed the ISO 20022 35-char ID limit, ensuring
+  collision-resistant IDs even for long or adversarial inputs. Pinned by
+  property tests; the prefix and salt are load-bearing.
+
+- **`camt053 check-cbpr-readiness -i statement.xml` CLI command**.
+  Wraps `services.check_cbpr_readiness`, prints a Rich summary table
+  (or `--format json` for the full structured report), and exits 0 if
+  the document is CBPR+ ready or 1 if any error-severity issue is
+  raised. Warnings (deprecated schema versions) do not affect the
+  exit code. Reads stdin with `-i -`.
+- **`POST /check/cbpr-readiness` REST endpoint**. Wraps the same
+  underlying function and returns the structured report as JSON. HTTP
+  status is `200` for any parseable input (CBPR+-not-ready is a
+  *result*, not an error); `400` for malformed XML; the existing
+  `XmlSecurityError` handler returns `400` for hostile payloads.
+  Tagged `compliance` in the OpenAPI spec.
+- **`services.check_cbpr_readiness` re-export**. The function and
+  `CBPR_CUTOVER_DATE` constant are now available at the
+  `camt053.services` facade alongside the other public surfaces so
+  the CLI, REST, MCP, and LSP consumers all import from one place.
+
+- **`check_cbpr_readiness(xml)` pre-flight checker** for the coordinated
+  CBPR+ / Fedwire / CHAPS / T2 cutover on **14-16 November 2026**.
+  Walks a camt.053 payload and reports issues that will fail the
+  Nov 2026 acceptance rules: schema-version drift (.02-.07 deprecated;
+  .08 / .13 current) and **unstructured-only postal addresses**
+  (`AdrLine` without `TwnNm` + `Ctry` siblings, the Nov 2026 reject
+  case). Returns a structured report with `cbpr_ready: bool`, per-issue
+  XPath-style paths, severities, stable codes, and an
+  address-classification summary (fully structured / hybrid /
+  unstructured-only). Available via `camt053.compliance.check_cbpr_readiness`
+  and the `CBPR_CUTOVER_DATE = "2026-11-16"` constant. Backed by
+  `defusedxml` and the existing `xml_guard` byte-cap + DOCTYPE
+  pre-flight; raises `XmlSecurityError` / `ValueError` on hostile or
+  malformed input. Part of the v0.0.6 batch tracked in #58.
+
 ## [0.0.5] - 2026-06-19
 
 ### Added
