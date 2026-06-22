@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Schema-version negotiation** (#58 B1). New
+  `camt053.schema_version` module ships `detect_schema_version(xml)`,
+  `classify_schema_version(version)`, and
+  `validate_schema_version(xml, *, strict=False)` plus the constants
+  `CURRENT_SCHEMA_VERSIONS` (CBPR+ producer-current `.001.08` for the
+  052 / 053 / 054 family, plus the T2S R2026.NOV target `.001.13`,
+  plus `camt.053.001.14`) and `DEPRECATED_SCHEMA_VERSIONS` (the
+  `.02`-`.07` range still consumed by ERPs). Four stable
+  classification codes via `SchemaClassification`: `current`,
+  `deprecated`, `unknown` (in-family, unclassified minor), and
+  `unsupported` (non-camt.05x namespace). `strict=True` mode raises
+  `UnsupportedSchemaError` for the unknown / unsupported buckets;
+  deprecated payloads are still accepted (real-world ERPs depend on
+  them). All re-exported via `camt053.services`.
+
+  *Per-version profile dispatch* (separate parser per minor revision)
+  is a v0.0.7 deliverable; the v0.0.6 surface ships the classification
+  + opt-in refusal that the wider suite (CLI / REST / MCP / LSP) will
+  reach for to gate consumer-side acceptance.
+
 - **Optional OpenTelemetry tracing + RED metrics** (#58 B7). New
   `camt053.telemetry` module ships `trace_span`, `record_request`,
   `record_error`, `record_duration`, `measure`, and the constants
