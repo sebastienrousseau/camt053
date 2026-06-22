@@ -109,7 +109,7 @@ release **MR2026** the same weekend. `camt.053` / `camt.054`
 produced by T2 RTGS move to the MR2026 variant; older variants
 are no longer accepted by T2 / T2S at receipt.
 
-The [version-matrix](version-matrix.md) page lists every
+The [version-matrix](https://github.com/sebastienrousseau/camt053/blob/main/docs/version-matrix.md) page lists every
 revision the suite supports, with the Nov 2026 cliff annotated
 row-by-row.
 
@@ -345,7 +345,7 @@ and the OpenSSF Best Practices Silver application.
 
 If you're consuming `camt.05x` in production, the
 [v0.0.6 release notes](https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.6)
-and the [Nov 2026 cliff matrix](version-matrix.md) are the two
+and the [Nov 2026 cliff matrix](https://github.com/sebastienrousseau/camt053/blob/main/docs/version-matrix.md) are the two
 pages worth reading today.
 
 If you find an issue, open one. If a payment payload that should
