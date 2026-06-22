@@ -508,6 +508,71 @@ def validate_statement(xml: str) -> dict[str, Any]:
         return _validate_statement(xml)
 
 
+def validate_against_profile(xml: str) -> dict[str, Any]:
+    """Run the per-schema-version profile rules against ``xml``.
+
+    Detects the document's schema version, looks up the matching
+    :class:`~camt053.profiles.SchemaProfile`, and runs its
+    version-specific rules (structured-address mandate on .13,
+    hybrid-address warning on .08, deprecation on .02-.07, ...).
+
+    The profile machinery is **opt-in** and never invoked by the
+    bare parser; this service hook is the canonical way to call it.
+
+    Args:
+        xml: The raw statement XML as a string.
+
+    Returns:
+        ``{
+            "schema_version": str | None,
+            "profile": str | None,
+            "ready": bool,
+            "findings": [
+                {"severity", "code", "message", "element", "location"},
+                ...
+            ],
+        }``
+
+        ``ready`` is ``True`` iff no ``severity="error"`` finding
+        was raised. ``profile`` is the resolved profile class name
+        (e.g. ``"Profile_v13"``); ``None`` if no profile is registered
+        for the detected version.
+    """
+    from camt053.profiles import profile_for_xml
+    from camt053.schema_version import detect_schema_version
+
+    detected = detect_schema_version(xml)
+    profile = profile_for_xml(xml)
+    if profile is None:
+        return {
+            "schema_version": detected,
+            "profile": None,
+            "ready": False,
+            "findings": [
+                {
+                    "severity": "error",
+                    "code": "CAMT.PROFILE.UNREGISTERED",
+                    "message": (
+                        "No profile is registered for the detected "
+                        f"schema version {detected!r}. The payload may "
+                        "be on an unsupported revision."
+                    ),
+                    "element": None,
+                    "location": None,
+                }
+            ],
+        }
+
+    findings = [f.to_dict() for f in profile.validate(xml)]
+    ready = not any(f["severity"] == "error" for f in findings)
+    return {
+        "schema_version": detected,
+        "profile": type(profile).__name__,
+        "ready": ready,
+        "findings": findings,
+    }
+
+
 def list_entries(xml: str, *, streaming: bool = False) -> list[dict[str, Any]]:
     """Parse a statement and return every entry across all its statements.
 
