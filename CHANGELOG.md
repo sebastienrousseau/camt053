@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Optional OpenTelemetry tracing + RED metrics** (#58 B7). New
+  `camt053.telemetry` module ships `trace_span`, `record_request`,
+  `record_error`, `record_duration`, `measure`, and the constants
+  `SPAN_PARSE` / `SPAN_VALIDATE` / `SPAN_REVERSE` /
+  `METRIC_REQUESTS` / `METRIC_ERRORS` / `METRIC_DURATION`. OTel is
+  an **optional dependency** (`pip install camt053[telemetry]` /
+  Poetry extra `telemetry`); when absent, every helper is a
+  zero-overhead no-op so call sites work unconditionally. The
+  services facade wraps `parse_statement`, `validate_statement`,
+  and `generate_reversal` in `telemetry.measure(...)`, emitting one
+  span + one request counter + one duration histogram observation
+  per call, plus an error counter labelled by exception class on
+  failure paths. The `safe_span_attribute` helper applies the same
+  PII redaction rules (`redact_iban` / `redact_bic` / `redact_name`)
+  as the structured-logging module for span attributes that touch
+  account fields.
+
 - **Append-only HMAC-SHA-256 hash-chain audit log** (#58 B6). New
   `camt053.audit` module ships `HashChain`, `AuditEvent`,
   `ChainVerification`, `compute_event_hmac`, `verify_chain`, and the

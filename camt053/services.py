@@ -41,6 +41,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from camt053 import telemetry as _telemetry
 from camt053.audit import (
     GENESIS_HASH,
     AuditEvent,
@@ -155,12 +156,18 @@ __all__ = [
     "compute_event_hmac",
     "verify_chain",
     "GENESIS_HASH",
+    "telemetry",
 ]
 
 from camt053.security.xml_guard import (  # noqa: E402
     DEFAULT_MAX_XML_BYTES,
     guard_xml_payload,
 )
+
+#: Re-export the telemetry module for ``services.telemetry`` access.
+#: Already imported above; ``__all__`` carries ``"telemetry"`` so the
+#: import-star surface includes it.
+telemetry = _telemetry
 
 _IDENTIFIER_VALIDATORS = {
     "iban": validate_iban_safe,
@@ -369,7 +376,8 @@ def parse_statement(xml: str) -> dict[str, Any]:
     Raises:
         StatementParseError: If the XML is malformed or unrecognised.
     """
-    return _parse_document(xml).to_dict()
+    with _telemetry.measure("parse"):
+        return _parse_document(xml).to_dict()
 
 
 def parse_statement_lenient(xml: str) -> dict[str, Any]:
@@ -480,7 +488,8 @@ def validate_statement(xml: str) -> dict[str, Any]:
         StatementParseError: If the XML is malformed / unrecognised, or no
             official XSD is bundled for the detected message type.
     """
-    return _validate_statement(xml)
+    with _telemetry.measure("validate"):
+        return _validate_statement(xml)
 
 
 def list_entries(xml: str, *, streaming: bool = False) -> list[dict[str, Any]]:
@@ -774,29 +783,30 @@ def generate_reversal(
         ReversalGenerationError: If no entry matches, the format / version is
             unknown, or validation fails.
     """
-    document = _parse_document(xml)
-    if not document.statements:
-        from camt053.exceptions import StatementParseError
+    with _telemetry.measure("reverse"):
+        document = _parse_document(xml)
+        if not document.statements:
+            from camt053.exceptions import StatementParseError
 
-        raise StatementParseError("Document contains no statement element")
-    records = build_reversal_records_for_statements(
-        document.statements,
-        reason_code=reason_code,
-        msg_id=msg_id,
-        creation_date_time=creation_date_time,
-    )
-    if cleanse:
-        _cleanse_records(records)
-    xml_out = generate_reversal_xml(
-        records, output_format=output_format, version=version
-    )
-    log_event(
-        logging.INFO,
-        "reversal.generated",
-        reason_code=reason_code,
-        records=len(records),
-    )
-    return xml_out
+            raise StatementParseError("Document contains no statement element")
+        records = build_reversal_records_for_statements(
+            document.statements,
+            reason_code=reason_code,
+            msg_id=msg_id,
+            creation_date_time=creation_date_time,
+        )
+        if cleanse:
+            _cleanse_records(records)
+        xml_out = generate_reversal_xml(
+            records, output_format=output_format, version=version
+        )
+        log_event(
+            logging.INFO,
+            "reversal.generated",
+            reason_code=reason_code,
+            records=len(records),
+        )
+        return xml_out
 
 
 def generate(

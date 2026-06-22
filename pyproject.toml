@@ -39,6 +39,14 @@ httpx = ">=0.23"
 # Note: jsonschema is held at >=4.20 so the core library is co-installable with
 # the camt053-mcp companion package (which requires the MCP SDK / jsonschema>=4.20).
 
+# Optional: OpenTelemetry tracing + metrics. Off by default; install via
+# ``pip install camt053[telemetry]``. The library gracefully degrades to
+# a zero-overhead no-op when the API is absent.
+opentelemetry-api = {version = ">=1.20", optional = true}
+
+[tool.poetry.extras]
+telemetry = ["opentelemetry-api"]
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
@@ -225,4 +233,12 @@ disable_error_code = ["arg-type", "return-value", "attr-defined", "assignment"]
 
 [[tool.mypy.overrides]]
 module = "xmlschema.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# OpenTelemetry is an *optional* runtime dep (the ``camt053[telemetry]``
+# extra). The telemetry module gracefully degrades to a no-op when the
+# package is absent; mypy should not fail the gate just because the
+# optional package isn't installed in the type-check environment.
+module = "opentelemetry.*"
 ignore_missing_imports = true

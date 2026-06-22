@@ -1803,6 +1803,22 @@ files = [
 ]
 
 [[package]]
+name = "opentelemetry-api"
+version = "1.42.1"
+description = "OpenTelemetry Python API"
+optional = true
+python-versions = ">=3.10"
+groups = ["main"]
+markers = "extra == \"telemetry\""
+files = [
+    {file = "opentelemetry_api-1.42.1-py3-none-any.whl", hash = "sha256:51a69edacadbc03a8950ace1c4c21099cacc538820ac2c9e36277e78cebba714"},
+    {file = "opentelemetry_api-1.42.1.tar.gz", hash = "sha256:56c63bea9f77b62856be8c47600474acad853b2924b99b1687c4cb6297166716"},
+]
+
+[package.dependencies]
+typing-extensions = ">=4.5.0"
+
+[[package]]
 name = "packaging"
 version = "26.2"
 description = "Core utilities for Python packages"
@@ -3812,7 +3828,10 @@ enabler = ["pytest-enabler (>=3.4)"]
 test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_itertools", "pytest (>=6,!=8.1.*)", "pytest-ignore-flaky"]
 type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 
+[extras]
+telemetry = ["opentelemetry-api"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "67a25ae0743d08b4b22a3792ba4cc691b371d13ff4183f45a2b481c97ea6e2fa"
+content-hash = "135b41569532fe5de559f56ec8d56607c837117e9a6abec5a2b42d56f18e60c2"
