@@ -449,6 +449,7 @@ Vulnerability Reporting, not public issues.
 - [`SUPPORT.md`](SUPPORT.md) — how to get help, by need
 - [`MAINTAINERS.md`](MAINTAINERS.md) — who can merge and cut releases
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — submission process + style
+- [`STYLEGUIDE.md`](STYLEGUIDE.md) — cross-suite style guide (linked from every package README)
 - [`docs/version-matrix.md`](docs/version-matrix.md) — supported `camt.05x` revisions with the Nov 2026 cliff
 - [`examples/`](examples/) — runnable scripts, exercised in CI
 - [`docs/`](docs/) — extended reference (API, quickstart, deployment cookbook)
