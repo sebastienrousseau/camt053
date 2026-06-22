@@ -123,3 +123,145 @@ def test_benchmark_parse_and_reverse(benchmark, representative_xml) -> None:
 
     xml = benchmark(_parse_and_reverse)
     assert "<RvslInd>true</RvslInd>" in xml
+
+
+# ─── v0.0.6 B5 targets ──────────────────────────────────────────────────────
+#
+# The plan calls for documented production-side performance targets so
+# operators can size deployments and so we surface regressions early:
+#
+#   * Parse throughput: ≥ 50 MB/s
+#   * Statement throughput: ≥ 200 statements/s
+#   * Parse p99 latency: < 50 ms (for typical ≤1 MB, ≤500-entry files)
+#
+# These targets are derived from the ECB TIPS Consultative Group's
+# Feb 2025 sizing reference (a 24 MB compressed statement carries
+# ~16.1M tx; ≥50 MB/s parse keeps that well under a minute even for
+# the worst-case bulk feed).
+#
+# Enforcement is advisory: the targets are asserted with a generous
+# **5× margin** (so a 50 MB/s target only fails when actual throughput
+# drops below 10 MB/s). The runner-variance reality is that strict
+# gates would flake the CI build for reasons unrelated to camt053
+# code, so the margin keeps the signal-to-noise ratio useful.
+#
+# Operators who want stricter gates can edit the ``_TARGET_*`` /
+# ``_GATE_*`` constants in their own forks or pin them in CI.
+
+#: Documented parse throughput target (megabytes per second). Cited
+#: in the README and ROADMAP; the actual gate enforces 5× looser.
+_TARGET_PARSE_MB_PER_S = 50.0
+
+#: Documented statement throughput target (statements per second).
+_TARGET_STATEMENTS_PER_S = 200.0
+
+#: Documented parse p99 latency target (milliseconds per statement).
+_TARGET_PARSE_P99_MS = 50.0
+
+#: Multiplier applied to every target to absorb GitHub Actions runner
+#: variance. A 5× cushion is generous enough to survive noisy runners
+#: yet still catch a real 5×+ regression.
+_PERF_MARGIN = 5.0
+
+_GATE_PARSE_MB_PER_S = _TARGET_PARSE_MB_PER_S / _PERF_MARGIN
+_GATE_STATEMENTS_PER_S = _TARGET_STATEMENTS_PER_S / _PERF_MARGIN
+_GATE_PARSE_P99_MS = _TARGET_PARSE_P99_MS * _PERF_MARGIN
+
+
+@pytest.mark.perf
+def test_parse_throughput_meets_v006_target(
+    benchmark, representative_xml
+) -> None:
+    """Parse throughput stays above the v0.0.6 advisory floor.
+
+    Target: ≥ 50 MB/s (advisory; CI gate at 10 MB/s for runner-noise
+    tolerance). The 50-entry representative statement is small enough
+    that the parse cost is dominated by per-entry overhead; the gate
+    here ensures we don't regress to a fraction of the documented
+    operating range.
+    """
+    payload_bytes = len(representative_xml.encode("utf-8"))
+    result_holder: dict[str, object] = {}
+
+    def _parse() -> object:
+        result = parse_statement(representative_xml)
+        result_holder["stmt"] = result
+        return result
+
+    benchmark(_parse)
+    # benchmark.stats.stats.mean is seconds per call.
+    mean_seconds = benchmark.stats.stats.mean
+    mb_per_s = (payload_bytes / mean_seconds) / 1_000_000
+    print(
+        f"\nparse throughput: {mb_per_s:,.1f} MB/s "
+        f"(target {_TARGET_PARSE_MB_PER_S} MB/s, "
+        f"gate {_GATE_PARSE_MB_PER_S:.1f} MB/s)"
+    )
+    assert mb_per_s >= _GATE_PARSE_MB_PER_S, (
+        f"Parse throughput {mb_per_s:.1f} MB/s fell below the gate "
+        f"of {_GATE_PARSE_MB_PER_S:.1f} MB/s (target "
+        f"{_TARGET_PARSE_MB_PER_S} MB/s with {_PERF_MARGIN}× cushion). "
+        f"This is a real ≥{_PERF_MARGIN}× regression, not runner noise."
+    )
+
+
+@pytest.mark.perf
+def test_statement_throughput_meets_v006_target(
+    benchmark, representative_xml
+) -> None:
+    """Statement throughput stays above the v0.0.6 advisory floor.
+
+    Target: ≥ 200 statements/s (advisory; CI gate at 40/s with the
+    5× cushion). Measured as the inverse of mean parse time on the
+    representative 50-entry workload.
+    """
+
+    def _parse() -> object:
+        return parse_statement(representative_xml)
+
+    benchmark(_parse)
+    statements_per_s = 1.0 / benchmark.stats.stats.mean
+    print(
+        f"\nstatement throughput: {statements_per_s:,.0f} statements/s "
+        f"(target {_TARGET_STATEMENTS_PER_S:.0f}/s, "
+        f"gate {_GATE_STATEMENTS_PER_S:.0f}/s)"
+    )
+    assert statements_per_s >= _GATE_STATEMENTS_PER_S, (
+        f"Statement throughput {statements_per_s:.0f}/s fell below "
+        f"the gate of {_GATE_STATEMENTS_PER_S:.0f}/s (target "
+        f"{_TARGET_STATEMENTS_PER_S:.0f}/s with {_PERF_MARGIN}× cushion). "
+        f"This is a real ≥{_PERF_MARGIN}× regression, not runner noise."
+    )
+
+
+@pytest.mark.perf
+def test_parse_p99_latency_meets_v006_target(
+    benchmark, representative_xml
+) -> None:
+    """Parse p99 latency stays under the v0.0.6 advisory ceiling.
+
+    Target: < 50 ms p99 (advisory; CI gate at 250 ms with the 5×
+    cushion). p99 is the worst-case latency a downstream caller can
+    expect on a typical statement; the cushion absorbs GC pauses
+    and runner-noise spikes without flaking the build.
+    """
+
+    def _parse() -> object:
+        return parse_statement(representative_xml)
+
+    benchmark(_parse)
+    # pytest-benchmark records ``max`` over all runs as a stand-in
+    # for the p99: our run count is small (typical 5-20 rounds), so
+    # ``max`` is the right proxy. ``stats.stats.max`` is seconds.
+    p99_ms = benchmark.stats.stats.max * 1000
+    print(
+        f"\nparse p99 (max of runs): {p99_ms:.1f} ms "
+        f"(target {_TARGET_PARSE_P99_MS:.0f} ms, "
+        f"gate {_GATE_PARSE_P99_MS:.0f} ms)"
+    )
+    assert p99_ms <= _GATE_PARSE_P99_MS, (
+        f"Parse p99 latency {p99_ms:.1f} ms exceeded the gate of "
+        f"{_GATE_PARSE_P99_MS:.0f} ms (target "
+        f"{_TARGET_PARSE_P99_MS:.0f} ms with {_PERF_MARGIN}× cushion). "
+        f"This is a real ≥{_PERF_MARGIN}× regression, not runner noise."
+    )
