@@ -76,6 +76,15 @@ Schema-version support matrix
 
    version-matrix
 
+Deployment cookbook
+-------------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Deployment recipes
+
+   deployment-cookbook
+
 Posts
 -----
 
