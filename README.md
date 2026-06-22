@@ -435,16 +435,21 @@ Trusted Publishing, sigstore attestations, signed tags) live in
 [`SECURITY.md`](SECURITY.md). Vulnerabilities go via GitHub Private
 Vulnerability Reporting, not public issues.
 
+## News / Releases
+
+- **2026-06-22 — [Shipping camt053 v0.0.6 for the 14-16 November 2026 ISO 20022 cliff](docs/posts/2026-06-22-shipping-camt053-v006-for-the-november-2026-cliff.md)** (v0.0.6 release announcement + Nov 2026 cliff narrative).
+
 ## Documentation
 
 - [`README.md`](README.md) — this file
 - [`CHANGELOG.md`](CHANGELOG.md) — release notes
 - [`ROADMAP.md`](ROADMAP.md) — milestones and the explicit Declined/Deferred list
 - [`GOVERNANCE.md`](GOVERNANCE.md) — decision model + becoming a maintainer
-- [`SECURITY.md`](SECURITY.md) — disclosure + supported versions + supply chain
+- [`SECURITY.md`](SECURITY.md) — disclosure + supported versions + supply chain + NIST SSDF mapping
 - [`SUPPORT.md`](SUPPORT.md) — how to get help, by need
 - [`MAINTAINERS.md`](MAINTAINERS.md) — who can merge and cut releases
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — submission process + style
+- [`docs/version-matrix.md`](docs/version-matrix.md) — supported `camt.05x` revisions with the Nov 2026 cliff
 - [`examples/`](examples/) — runnable scripts, exercised in CI
 - [`docs/`](docs/) — extended reference (API, quickstart, deployment cookbook)
 - Hosted Sphinx docs: <https://sebastienrousseau.github.io/camt053/>
