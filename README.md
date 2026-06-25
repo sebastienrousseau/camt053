@@ -10,6 +10,7 @@
 [![Tests][tests-badge]][tests-url]
 [![Quality][quality-badge]][quality-url]
 [![OpenSSF Scorecard][scorecard-badge]][scorecard-url]
+[![OpenSSF Best Practices][bestpractices-badge]][bestpractices-url]
 [![Documentation][docs-badge]][docs-url]
 
 **Read ISO 20022 `camt` Bank-to-Customer Cash Management messages, extract
@@ -490,5 +491,7 @@ Built on [Click](https://click.palletsprojects.com/),
 [quality-url]: https://github.com/sebastienrousseau/camt053/actions/workflows/ci.yml
 [scorecard-badge]: https://api.scorecard.dev/projects/github.com/sebastienrousseau/camt053/badge?style=for-the-badge
 [scorecard-url]: https://scorecard.dev/viewer/?uri=github.com/sebastienrousseau/camt053
+[bestpractices-badge]: https://www.bestpractices.dev/projects/13373/badge
+[bestpractices-url]: https://www.bestpractices.dev/projects/13373
 [tests-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/camt053/ci.yml?branch=main&label=Tests&style=for-the-badge
 [tests-url]: https://github.com/sebastienrousseau/camt053/actions/workflows/ci.yml
