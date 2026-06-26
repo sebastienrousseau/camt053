@@ -23,6 +23,8 @@ to deprecated identification fields is an error.
 
 from __future__ import annotations
 
+from typing import Any
+
 from camt053.profiles._xml import (
     has_child,
     iter_descendants,
@@ -35,7 +37,7 @@ from camt053.profiles.base import (
 )
 
 
-def _is_unstructured_only(pstl_adr) -> bool:
+def _is_unstructured_only(pstl_adr: Any) -> bool:
     """Return ``True`` iff ``PstlAdr`` has only ``AdrLine`` children."""
     has_adr_line = has_child(pstl_adr, "AdrLine")
     has_structured = any(
@@ -60,7 +62,7 @@ def _is_unstructured_only(pstl_adr) -> bool:
     return has_adr_line and not has_structured
 
 
-def _is_missing_country(pstl_adr) -> bool:
+def _is_missing_country(pstl_adr: Any) -> bool:
     """Return ``True`` iff ``PstlAdr`` has any structured field but no ``Ctry``."""
     has_anything_structured = any(
         has_child(pstl_adr, tag)

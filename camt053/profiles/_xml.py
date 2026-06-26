@@ -21,6 +21,7 @@ stays minimal.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Any
 
 from defusedxml.ElementTree import ParseError
@@ -48,7 +49,7 @@ def local_name(tag: str) -> str:
     return tag.rsplit("}", 1)[-1] if "}" in tag else tag
 
 
-def iter_descendants(root: Any, name: str):
+def iter_descendants(root: Any, name: str) -> Iterator[Any]:
     """Yield every descendant whose local name equals ``name``."""
     for elem in root.iter():
         if local_name(elem.tag) == name:

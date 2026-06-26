@@ -85,6 +85,15 @@ Deployment cookbook
 
    deployment-cookbook
 
+Security & compliance
+---------------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Security & compliance
+
+   openssf-best-practices-silver
+
 Posts
 -----
 
