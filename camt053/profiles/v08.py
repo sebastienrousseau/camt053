@@ -25,6 +25,8 @@ tighten further on ``.001.13``. After the Nov 14-16 2026 cutover
 
 from __future__ import annotations
 
+from typing import Any
+
 from camt053.profiles._xml import (
     has_child,
     iter_descendants,
@@ -37,7 +39,7 @@ from camt053.profiles.base import (
 )
 
 
-def _is_unstructured_only(pstl_adr) -> bool:
+def _is_unstructured_only(pstl_adr: Any) -> bool:
     """Return ``True`` iff ``PstlAdr`` has only ``AdrLine`` children."""
     has_adr_line = has_child(pstl_adr, "AdrLine")
     has_structured = any(

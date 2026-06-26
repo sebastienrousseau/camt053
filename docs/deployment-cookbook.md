@@ -34,6 +34,8 @@ Every recipe assumes:
 
 ---
 
+(1-local-docker-compose)=
+
 ## 1. Local Docker Compose
 
 The smallest "production-shaped" stack: REST API, Redis (for
@@ -145,6 +147,8 @@ loop on the **RED** triad (Rate, Errors, Duration).
 
 ---
 
+(2-single-host-systemd)=
+
 ## 2. Single-host systemd
 
 For deployments that own their own VM. nginx terminates TLS
@@ -226,6 +230,8 @@ sudo systemctl reload nginx
 Tail logs with `journalctl -u camt053-api.service -f`.
 
 ---
+
+(3-kubernetes)=
 
 ## 3. Kubernetes
 
@@ -331,6 +337,8 @@ kubectl rollout status deploy/camt053-api
 ```
 
 ---
+
+(4-cloud-run--lambda-one-off)=
 
 ## 4. Cloud Run / Lambda one-off
 
