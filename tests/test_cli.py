@@ -20,6 +20,7 @@ import os
 
 from click.testing import CliRunner
 
+import camt053
 from camt053.cli.cli import main
 
 GOLD = os.path.join(os.path.dirname(__file__), "gold_master")
@@ -303,7 +304,7 @@ def test_version_flag():
     """The --version flag reports the version."""
     result = CliRunner().invoke(main, ["--version"])
     assert result.exit_code == 0
-    assert "0.0.7" in result.output
+    assert camt053.__version__ in result.output
 
 
 def test_reverse_command_to_stdout(tmp_path, statement_xml):
