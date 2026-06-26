@@ -18,6 +18,8 @@
 import subprocess
 import sys
 
+import camt053
+
 
 def test_module_runs_as_main():
     """``python -m camt053 --version`` runs the console entry point."""
@@ -28,7 +30,7 @@ def test_module_runs_as_main():
         check=False,
     )
     assert result.returncode == 0
-    assert "0.0.7" in result.stdout
+    assert camt053.__version__ in result.stdout
 
 
 def test_main_callable():
