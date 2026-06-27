@@ -94,8 +94,9 @@ class AuditEvent:
         prev_hash: The ``hmac`` of the previous event in the chain;
             :data:`GENESIS_HASH` for the first event.
         hmac: The HMAC-SHA-256 of the canonical serialisation of this
-            event's ``(prev_hash, sequence, timestamp_utc,
-            event_type, payload)`` tuple under the chain's secret.
+            event's
+            ``(prev_hash, sequence, timestamp_utc, event_type, payload)``
+            tuple under the chain's secret.
     """
 
     sequence: int

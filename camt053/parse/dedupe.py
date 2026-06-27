@@ -21,8 +21,9 @@ downstream consumers may post the same entries twice. This module exposes
 a small, deterministic helper that computes the canonical dedupe key
 from a parsed statement.
 
-The key is the colon-joined tuple ``(GrpHdr/MsgId, Stmt/Id,
-Stmt/ElctrncSeqNb)``. Missing components are encoded as the empty string
+The key is the colon-joined tuple
+``(GrpHdr/MsgId, Stmt/Id, Stmt/ElctrncSeqNb)``. Missing components are
+encoded as the empty string
 so the key shape is stable, but a key with missing components has weaker
 collision guarantees and SHOULD be combined with an upstream check.
 """

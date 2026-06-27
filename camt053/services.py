@@ -312,9 +312,9 @@ def validate_records(
         records: One or more flat reversing-entry records.
 
     Returns:
-        A report dictionary:
-        ``{"valid": bool, "total": int, "valid_count": int,
-        "errors": [{"row": int, "path": str, "message": str}, ...]}``.
+        A report dict with keys ``valid``, ``total``, ``valid_count``, and
+        ``errors`` -- a list of dicts with keys ``row``, ``path``, and
+        ``message``.
 
     Raises:
         ValueError: If the message type is not supported.
@@ -409,9 +409,9 @@ def parse_statement_lenient(xml: str) -> dict[str, Any]:
         xml: The raw camt.05x statement XML as a string.
 
     Returns:
-        A JSON-serialisable dict ``{"document": {...},
-        "corrupt_entry_count": int, "diagnostics": [{"stmt_index": int,
-        "entry_index": int, "code": str, "message": str}, ...]}``.
+        A JSON-serialisable dict with keys ``document``,
+        ``corrupt_entry_count``, and ``diagnostics`` -- a list of dicts with
+        keys ``stmt_index``, ``entry_index``, ``code``, and ``message``.
         ``document`` carries the same shape as :func:`parse_statement`'s
         return value; ``diagnostics`` is empty when no entries were
         skipped.
@@ -523,15 +523,9 @@ def validate_against_profile(xml: str) -> dict[str, Any]:
         xml: The raw statement XML as a string.
 
     Returns:
-        ``{
-            "schema_version": str | None,
-            "profile": str | None,
-            "ready": bool,
-            "findings": [
-                {"severity", "code", "message", "element", "location"},
-                ...
-            ],
-        }``
+        A dict with keys ``schema_version``, ``profile``, ``ready``, and
+        ``findings`` -- a list of dicts with keys ``severity``, ``code``,
+        ``message``, ``element``, and ``location``.
 
         ``ready`` is ``True`` iff no ``severity="error"`` finding
         was raised. ``profile`` is the resolved profile class name
@@ -949,9 +943,9 @@ def generate_batch(
         version: Optional camt.053 schema version to emit.
 
     Returns:
-        ``{"total": int, "succeeded": int, "failed": int,
-        "results": [{"path": str, "ok": bool, "xml": str | None,
-        "error": str | None}, ...]}``. Results preserve discovery order.
+        A summary dict with keys ``total``, ``succeeded``, ``failed``, and
+        ``results`` -- a list of per-file dicts with keys ``path``, ``ok``,
+        ``xml``, and ``error``. Results preserve discovery order.
     """
     resolved = _resolve_batch_paths(paths)
     results: list[dict[str, Any]] = []
