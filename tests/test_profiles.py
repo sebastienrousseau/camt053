@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from unittest import mock
 
 import pytest
@@ -97,7 +98,7 @@ class TestProfileFinding:
         f = ProfileFinding(
             severity=ProfileSeverity.INFO, code="x", message="x"
         )
-        with pytest.raises(Exception):  # dataclasses.FrozenInstanceError
+        with pytest.raises(dataclasses.FrozenInstanceError):
             f.code = "y"  # type: ignore[misc]
 
 
