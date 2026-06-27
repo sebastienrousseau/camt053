@@ -35,6 +35,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+          # examples/ are runnable demo scripts, not shipped library code;
+          # exclude them from scanning to avoid false positives on synthetic
+          # sample data (the package + tests are still fully analysed).
+          config: |
+            paths-ignore:
+              - examples
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
