@@ -103,3 +103,31 @@ this table whenever a referenced control changes.
 A few SSDF practices do not apply directly to a small OSS library:
 
 - **PO.2** (Roles and Responsibilities), **PS.3** (Archive and Protect Each Release) at the organisational level are owned by the maintainer (see [`MAINTAINERS.md`](MAINTAINERS.md)).
+
+
+## Accepted OpenSSF Scorecard findings
+
+The suite runs [OpenSSF Scorecard](https://securityscorecards.dev/) weekly and
+treats its results as advisory. The checks below are **accepted risks**: they
+cannot be resolved by code or configuration for a single-maintainer
+open-source project, and are recorded here so their status is explicit.
+
+- **Branch-Protection** — `main` is protected: pull requests are required,
+  with a required status check (`Lint & Type Check`), dismissal of stale
+  reviews, linear history, and no force-pushes or deletions. Scorecard's
+  highest tier also wants `enforce_admins` enabled; we deliberately leave it
+  **off** so the sole maintainer can still merge approved release/security
+  PRs without a second account (see [`MAINTAINERS.md`](MAINTAINERS.md)). This
+  is an accepted trade-off.
+- **Code-Review** — Scorecard expects each change to be approved by a
+  *second* reviewer. With a single maintainer this is structurally
+  impossible; changes still go through pull requests with CI gating.
+  Accepted until a second maintainer joins.
+- **Maintained** — a heuristic over recent commit/issue cadence that can lag
+  immediately after a release lull. The project is actively maintained (see
+  the commit history and the lockstep release process).
+
+All **code-fixable** Scorecard checks are satisfied: Pinned-Dependencies
+(SHA-pinned GitHub Actions + hash-pinned `pip` installs), Token-Permissions
+(least-privilege workflow tokens), SAST (CodeQL on push/PR), and Fuzzing
+(ClusterFuzzLite).
