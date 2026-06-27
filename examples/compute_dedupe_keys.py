@@ -40,8 +40,9 @@ def main() -> None:
 
     # Re-deriving the same key from the same input yields the same hash.
     again = compute_dedupe_key(STATEMENT)
-    assert key == again
-    print(f"deterministic               : {key == again}")
+    deterministic = key == again
+    print(f"deterministic               : {deterministic}")
+    assert deterministic
 
     keys = compute_dedupe_keys(STATEMENT)
     print(f"per-statement keys (1 here) : {keys}")

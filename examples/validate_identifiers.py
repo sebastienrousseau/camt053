@@ -26,10 +26,18 @@ CASES = [
 
 
 def main() -> None:
-    for kind, validator, value, expected in CASES:
+    # The identifier value itself is not printed: even synthetic IBAN/LEI
+    # literals are treated as sensitive by static analysis, so the demo
+    # reports only the validation outcome per case.
+    for index, (kind, validator, value, expected) in enumerate(CASES, 1):
         actual = validator(value)
         status = "OK " if actual == expected else "!! "
-        print(f"{status}{kind} {value}: {'valid' if actual else 'invalid'}")
+        verdict = "valid" if actual else "invalid"
+        expected_verdict = "valid" if expected else "invalid"
+        print(
+            f"{status}case {index} ({kind}): "
+            f"got {verdict}, expected {expected_verdict}"
+        )
 
 
 if __name__ == "__main__":

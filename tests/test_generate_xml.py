@@ -16,6 +16,7 @@
 """Tests for rendering and validating reversing-entry XML."""
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -138,7 +139,8 @@ def test_write_reversal_xml(tmp_path, monkeypatch, reversal_record):
     monkeypatch.chdir(tmp_path)
     out = write_reversal_xml([reversal_record], "reversal.xml")
     assert os.path.isfile(out)
-    assert "RvslInd" in open(out, encoding="utf-8").read()
+    content = Path(out).read_text(encoding="utf-8")
+    assert "RvslInd" in content
 
 
 def test_write_reversal_outside_cwd_raises(
