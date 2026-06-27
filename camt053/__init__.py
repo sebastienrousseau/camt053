@@ -1,6 +1,6 @@
 """The Python camt053 module."""
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 
 from camt053.exceptions import (
     ReversalGenerationError,
