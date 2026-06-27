@@ -10,8 +10,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN pip install --no-cache-dir poetry
+# Install Poetry (hash-pinned for supply-chain reproducibility)
+COPY requirements/build.txt ./requirements/build.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements/build.txt
 
 # Copy dependency files first (layer caching)
 COPY pyproject.toml ./

@@ -1,0 +1,2 @@
+# Dependency vulnerability scanner for the CI "audit" job.
+pip-audit

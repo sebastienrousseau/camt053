@@ -1,0 +1,4 @@
+# Build/publish tooling for the release "publish" job and for any CI job that
+# only needs Poetry to drive `poetry install` / `poetry run`.
+poetry
+twine

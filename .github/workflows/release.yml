@@ -34,8 +34,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install build tooling
-        run: pip install poetry twine
+      - name: Install build tooling (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Build distributions
         run: poetry build
@@ -112,16 +112,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install runtime dependencies
         # Install only the runtime ("main") deps so the SBOM reflects what
         # ships, not the dev toolchain.
         run: poetry install --no-interaction --only main
 
-      - name: Install SBOM + license tooling
-        run: pip install cyclonedx-bom pip-licenses
+      - name: Install SBOM + license tooling (hash-pinned)
+        run: pip install --require-hashes -r requirements/sbom.txt
 
       - name: Generate CycloneDX SBOM (JSON)
         # Describe the Poetry-managed virtualenv (the resolved runtime tree).
