@@ -17,6 +17,7 @@
 
 import json
 import os
+from pathlib import Path
 
 from click.testing import CliRunner
 
@@ -181,7 +182,7 @@ def test_entries_export_csv_to_file(tmp_path, statement_xml):
     )
     assert result.exit_code == 0
     assert "Exported 3 entries to" in result.output
-    content = open(out, encoding="utf-8").read()
+    content = Path(out).read_text(encoding="utf-8")
     assert content.startswith("reference,amount,currency")
     assert "NTRY-0002" in content
 
@@ -194,7 +195,7 @@ def test_entries_export_json_to_file(tmp_path, statement_xml):
         main, ["entries", "-i", path, "--export", "json", "-o", out]
     )
     assert result.exit_code == 0
-    data = json.loads(open(out, encoding="utf-8").read())
+    data = json.loads(Path(out).read_text(encoding="utf-8"))
     assert len(data) == 3
 
 
@@ -322,7 +323,8 @@ def test_reverse_command_to_file(tmp_path, statement_xml):
     result = CliRunner().invoke(main, ["reverse", "-i", path, "-o", out])
     assert result.exit_code == 0
     assert "written to" in result.output
-    assert "RvslInd" in open(out, encoding="utf-8").read()
+    content = Path(out).read_text(encoding="utf-8")
+    assert "RvslInd" in content
 
 
 def test_reverse_command_no_match(tmp_path, statement_xml):
@@ -366,7 +368,7 @@ def test_reverse_command_format_json_to_file(tmp_path, statement_xml):
     )
     assert result.exit_code == 0
     assert "written to" in result.output
-    envelope = json.loads(open(out, encoding="utf-8").read())
+    envelope = json.loads(Path(out).read_text(encoding="utf-8"))
     assert envelope["message_type"] == "camt.053.001.14"
 
 
