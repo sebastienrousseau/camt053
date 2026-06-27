@@ -993,9 +993,12 @@ def load_openapi(app: Any | None = None) -> str:
         The OpenAPI schema serialised as JSON.
     """
     if app is None:
-        from camt053.api.app import app as default_app
+        # Resolve the bundled app dynamically so this module does not form a
+        # static import cycle with ``camt053.api.app`` (which imports this
+        # module). The import stays lazy and the behaviour is unchanged.
+        import importlib
 
-        app = default_app
+        app = importlib.import_module("camt053.api.app").app
     return json.dumps(app.openapi())
 
 

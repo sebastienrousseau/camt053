@@ -54,6 +54,7 @@ def _is_allowed_directory(resolved_path: Path) -> bool:
 def _resolve_within_allowed_bases(
     untrusted_path: str | Path,
     base_dir: str | Path | None = None,
+    must_exist: bool = False,
 ) -> str:
     """Resolve ``untrusted_path`` and confirm it stays within an allowed base.
 
@@ -61,6 +62,9 @@ def _resolve_within_allowed_bases(
         untrusted_path: The caller-supplied path to resolve.
         base_dir: If given, the only directory the path may resolve within;
             otherwise the working directory and temp directories are allowed.
+        must_exist: If ``True``, require the confined path to exist on disk.
+            The check runs only after containment is proven, so the value
+            reaching the filesystem is guaranteed to sit within a trusted base.
 
     Returns:
         The sanitised, resolved path string.
@@ -86,7 +90,13 @@ def _resolve_within_allowed_bases(
         allowed_bases = _get_allowed_bases_str()
     for base in allowed_bases:
         if resolved_str == base or resolved_str.startswith(base + os.sep):
-            return base + resolved_str[len(base) :]
+            # ``confined`` is a trusted base plus the validated remainder, so
+            # it is provably inside an allowed directory. Only now is it safe
+            # to touch the filesystem.
+            confined = base + resolved_str[len(base) :]
+            if must_exist and not os.path.exists(confined):
+                raise FileNotFoundError(f"Path does not exist: {confined}")
+            return confined
     if base_dir:
         raise SecurityError(
             f"Path '{resolved_str}' escapes base directory '{base_dir}'."
@@ -117,10 +127,12 @@ def validate_path(
         SecurityError: If the path escapes the allowed base(s).
         FileNotFoundError: If ``must_exist`` and the path does not exist.
     """
-    safe_path = _resolve_within_allowed_bases(untrusted_path, base_dir)
-    if must_exist and not os.path.exists(safe_path):
-        raise FileNotFoundError(f"Path does not exist: {safe_path}")
-    return safe_path
+    # The optional existence check happens inside the resolver, immediately
+    # after containment is proven, so the path handed to the filesystem is
+    # never the raw untrusted value.
+    return _resolve_within_allowed_bases(
+        untrusted_path, base_dir, must_exist=must_exist
+    )
 
 
 def sanitize_for_log(user_input: str, max_length: int = 100) -> str:
