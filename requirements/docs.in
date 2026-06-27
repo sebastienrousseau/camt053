@@ -1,0 +1,14 @@
+# Sphinx documentation toolchain for the "docs" workflow.
+# The camt053 runtime deps are included so autodoc can import camt053,
+# camt053.exceptions, and camt053.services (added to sys.path in docs/conf.py)
+# without an un-pinnable editable `pip install -e .`.
+sphinx>=7.0.0,<8.0.0
+sphinx-autodoc-typehints>=1,<3
+pydata-sphinx-theme>=0.15.0,<0.16.0
+sphinx-design>=0.6.0,<0.7.0
+myst-parser>=2,<4
+defusedxml==0.7.1
+jinja2==3.1.6
+markupsafe==2.1.5
+jsonschema>=4.20,<4.27
+xmlschema>=3.4.0,<4.0.0

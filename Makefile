@@ -1,4 +1,4 @@
-.PHONY: help install dev test lint format type-check security clean docs docker smoke examples
+.PHONY: help install dev test lint format type-check security clean docs docker smoke examples pip-compile
 
 PYTHON ?= python3
 POETRY ?= poetry
@@ -36,6 +36,14 @@ type-check: ## Run mypy type checking
 security: ## Run security scan (bandit)
 	$(POETRY) run bandit -r camt053/ -c pyproject.toml 2>/dev/null || \
 		$(POETRY) run bandit -r camt053/ -ll
+
+pip-compile: ## Regenerate hash-pinned requirements/*.txt from requirements/*.in
+	@command -v uv >/dev/null || { echo "uv is required: https://docs.astral.sh/uv/"; exit 1; }
+	@for f in requirements/*.in; do \
+		echo "compiling $$f"; \
+		uv pip compile --quiet --generate-hashes --universal \
+			--python-version 3.10 "$$f" -o "$${f%.in}.txt"; \
+	done
 
 clean: ## Remove build artifacts and caches
 	rm -rf build/ dist/ *.egg-info .eggs/

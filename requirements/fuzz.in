@@ -1,0 +1,10 @@
+# Runtime dependencies for the ClusterFuzzLite fuzz build (.clusterfuzzlite).
+# The local camt053 package is added to PyInstaller's --paths instead of being
+# pip-installed, so only its third-party runtime deps are pinned here. These are
+# everything the fuzzed entry points (camt053.services and the parse/profile/
+# schema/validation modules it imports) need to import successfully.
+defusedxml==0.7.1
+jinja2==3.1.6
+markupsafe==2.1.5
+jsonschema>=4.20,<4.27
+xmlschema>=3.4.0,<4.0.0

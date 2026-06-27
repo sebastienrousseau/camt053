@@ -1,0 +1,3 @@
+# SBOM + license tooling for the release "sbom" job.
+cyclonedx-bom
+pip-licenses

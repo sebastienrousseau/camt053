@@ -27,8 +27,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -65,8 +65,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -94,8 +94,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -121,8 +121,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -149,14 +149,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction
 
-      - name: Install pip-audit
-        run: pip install pip-audit
+      - name: Install pip-audit (hash-pinned)
+        run: pip install --require-hashes -r requirements/audit.txt
 
       - name: Run pip-audit
         # Audit the resolved Poetry environment. Findings are reported but do
@@ -206,8 +206,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -244,8 +244,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install Poetry (hash-pinned)
+        run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
         run: poetry install --no-interaction

@@ -1,0 +1,38 @@
+name: ClusterFuzzLite PR fuzzing
+
+# Short fuzzing run on every PR that touches code, seeded from the persistent
+# corpus. Surfaces regressions introduced by a change before it lands.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "camt053/**"
+      - "fuzz/**"
+      - ".clusterfuzzlite/**"
+      - ".github/workflows/cflite-pr.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  fuzzing:
+    name: Fuzz (address)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build fuzzers
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: python
+          sanitizer: address
+
+      - name: Run fuzzers
+        id: run
+        uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fuzz-seconds: 300
+          mode: code-change
+          sanitizer: address
+          output-sarif: true
