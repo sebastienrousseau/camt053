@@ -212,9 +212,11 @@ def _sanitize_log_text(text: str) -> str:
 def _sanitize_log_value(value: Any) -> Any:
     """Sanitise a context value before it is attached to a log record.
 
-    Strings are newline-stripped via :func:`_sanitize_log_text` and nested
-    mappings are sanitised recursively; every other type is returned
-    unchanged (the formatter serialises it without interpreting newlines).
+    Strings are newline-stripped via :func:`_sanitize_log_text`; nested
+    mappings and sequences are sanitised recursively; ``None`` and numeric
+    values pass through unchanged; any other object (an exception, a path,
+    ...) is rendered with :func:`str` and then newline-stripped, so no
+    attacker-influenced representation can forge extra log lines.
 
     Args:
         value: The context value to sanitise.
@@ -226,7 +228,11 @@ def _sanitize_log_value(value: Any) -> Any:
         return _sanitize_log_text(value)
     if isinstance(value, Mapping):
         return {key: _sanitize_log_value(val) for key, val in value.items()}
-    return value
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [_sanitize_log_value(item) for item in value]
+    if value is None or isinstance(value, (int, float)):
+        return value
+    return _sanitize_log_text(str(value))
 
 
 class JsonFormatter(logging.Formatter):
