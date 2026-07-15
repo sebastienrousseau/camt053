@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "camt053"
-version = "0.0.9"
+version = "0.0.10"
 description = "Camt053 is a Python library for reading ISO 20022 camt Bank-to-Customer Statements (camt.053/052/054) and generating validated reversing entries by return reason code (e.g. AC04 Closed Account)."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0"
@@ -29,7 +29,7 @@ jinja2 = "3.1.6"
 markupsafe = "2.1.5"
 pygments = ">=2.20.0,<3.0.0"
 python = ">=3.10,<4.0"
-rich = "15.0.0"
+rich = ">=13.7.1,<16"
 xmlschema = ">=3.4.0 <4.0.0"
 cryptography = ">=48.0.1,<50.0.0"
 jsonschema = ">=4.20,<4.27"
