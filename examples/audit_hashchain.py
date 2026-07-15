@@ -13,6 +13,7 @@ modification breaks the chain.
 from camt053.audit import (
     AuditEvent,
     HashChain,
+    compute_event_hmac,
     verify_chain,
 )
 
@@ -45,6 +46,18 @@ def main() -> None:
     )
     bad = verify_chain(tampered, secret=secret)
     print(f"verify (tampered): valid={bad.valid}")
+
+    # Re-derive one event's expected HMAC offline (external audit).
+    first = events[0]
+    expected = compute_event_hmac(
+        secret,
+        prev_hash=first.prev_hash,
+        sequence=first.sequence,
+        timestamp_utc=first.timestamp_utc,
+        event_type=first.event_type,
+        payload=first.payload,
+    )
+    print(f"offline recompute: matches={expected == first.hmac}")
 
 
 if __name__ == "__main__":
