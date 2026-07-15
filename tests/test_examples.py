@@ -20,6 +20,7 @@ routes change, the corresponding example fails in CI instead of
 silently rotting.
 """
 
+import os
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
@@ -28,6 +29,11 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = sorted((REPO_ROOT / "examples").glob("*.py"))
+
+# Force UTF-8 in the example subprocesses: on Windows a piped stdout
+# defaults to the legacy console code page (cp1252), which cannot encode
+# the CLI's Unicode output (e.g. the Rich "check mark" glyph).
+UTF8_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
 
 
 def test_examples_discovered() -> None:
@@ -42,9 +48,11 @@ def test_example_runs_cleanly(example: Path) -> None:
         [sys.executable, str(example)],
         cwd=REPO_ROOT,
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=180,
         check=False,
+        env=UTF8_ENV,
     )
     assert result.returncode == 0, (
         f"{example.name} failed with exit code {result.returncode}\n"

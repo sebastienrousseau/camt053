@@ -17,6 +17,13 @@ import subprocess  # nosec B404
 import sys
 import tempfile
 
+# The CLI prints Unicode glyphs (Rich check marks). On Windows a piped or
+# legacy console defaults to cp1252, which cannot encode them, so force
+# UTF-8 for this script's own output and for the CLI subprocesses below.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+UTF8_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+
 STATEMENT = """<?xml version="1.0" encoding="UTF-8"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.14">
   <BkToCstmrStmt>
@@ -46,9 +53,11 @@ def run_cli(*args: str) -> str:
     result = subprocess.run(  # nosec B603
         [sys.executable, "-m", "camt053", *args],
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=60,
         check=False,
+        env=UTF8_ENV,
     )
     if result.returncode != 0:
         raise SystemExit(

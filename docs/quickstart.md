@@ -5,7 +5,7 @@ returned payment on it" to "I have a validated ISO 20022 reversing entry"
 in five short steps. No prior ISO 20022 knowledge required.
 
 If you already know what camt.053 is and just want the CLI flags, skip to
-the [README](../README.md#quick-start).
+the [README](https://github.com/sebastienrousseau/camt053#quick-start).
 
 ---
 
@@ -167,7 +167,7 @@ balances, entries), ready for `jq` or your pipeline:
 camt053 parse -i statement.xml
 ```
 
-```json
+```text
 {
   "message_type": "camt.053.001.14",
   "msg_id": "STMT-MSG-0001",
@@ -249,7 +249,7 @@ That's 80% of the surface for 90% of users.
 | :--- | :--- |
 | Reverse a whole directory of statements at once | `camt053 reverse --batch` ([`examples/generate_batch.py`](https://github.com/sebastienrousseau/camt053/blob/main/examples/generate_batch.py)) |
 | Emit a pacs.004 PaymentReturn instead of camt.053 | `camt053 reverse --output-format pacs004` |
-| Run camt053 as a REST service | `uvicorn camt053.api.app:app` ([README Usage](../README.md#usage)) |
+| Run camt053 as a REST service | `uvicorn camt053.api.app:app` ([README Usage](https://github.com/sebastienrousseau/camt053#usage)) |
 | Pre-flight the Nov 14-16 2026 CBPR+ cutover | `camt053 check-cbpr-readiness` ([version matrix](version-matrix.md)) |
 | Stream very large statements with bounded memory | [`examples/stream_entries.py`](https://github.com/sebastienrousseau/camt053/blob/main/examples/stream_entries.py) |
 | Deploy the REST API with Redis + Prometheus + Grafana | [Deployment cookbook](deployment-cookbook.md) |
@@ -270,7 +270,7 @@ That's 80% of the surface for 90% of users.
 
 - [Open an issue](https://github.com/sebastienrousseau/camt053/issues/new/choose)
   with the CLI invocation that failed plus the error output.
-- See [SUPPORT.md](../SUPPORT.md) for the full support matrix.
+- See [SUPPORT.md](https://github.com/sebastienrousseau/camt053/blob/main/SUPPORT.md) for the full support matrix.
 
 ---
 
