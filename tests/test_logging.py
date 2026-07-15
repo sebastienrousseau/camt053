@@ -149,6 +149,25 @@ def test_log_event_sanitizes_context_values():
     assert record["context"]["detail"]["count"] == 3
 
 
+def test_log_event_sanitizes_sequences_and_objects():
+    """Sequence items and arbitrary objects are newline-stripped too."""
+    stream = io.StringIO()
+    camt_logging.configure_logging(json_format=True, stream=stream)
+    camt_logging.log_event(
+        logging.INFO,
+        "statement.parse.failed",
+        errors=["line\none", "line\rtwo"],
+        cause=ValueError("boom\nFAKE"),
+        count=None,
+        ratio=0.5,
+    )
+    record = json.loads(stream.getvalue())
+    assert record["context"]["errors"] == ["line one", "line two"]
+    assert record["context"]["cause"] == "boom FAKE"
+    assert record["context"]["count"] is None
+    assert record["context"]["ratio"] == 0.5
+
+
 def test_configure_logging_preserves_foreign_handlers():
     """A pre-existing non-managed handler is left in place."""
     logger = camt_logging.get_logger()
