@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.13] - 2026-07-16
+
+### Added
+
+- **Load/stress suite** — new `tests/test_stress.py` behind a dedicated
+  `stress` marker (wired like `perf`: outside the coverage gate, run in
+  the CI `performance` job). Covers sustained 32-way concurrent parsing,
+  a 4 000-entry large-document parse + reversal with a memory-bounded
+  streaming check, and a parse/serialize soak loop guarding against
+  memory growth.
+- **Examples & docs** — Section F complete: 100% examples coverage,
+  STYLEGUIDE, quickstart and deployment cookbook (#62).
+
+### Changed
+
+- **Version** — suite-wide lockstep bump to `0.0.13` (0.0.10–0.0.12 were
+  skipped) to keep all `camt053` packages (`camt053`, `camt053-lsp`,
+  `camt053-mcp`, `camt053-writer-xlsx`, `camt053-loader-mt940`) on the
+  same version.
+- **Dependencies** — `rich` relaxed to `>=13.7.1,<16` so the core
+  library co-installs with the MCP suite; open dependabot bumps folded
+  in.
+
+### Fixed
+
+- **Security** — resolved open CodeQL alerts (log injection, empty
+  excepts) and closed the log-sanitizer passthrough for sequences and
+  objects.
+- **CI** — Windows-safe examples harness, clean Sphinx `-W` build, and
+  the benchmark baseline rebased onto the ubuntu-latest runner.
+
 ## [0.0.9] - 2026-06-27
 
 ### Changed

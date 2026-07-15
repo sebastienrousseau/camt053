@@ -29,7 +29,7 @@ Verify:
 
 ```bash
 camt053 -V
-# -> Camt053, version 0.0.10
+# -> Camt053, version 0.0.13
 ```
 
 If you'd rather not pollute your global Python environment:
