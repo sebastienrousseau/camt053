@@ -123,6 +123,32 @@ def test_redact_value_sentinel_only_key():
     assert camt_logging.redact_value("creditor", None) is None
 
 
+def test_log_event_strips_newlines_from_event():
+    """CR / LF in the event message cannot forge extra log lines."""
+    stream = io.StringIO()
+    camt_logging.configure_logging(json_format=False, stream=stream)
+    camt_logging.log_event(logging.INFO, "evil\r\nFAKE line\rmid\nend")
+    out = stream.getvalue()
+    assert "evil FAKE line mid end" in out
+    assert out.count("\n") == 1
+
+
+def test_log_event_sanitizes_context_values():
+    """String and nested-mapping context values are newline-stripped."""
+    stream = io.StringIO()
+    camt_logging.configure_logging(json_format=True, stream=stream)
+    camt_logging.log_event(
+        logging.INFO,
+        "statement.parse.failed",
+        reason="bad\nvalue",
+        detail={"inner": "a\r\nb", "count": 3},
+    )
+    record = json.loads(stream.getvalue())
+    assert record["context"]["reason"] == "bad value"
+    assert record["context"]["detail"]["inner"] == "a b"
+    assert record["context"]["detail"]["count"] == 3
+
+
 def test_configure_logging_preserves_foreign_handlers():
     """A pre-existing non-managed handler is left in place."""
     logger = camt_logging.get_logger()
