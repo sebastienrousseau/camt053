@@ -115,10 +115,11 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--disable-warnings",
-    # Benchmarks (marker ``perf``) are excluded from the coverage gate; they
-    # run on their own in the CI ``performance`` job (see #11). Select them
-    # explicitly with ``-m perf --benchmark-only --no-cov``.
-    "-m", "not perf"
+    # Benchmarks (marker ``perf``) and load/stress tests (marker ``stress``)
+    # are excluded from the coverage gate; they run on their own in the CI
+    # ``performance`` job (see #11). Select them explicitly with
+    # ``-m perf --benchmark-only --no-cov`` / ``-m stress --no-cov``.
+    "-m", "not perf and not stress"
 ]
 markers = [
     "integration: end-to-end workflow tests",
@@ -126,6 +127,7 @@ markers = [
     "slow: tests taking > 1s",
     "security: XXE and injection prevention tests",
     "perf: performance/benchmark tests",
+    "stress: load/stress and soak tests (excluded from the coverage gate)",
     "smoke: quick sanity checks"
 ]
 timeout = 5
@@ -176,7 +178,7 @@ pytest_add_cli_args_test_selection = [
     "--deselect=tests/test_path_validator.py",
     "-x",
     "-m",
-    "not perf",
+    "not perf and not stress",
     "-q",
 ]
 do_not_mutate = [

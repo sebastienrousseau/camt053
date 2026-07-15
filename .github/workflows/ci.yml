@@ -216,6 +216,14 @@ jobs:
           --benchmark-json=benchmark-results.json
           --tb=short
 
+      - name: Run stress suite (load / large-document / soak)
+        # Load/stress tests (marker ``stress``) run alongside the benchmarks,
+        # outside the coverage gate. Every bound carries a generous cushion so
+        # a failure signals a real regression, not runner noise.
+        run: >
+          poetry run pytest tests/test_stress.py
+          -m stress --no-cov -s --tb=short
+
       - name: Upload benchmark results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
