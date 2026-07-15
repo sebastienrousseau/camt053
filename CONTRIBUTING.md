@@ -173,10 +173,12 @@ poetry run pytest tests/test_benchmarks.py -m perf --no-cov --benchmark-only \
   --benchmark-compare=.benchmarks/baseline/0001_baseline.json \
   --benchmark-compare-fail=mean:200%
 
-# Refresh the baseline (do this on the reference machine after an intentional,
-# reviewed performance change)
-poetry run pytest tests/test_benchmarks.py -m perf --no-cov --benchmark-only \
-  --benchmark-json=.benchmarks/baseline/0001_baseline.json
+# Refresh the baseline after an intentional, reviewed performance change.
+# The baseline MUST be measured on the CI runner class (ubuntu-latest), not a
+# local machine — download the ``benchmark-results`` artifact from a CI run of
+# the ``performance`` job and commit it as the new baseline:
+#   gh run download <run-id> -n benchmark-results
+#   mv benchmark-results.json .benchmarks/baseline/0001_baseline.json
 ```
 
 ### Mutation testing
