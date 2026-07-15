@@ -1,4 +1,4 @@
-# `camt053` suite — style guide
+# `camt053` suite - style guide
 
 This is the cross-package style guide for everything in the
 [`camt053`](https://github.com/sebastienrousseau/camt053) suite
@@ -7,8 +7,8 @@ This is the cross-package style guide for everything in the
 
 The intent is **consistency-by-default** so a contributor familiar
 with one package can navigate any of them without re-learning
-conventions. Every cross-suite document — README, CHANGELOG,
-SECURITY, SUPPORT, CONTRIBUTING — should match the structures
+conventions. Every cross-suite document - README, CHANGELOG,
+SECURITY, SUPPORT, CONTRIBUTING - should match the structures
 defined here.
 
 Linked from every package README's *Documentation* section.
@@ -208,7 +208,7 @@ Package-specific work goes on the package repo.
 - Public function / method names: snake_case (`parse_statement`,
   `compute_dedupe_key`).
 - MCP tool names: snake_case verbNoun (`list_message_types`,
-  `cite_rulebook`, `check_cbpr_readiness`) — matches the Stripe
+  `cite_rulebook`, `check_cbpr_readiness`) - matches the Stripe
   MCP pattern.
 - Class names: PascalCase (`ParsedDocument`, `HashChain`).
 - Constants: SCREAMING_SNAKE_CASE
@@ -221,7 +221,7 @@ Package-specific work goes on the package repo.
 When this guide is silent on a question, default to the
 convention used by the
 [`pain001`](https://github.com/sebastienrousseau/pain001) sibling
-suite — they share the same maintainer and design philosophy.
+suite - they share the same maintainer and design philosophy.
 
 When that is also silent, default to the conventions in
 [PEP 8](https://peps.python.org/pep-0008/),

@@ -146,6 +146,9 @@ camt053 validate -i statement.xml
 `parse`, `entries`, `reverse`, and `validate` accept `-i -` to read from stdin,
 so they compose in a pipeline.
 
+New to camt.053? The [10-minute quickstart](docs/quickstart.md) walks the
+full install, validate, parse, reverse workflow with real commands and output.
+
 ## Features
 
 - **Parse** camt.053 / camt.052 / camt.054 into a typed, JSON-serialisable
@@ -451,6 +454,8 @@ Vulnerability Reporting, not public issues.
 - [`MAINTAINERS.md`](MAINTAINERS.md) — who can merge and cut releases
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — submission process + style
 - [`STYLEGUIDE.md`](STYLEGUIDE.md) — cross-suite style guide (linked from every package README)
+- [`docs/quickstart.md`](docs/quickstart.md) — 10-minute install, validate, parse, reverse tutorial
+- [`docs/deployment-cookbook.md`](docs/deployment-cookbook.md) — Docker Compose / systemd / Kubernetes recipes for the REST API
 - [`docs/version-matrix.md`](docs/version-matrix.md) — supported `camt.05x` revisions with the Nov 2026 cliff
 - [`examples/`](examples/) — runnable scripts, exercised in CI
 - [`docs/`](docs/) — extended reference (API, quickstart, deployment cookbook)

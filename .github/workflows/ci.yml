@@ -74,13 +74,8 @@ jobs:
       - name: Run smoke tests
         run: poetry run pytest tests/ -m smoke -v --no-cov --tb=short
 
-      - name: Verify examples
-        run: |
-          poetry run python examples/reverse_ac04.py
-          poetry run python examples/parse_statement.py
-          poetry run python examples/services_facade.py
-          poetry run python examples/validate_identifiers.py
-          poetry run python examples/rest_api_client.py
+      - name: Verify examples (all of examples/, parametrized)
+        run: poetry run pytest tests/test_examples.py -v --no-cov --tb=short
 
   lint:
     name: Lint & Type Check
