@@ -25,8 +25,8 @@ asserts they only ever fail in *documented* ways.
 The library documents that these entry points raise
 ``camt053.exceptions.Camt053Error`` (and its subclasses), plus the stdlib
 ``ValueError`` (which covers ``XmlSecurityError`` / ``UnsupportedSchemaError``)
-and ``json.JSONDecodeError``. Those are caught here so they do not register as
-findings. ANY OTHER exception is undocumented -- a real bug -- and is allowed
+and ``json.JSONDecodeError``. Those are suppressed here so they do not
+register as findings. ANY OTHER exception is undocumented -- a real bug -- and is allowed
 to propagate so the fuzzer surfaces it. Where a tolerant variant exists
 (``parse_statement_lenient``) it is preferred.
 
@@ -38,6 +38,7 @@ Run locally::
 In CI this target is built and run by ClusterFuzzLite (see ``.clusterfuzzlite``).
 """
 
+import contextlib
 import json
 import sys
 
@@ -59,54 +60,36 @@ def test_one_input(data: bytes) -> None:
     text = fdp.ConsumeUnicodeNoSurrogates(sys.maxsize)
 
     # Security gate -- must reject hostile payloads, never crash unexpectedly.
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.guard_xml(text)
-    except _DOCUMENTED:
-        pass
 
     # Schema-version detection on arbitrary text.
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         schema_version.detect_schema_version(text)
-    except _DOCUMENTED:
-        pass
 
     # Full parse pipelines -- strict, lenient, and the derived helpers.
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.parse_statement(text)
-    except _DOCUMENTED:
-        pass
 
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.parse_statement_lenient(text)
-    except _DOCUMENTED:
-        pass
 
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.list_entries(text)
-    except _DOCUMENTED:
-        pass
 
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.compute_dedupe_keys(text)
-    except _DOCUMENTED:
-        pass
 
     # XSD + profile validation pipelines.
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.validate_statement(text)
-    except _DOCUMENTED:
-        pass
 
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.validate_against_profile(text)
-    except _DOCUMENTED:
-        pass
 
     # Round-trip parse -> re-serialise.
-    try:
+    with contextlib.suppress(*_DOCUMENTED):
         services.serialize_statement(text)
-    except _DOCUMENTED:
-        pass
 
 
 def main() -> None:

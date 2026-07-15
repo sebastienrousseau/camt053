@@ -193,6 +193,42 @@ def redact_context(context: Mapping[str, Any]) -> dict[str, Any]:
     return {key: redact_value(key, value) for key, value in context.items()}
 
 
+def _sanitize_log_text(text: str) -> str:
+    """Neutralise log-injection attempts in a single string.
+
+    Carriage returns and newlines in attacker-influenced text (e.g. a
+    reason string derived from a hostile statement file) could otherwise
+    forge additional, legitimate-looking log lines (CWE-117).
+
+    Args:
+        text: The raw string destined for a log record.
+
+    Returns:
+        The string with CR / LF characters replaced by single spaces.
+    """
+    return text.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+
+
+def _sanitize_log_value(value: Any) -> Any:
+    """Sanitise a context value before it is attached to a log record.
+
+    Strings are newline-stripped via :func:`_sanitize_log_text` and nested
+    mappings are sanitised recursively; every other type is returned
+    unchanged (the formatter serialises it without interpreting newlines).
+
+    Args:
+        value: The context value to sanitise.
+
+    Returns:
+        The sanitised value.
+    """
+    if isinstance(value, str):
+        return _sanitize_log_text(value)
+    if isinstance(value, Mapping):
+        return {key: _sanitize_log_value(val) for key, val in value.items()}
+    return value
+
+
 class JsonFormatter(logging.Formatter):
     """A :class:`logging.Formatter` that emits one JSON object per record.
 
@@ -314,6 +350,10 @@ def log_event(
     redaction) applies. Because the library logger has no handler by default,
     this is a cheap no-op until a caller opts in via :func:`configure_logging`.
 
+    Newlines in ``event`` and in string context values are replaced with
+    spaces before the record is emitted, so values derived from untrusted
+    statement text cannot forge extra log lines (CWE-117).
+
     Args:
         level: A standard :mod:`logging` level (e.g. ``logging.INFO``).
         event: The event name / message.
@@ -322,4 +362,8 @@ def log_event(
     logger = get_logger()
     if not logger.isEnabledFor(level):
         return
-    logger.log(level, event, extra={"context": context})
+    logger.log(
+        level,
+        _sanitize_log_text(event),
+        extra={"context": _sanitize_log_value(context)},
+    )
