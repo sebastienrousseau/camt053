@@ -137,7 +137,7 @@ def test_sustained_concurrent_parsing(representative_xml: str) -> None:
     asserts that every parse succeeded with the expected entry count
     and that the p95 latency stays under the (generous) ceiling.
     """
-    errors: list[BaseException] = []
+    errors: list[Exception] = []
     latencies: list[float] = []
 
     def _one_parse() -> None:
@@ -145,7 +145,7 @@ def test_sustained_concurrent_parsing(representative_xml: str) -> None:
         try:
             stmt = parse_statement(representative_xml)
             assert len(stmt.entries) == 50
-        except BaseException as exc:  # noqa: B036 - stress harness
+        except Exception as exc:
             errors.append(exc)
         finally:
             latencies.append(time.perf_counter() - start)
