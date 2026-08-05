@@ -144,3 +144,24 @@ URL gets the URL banned.
 Avoid `/r/programming` (covered by HN demographically; you'll get
 the same crowd) unless the article also lands a generic-software
 narrative.
+
+
+---
+
+## v0.0.14 submission (2026-07-16)
+
+**Title:** Show HN: An ISO 20022 bank-statement MCP server with OAuth 2.1, audit chains, and measured benchmarks
+
+**URL:** https://sebastienrousseau.github.io/camt053/posts/2026-07-16-camt053-suite-v0014-oauth-mcp-benchmarks.html
+
+**First comment:**
+Author here. Surveys keep finding ~40% of public MCP servers ship with
+no authentication, which is untenable for financial data. v0.0.14 moves
+our camt.053 (ISO 20022 bank statement) MCP server to an authenticated
+streamable-HTTP transport: OAuth 2.1 resource-server auth with RFC 9728
+metadata, per-tenant scoping, Prometheus metrics, and an HMAC-chained
+audit log linking each tool call's session and (redacted) arguments.
+Benchmarks are measured, not extrapolated — 1,000 concurrent sessions,
+zero errors, ~300 RPS/container with session reuse (2.4x fresh).
+Everything is Apache-2.0, 100% branch coverage, SLSA-L3 provenance.
+Happy to answer questions about MCP in regulated environments.

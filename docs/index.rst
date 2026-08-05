@@ -110,6 +110,7 @@ Posts
    :maxdepth: 1
    :caption: Release announcements
 
+   posts/2026-07-16-camt053-suite-v0014-oauth-mcp-benchmarks
    posts/2026-06-22-shipping-camt053-v006-for-the-november-2026-cliff
 
 Design History File
