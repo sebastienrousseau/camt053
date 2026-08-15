@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.15] - 2026-08-15
+
+### Changed
+
+- **`cryptography` ceiling raised to `<51.0.0`** (was `<50.0.0`). The old
+  cap was the binding constraint on every downstream package in the
+  suite: `camt053-lsp`, `camt053-mcp`, `pacs008`, `pain001-mcp`,
+  `reconcile-mcp`, `structured-address-fix-mcp`, the `iso20022-*`
+  servers and others could not resolve `cryptography` 50.0.0 while this
+  package pinned below it. 31 open advisories across 14 repositories
+  were waiting on this one line.
+- `sphinx-autodoc-typehints` widened to `>=1,<4`.
+- `twine` widened to `>=6.2.0,<8`.
+- Dependency and workflow updates consolidated from the Dependabot
+  queue (#141, #142, #143, #144), covering the python-dependencies and
+  github-actions groups, `types-setuptools`, and the ClusterFuzzLite
+  base image.
+
+## [0.0.14] - 2026-07-16
+
+### Fixed
+
+- **Stress-worker exception handling narrowed** to `Exception` rather
+  than the base class, clearing CodeQL's `py/catch-base-exception`
+  (#123).
+- **`click` and `markupsafe` relaxed to ranges** so that
+  `iso20022-mcp[all]` resolves. Exact pins in a library force every
+  consumer onto the same version, which is how the suite deadlocked
+  (#124).
+
+### Documentation
+
+- Announcement post for the v0.0.14 lockstep release (#125).
+- Supported-versions table in the security policy reconciled to v0.0.14.
+
 ## [0.0.13] - 2026-07-16
 
 ### Added
