@@ -61,10 +61,7 @@ __all__ = [
 
 # The SWIFT X character set: letters, digits, and a fixed punctuation subset.
 SWIFT_X_CHARSET = frozenset(
-    "abcdefghijklmnopqrstuvwxyz"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "0123456789"
-    "/-?:().,'+ "
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-?:().,'+ "
 )
 
 # Common typographic punctuation folded to its SWIFT X equivalent before the

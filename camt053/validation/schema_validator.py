@@ -129,9 +129,7 @@ class SchemaValidator:
 
         self.schema_path = validated_schema_path
         try:
-            with open(
-                validated_schema_path, encoding="utf-8"
-            ) as f:  # nosec B108
+            with open(validated_schema_path, encoding="utf-8") as f:  # nosec B108
                 self.schema = json.load(f)
         except json.JSONDecodeError as e:
             raise json.JSONDecodeError(
