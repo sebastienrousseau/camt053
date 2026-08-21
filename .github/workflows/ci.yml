@@ -124,14 +124,9 @@ jobs:
       - name: Ruff check
         run: poetry run ruff check camt053/ tests/ scripts/
 
-      # Three files had drifted out of format with nothing configured to
-      # notice, and tests/ and scripts/ were not linted at all — the same
-      # shape of gap as a lockfile nobody installs from.
-      - name: Ruff format check
-        run: poetry run ruff format --check camt053/ tests/ scripts/
-
       - name: Black check
-        run: poetry run black --check camt053/ tests/
+        # scripts/ was outside every formatter's scope until now.
+        run: poetry run black --check camt053/ tests/ scripts/
 
       - name: Mypy
         run: poetry run mypy camt053/

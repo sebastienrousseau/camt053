@@ -502,7 +502,9 @@ def parse_document_lenient(xml: str) -> ParseReport:
         for entry_index, ntry in enumerate(_find_all(stmt_element, "Ntry")):
             try:
                 shell.entries.append(_parse_entry(ntry))
-            except Exception as exc:  # noqa: BLE001 — recover from any per-entry parse failure
+            except (
+                Exception
+            ) as exc:  # noqa: BLE001 — recover from any per-entry parse failure
                 diagnostics.append(
                     EntryDiagnostic(
                         stmt_index=stmt_index,

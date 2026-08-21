@@ -173,9 +173,11 @@ def main(argv: list[str] | None = None) -> int:
     check(
         "HEAD matches origin/main",
         local == remote,
-        f"{ahead} unpushed commit(s) — push them before tagging"
-        if local != remote
-        else "",
+        (
+            f"{ahead} unpushed commit(s) — push them before tagging"
+            if local != remote
+            else ""
+        ),
     )
 
     tag = f"v{version}"
