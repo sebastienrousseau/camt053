@@ -147,7 +147,9 @@ def main(argv: list[str] | None = None) -> int:
 
     local = run("git", "rev-parse", "HEAD").stdout.strip()
     remote = run("git", "rev-parse", "origin/main").stdout.strip()
-    ahead = run("git", "rev-list", "--count", "origin/main..HEAD").stdout.strip()
+    ahead = run(
+        "git", "rev-list", "--count", "origin/main..HEAD"
+    ).stdout.strip()
     check(
         "HEAD matches origin/main",
         local == remote,
@@ -187,7 +189,9 @@ def main(argv: list[str] | None = None) -> int:
             "" if audit.returncode == 0 else "vulnerabilities reported",
         )
     else:
-        print(f"  {DIM}–{RESET} test suite / build / audit — pass --full to run")
+        print(
+            f"  {DIM}–{RESET} test suite / build / audit — pass --full to run"
+        )
 
     if _problems:
         print(f"\n{len(_problems)} problem(s): {'; '.join(_problems)}")
