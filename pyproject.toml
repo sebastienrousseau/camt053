@@ -58,6 +58,12 @@ telemetry = ["opentelemetry-api"]
 # module scope so a missing install fails loudly instead of silently
 # disabling the floor rule.
 packaging = ">=23"
+# So scripts/preflight_release.py can actually run its audit. Without it
+# the pre-flight correctly refuses to audit (rather than auditing some
+# other environment that happens to have pip-audit on PATH), but that
+# means the check never runs locally. CI installs its own hash-pinned
+# copy; this is for the pre-flight.
+pip-audit = ">=2.7"
 lxml = ">=5.0,<7"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
