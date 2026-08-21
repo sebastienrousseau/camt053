@@ -48,6 +48,10 @@ opentelemetry-api = {version = ">=1.20", optional = true}
 telemetry = ["opentelemetry-api"]
 
 [tool.poetry.group.dev.dependencies]
+# Required by scripts/check_suite_consistency.py, which imports it at
+# module scope so a missing install fails loudly instead of silently
+# disabling the floor rule.
+packaging = ">=23"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
 pytest-benchmark = ">=5.0.0,<6.0.0"

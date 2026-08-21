@@ -1,0 +1,74 @@
+name: Suite Consistency
+
+# The suite ships one version number across six packages. Nothing breaks
+# when that slips — a satellite left behind still installs, still
+# imports, still passes its own tests — so the only way to notice is to
+# go and look. This does the looking.
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: suite-consistency
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Published versions agree with the policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the checker's dependencies
+        run: pip install packaging
+
+      - name: Check the suite
+        id: check
+        run: |
+          set +e
+          python3 scripts/check_suite_consistency.py > report.txt 2>&1
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          cat report.txt
+
+      # One open issue that gets updated, rather than a new one daily or
+      # a red cron nobody reads. A scheduled failure with no artefact is
+      # a notification that expires.
+      - name: Open or update the drift issue
+        if: steps.check.outputs.status != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="Suite version drift"
+          BODY="$(cat report.txt)"
+          EXISTING=$(gh issue list --state open --search "$TITLE in:title" \
+            --json number -q '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY" --label "chore"
+          fi
+
+      - name: Close the drift issue once consistent
+        if: steps.check.outputs.status == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh issue list --state open \
+            --search "Suite version drift in:title" --json number -q '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" \
+              --comment "Suite is consistent again; closing."
+          fi
+
+      - name: Fail the run when the suite disagrees
+        if: steps.check.outputs.status != '0'
+        run: exit 1
