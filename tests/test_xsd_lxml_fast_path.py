@@ -171,10 +171,16 @@ class TestParserHardening:
         secret = tmp_path / "secret.txt"
         secret.write_text("TOP-SECRET-VALUE", encoding="utf-8")
 
+        # `Path.as_uri()`, not an f-string. A Windows path interpolated
+        # into "file://{path}" produces file://C:\Users\... — backslashes
+        # and a bare drive letter — which lxml rejects as an invalid URI
+        # before it ever decides whether to resolve the entity. The test
+        # then fails on a parse error rather than proving anything about
+        # entity expansion, which is what happened on the Windows runners.
         payload = (
             '<?xml version="1.0"?>'
             "<!DOCTYPE root ["
-            f'<!ENTITY xxe SYSTEM "file://{secret}">'
+            f'<!ENTITY xxe SYSTEM "{secret.as_uri()}">'
             "]>"
             "<root>&xxe;</root>"
         )
