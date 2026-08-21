@@ -90,6 +90,23 @@ def dunder_version() -> str | None:
     return match.group(1) if match else None
 
 
+def constants_version() -> str | None:
+    """Return ``camt053.constants.VERSION`` as written in the source.
+
+    A third place the version is stated. The pre-flight originally
+    compared only pyproject.toml and ``__init__.py``, and bumping a
+    release without this one produced three test failures — the CLI
+    still reporting the old number — which is precisely the class of
+    problem this script exists to catch before a tag.
+
+    Returns:
+        The version string, or ``None`` when it cannot be found.
+    """
+    text = (ROOT / "camt053" / "constants.py").read_text(encoding="utf-8")
+    match = re.search(r'^VERSION = "([^"]+)"', text, re.M)
+    return match.group(1) if match else None
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the pre-flight checks.
 
@@ -113,10 +130,13 @@ def main(argv: list[str] | None = None) -> int:
 
     toml_version = declared_version()
     init_version = dunder_version()
+    const_version = constants_version()
+    versions = {toml_version, init_version, const_version}
     check(
-        "version is identical in pyproject.toml and __init__.py",
-        toml_version is not None and toml_version == init_version,
-        f"{toml_version} / {init_version}",
+        "version is identical in all three files",
+        len(versions) == 1 and toml_version is not None,
+        f"pyproject={toml_version} __init__={init_version} "
+        f"constants={const_version}",
     )
 
     version = args.version or toml_version
@@ -153,9 +173,11 @@ def main(argv: list[str] | None = None) -> int:
     check(
         "HEAD matches origin/main",
         local == remote,
-        f"{ahead} unpushed commit(s) — push them before tagging"
-        if local != remote
-        else "",
+        (
+            f"{ahead} unpushed commit(s) — push them before tagging"
+            if local != remote
+            else ""
+        ),
     )
 
     tag = f"v{version}"

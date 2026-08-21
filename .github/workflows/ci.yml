@@ -122,10 +122,11 @@ jobs:
         run: poetry install --no-interaction
 
       - name: Ruff check
-        run: poetry run ruff check camt053/
+        run: poetry run ruff check camt053/ tests/ scripts/
 
       - name: Black check
-        run: poetry run black --check camt053/ tests/
+        # scripts/ was outside every formatter's scope until now.
+        run: poetry run black --check camt053/ tests/ scripts/
 
       - name: Mypy
         run: poetry run mypy camt053/

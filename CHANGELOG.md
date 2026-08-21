@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16] - 2026-08-21
+
+A suite-hygiene and performance release. No change to parsing, statement
+handling or reversal generation.
+
+### Added
+
+- **`camt053.suite` states the versioning policy.** The suite is six
+  packages and nothing recorded how their versions relate. Every member
+  now ships the core's version, advancing in `0.0.1` steps along the
+  `0.0.x` line. Members carry a `role` (core / wrapper / loader /
+  writer) for documentation; it deliberately carries no versioning
+  meaning, because the rule has no exceptions.
+
+- **`scripts/check_suite_consistency.py`** reads PyPI and fails when a
+  member is behind the core, when a declared floor was never published,
+  or when a member is missing. A daily workflow runs it and keeps one
+  issue open rather than opening a new one each morning.
+
+  It was needed. Every satellite sat at `0.0.14` against a `0.0.15`
+  core, two of them with an unreleased `0.0.15` on `main`, and all five
+  declared `camt053>=0.0.6` — nine releases stale, because a floor that
+  still resolves never complains.
+
+- **`scripts/preflight_release.py`** runs the release workflow's checks
+  before the tag exists, rather than after it is public.
+
+- **A `lockfile` CI job** in this repo and both wrappers. The wrappers
+  install from hash-pinned requirements in CI but use poetry in
+  `release.yml`, so a stale lock was undetectable until a tag had
+  already been cut.
+
+### Performance
+
+- **XSD validation via libxml2 when `lxml` is installed** — 2.03ms to
+  0.07ms (**31x**) on a gold-master statement.
+
+  `lxml` is optional and auto-detected (`pip install camt053[fast]`);
+  without it the pure-Python validator runs exactly as before. It can
+  only shortcut an *accept*: a rejection falls through to `xmlschema`,
+  which has the final say, so installing or removing `lxml` cannot turn
+  a rejected document into an accepted one. Verdicts were compared
+  across 28 documents — four gold-master statements plus 24 mutations —
+  with no disagreement. The lxml parser is hardened by hand, since
+  `defusedxml` does not cover lxml.
+
+### Changed
+
+- **Satellite `camt053` floors move to `>=0.0.16`**, from `>=0.0.6`.
+
 ## [0.0.15] - 2026-08-15
 
 ### Changed
