@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18] - 2026-08-28
+
+Brings this repository onto the **suite conformance gate**, and adds the
+benchmark that was missing from every repository in the suite.
+
+### Added
+
+- **`benches/bench_statement_pipeline.py`** — three measurements, each
+  chosen because it can regress without any test noticing.
+
+  **`parse_statement` across sizes.** A statement is the one input whose
+  size the caller does not control, so what matters is not speed but shape.
+  Currently linear: `us/entry` moves only **1.22x** between 50 and 10,000
+  entries, across a 200x size increase.
+
+  **`list_entries` streaming against buffered.** Both are offered and the
+  trade-off was never written down. At 10,000 entries streaming holds peak
+  memory to **22.9 MiB against 32.9 MiB** — roughly 30% less — for about
+  10% more wall-clock. If streaming's `us/entry` ever exceeds buffered at
+  the largest size, the generator is materialising something it should be
+  yielding.
+
+  **`validate_statement` cold against warm.** The XSD compiles once per
+  process, so the first call costs **~19x** the second — 170 ms against
+  8.8 ms. That is invisible to any benchmark reporting a mean, and it
+  decides a deployment question: a service validating one document per
+  invocation pays it every time, a long-lived one pays it once. Measured
+  in a fresh interpreter, because timing it in-process reports the warm
+  number and hides the point.
+
+  Nothing asserts a timing threshold — wall-clock is not comparable
+  between machines, and a flaky performance gate teaches people to ignore
+  red. CI runs `--quick`, so a benchmark that stops compiling fails the
+  build rather than rotting into a file that reads as verified.
+
+- **`tests/test_suite_conformance.py`** — invariants shared by every
+  repository in the suite, vendored from one canonical copy and
+  checksummed by its own test. Editing the local copy fails by design.
+
+### Changed
+
+- CI lints, formats and runs `benches/` alongside everything else.
+- `tests/test_suite_conformance.py` is excluded from black: it is
+  generated, and the suite uses three different line lengths.
+
 ## [0.0.17] - 2026-08-28
 
 Move to xmlschema 4 so the suite can be installed as one set again.

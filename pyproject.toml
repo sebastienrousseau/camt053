@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "camt053"
-version = "0.0.17"
+version = "0.0.18"
 description = "Camt053 is a Python library for reading ISO 20022 camt Bank-to-Customer Statements (camt.053/052/054) and generating validated reversing entries by return reason code (e.g. AC04 Closed Account)."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0 OR MIT"
@@ -101,8 +101,14 @@ myst-parser = ">=2,<5"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+# tests/test_suite_conformance.py is generated and vendored from one
+# canonical copy shared across the suite, and checksummed by its own
+# test. The suite uses three different line lengths, so letting each
+# repository's formatter rewrite it would make the checksum
+# unsatisfiable everywhere. Excluded as any generated file would be.
 [tool.black]
 line-length = 79
+extend-exclude = "tests/test_suite_conformance\\.py"
 target-version = ['py310']
 
 [tool.isort]

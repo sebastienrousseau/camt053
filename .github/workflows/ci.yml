@@ -62,6 +62,14 @@ jobs:
       - name: Run tests
         run: poetry run pytest tests/ -v --tb=short
 
+      # The benchmark asserts no timing threshold -- wall-clock is not
+      # comparable between runners, and a flaky perf gate teaches
+      # people to ignore red. This proves it still runs against the
+      # current API rather than rotting into a file that reads as
+      # verified and is not.
+      - name: Run the benchmark
+        run: poetry run python benches/bench_statement_pipeline.py --quick
+
       - name: Enforce 100% docstring coverage
         run: poetry run interrogate -c pyproject.toml camt053
 
@@ -122,11 +130,11 @@ jobs:
         run: poetry install --no-interaction
 
       - name: Ruff check
-        run: poetry run ruff check camt053/ tests/ scripts/
+        run: poetry run ruff check camt053/ tests/ scripts/ benches/
 
       - name: Black check
         # scripts/ was outside every formatter's scope until now.
-        run: poetry run black --check camt053/ tests/ scripts/
+        run: poetry run black --check camt053/ tests/ scripts/ benches/
 
       - name: Mypy
         run: poetry run mypy camt053/
