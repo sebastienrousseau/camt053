@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.17] - 2026-08-28
+
+Move to xmlschema 4 so the suite can be installed as one set again.
+
+### Changed
+
+- `xmlschema` is now `>=4.3.2,<5.0.0`. It was `>=3.4.0,<4.0.0`, and
+  `pain001` moved to 4.x at 0.0.61, which made the two mutually
+  exclusive: `iso20022-mcp[all]` could not resolve at all, and that is
+  the extra the documentation tells people to install. The gateway had to
+  cap `pain001-mcp` below 0.0.61 to stay installable.
+- No source changes were needed. This package uses `XMLSchema` and
+  `XMLSchemaException`, both unchanged across the major, and the full
+  suite passes on 4.3.2 at 100% coverage.
+
 ## [0.0.16] - 2026-08-21
 
 A suite-hygiene and performance release. No change to parsing, statement
