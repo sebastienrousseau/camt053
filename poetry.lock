@@ -76,26 +76,6 @@ typing_extensions = {version = ">=4.5", markers = "python_version < \"3.13\""}
 trio = ["trio (>=0.32.0)"]
 
 [[package]]
-name = "arrow"
-version = "1.4.0"
-description = "Better dates & times for Python"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "arrow-1.4.0-py3-none-any.whl", hash = "sha256:749f0769958ebdc79c173ff0b0670d59051a535fa26e8eba02953dc19eb43205"},
-    {file = "arrow-1.4.0.tar.gz", hash = "sha256:ed0cc050e98001b8779e84d461b0098c4ac597e88704a655582b21d116e526d7"},
-]
-
-[package.dependencies]
-python-dateutil = ">=2.7.0"
-tzdata = {version = "*", markers = "python_version >= \"3.9\""}
-
-[package.extras]
-doc = ["doc8", "sphinx (>=7.0.0)", "sphinx-autobuild", "sphinx-autodoc-typehints", "sphinx_rtd_theme (>=1.3.0)"]
-test = ["dateparser (==1.*)", "pre-commit", "pytest", "pytest-cov", "pytest-mock", "pytz (==2025.2)", "simplejson (==3.*)"]
-
-[[package]]
 name = "ast-serialize"
 version = "0.6.0"
 description = "Python bindings for mypy AST serialization"
@@ -305,7 +285,7 @@ version = "5.0"
 description = "Define boolean algebras, create and parse boolean expressions and create custom boolean DSL."
 optional = false
 python-versions = "*"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "boolean_py-5.0-py3-none-any.whl", hash = "sha256:ef28a70bd43115208441b53a045d1549e2f0ec6e3d08a9d142cbc41c1938e8d9"},
     {file = "boolean_py-5.0.tar.gz", hash = "sha256:60cbc4bad079753721d32649545505362c754e121570ada4658b852a3a318d95"},
@@ -464,18 +444,6 @@ markers = {main = "platform_python_implementation != \"PyPy\"", dev = "platform_
 
 [package.dependencies]
 pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
-
-[[package]]
-name = "chardet"
-version = "5.2.0"
-description = "Universal encoding detector for Python 3"
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
-    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
-]
 
 [[package]]
 name = "charset-normalizer"
@@ -780,44 +748,21 @@ typing-extensions = {version = ">=4.13.2", markers = "python_full_version < \"3.
 ssh = ["bcrypt (>=3.1.5)"]
 
 [[package]]
-name = "cyclonedx-bom"
-version = "7.3.1"
-description = "CycloneDX Software Bill of Materials (SBOM) generator for Python projects and environments"
-optional = false
-python-versions = "<4.0,>=3.9"
-groups = ["main"]
-files = [
-    {file = "cyclonedx_bom-7.3.1-py3-none-any.whl", hash = "sha256:8c5adccefd593e89c0500463649c232625cee8e38dae1a433e057dfa495eff08"},
-    {file = "cyclonedx_bom-7.3.1.tar.gz", hash = "sha256:ebd99dc2cf62a7067e327bef2b2ffada99d57ed3fda2db6c4c8f3004e5bfd3cf"},
-]
-
-[package.dependencies]
-chardet = ">=5.1,<6.0"
-cyclonedx-python-lib = {version = ">=8.0,<12", extras = ["validation"]}
-packageurl-python = ">=0.11,<2"
-packaging = ">=22,<27"
-pip-requirements-parser = ">=32.0,<33.0"
-tomli = {version = ">=2.0.1,<3.0.0", markers = "python_version < \"3.11\""}
-
-[[package]]
 name = "cyclonedx-python-lib"
 version = "11.12.0"
 description = "Python library for CycloneDX"
 optional = false
 python-versions = "<4.0,>=3.9"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "cyclonedx_python_lib-11.12.0-py3-none-any.whl", hash = "sha256:0e807521a921a5c3cb8ce1153f8a61d29eedfe76a46aac2796b7c6b573391a54"},
     {file = "cyclonedx_python_lib-11.12.0.tar.gz", hash = "sha256:16767c4039de90c04e9f03348f8f0ed4b8ff842eaa7eefcad3a95685f970dacf"},
 ]
 
 [package.dependencies]
-jsonschema = {version = ">=4.25,<5.0", extras = ["format-nongpl"], optional = true, markers = "extra == \"validation\" or extra == \"json-validation\""}
 license-expression = ">=30,<31"
-lxml = {version = ">=4,<7", optional = true, markers = "extra == \"validation\" or extra == \"xml-validation\""}
 packageurl-python = ">=0.11,<2"
 py-serializable = ">=2.1.0,<3.0.0"
-referencing = {version = ">=0.28.4", optional = true, markers = "extra == \"validation\" or extra == \"json-validation\""}
 sortedcontainers = ">=2.4.0,<3.0.0"
 typing_extensions = {version = ">=4.6,<5.0", markers = "python_version < \"3.13\""}
 
@@ -868,18 +813,19 @@ files = [
 
 [[package]]
 name = "elementpath"
-version = "4.8.0"
+version = "5.1.4"
 description = "XPath 1.0/2.0/3.0/3.1 parsers and selectors for ElementTree and lxml"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "elementpath-4.8.0-py3-none-any.whl", hash = "sha256:5393191f84969bcf8033b05ec4593ef940e58622ea13cefe60ecefbbf09d58d9"},
-    {file = "elementpath-4.8.0.tar.gz", hash = "sha256:5822a2560d99e2633d95f78694c7ff9646adaa187db520da200a8e9479dc46ae"},
+    {file = "elementpath-5.1.4-py3-none-any.whl", hash = "sha256:5ec8d7bb44b16c98414a6a95e20cb150f3cbfc3cac65edc14773288c7a937376"},
+    {file = "elementpath-5.1.4.tar.gz", hash = "sha256:3c912a9c41311ac5244c038867670d7c0b0fec0e444813608e5b846dbb3428ac"},
 ]
 
 [package.extras]
-dev = ["Sphinx", "coverage", "flake8", "lxml", "lxml-stubs", "memory-profiler", "memray", "mypy", "tox", "xmlschema (>=3.3.2)"]
+dev = ["coverage", "flake8", "lxml", "lxml-stubs", "memray ; platform_python_implementation != \"PyPy\"", "mypy", "psutil", "sphinx", "tox (>=4.0)", "xmlschema (>=4.0.1)"]
+docs = ["readthedocs-sphinx-search", "sphinx"]
 
 [[package]]
 name = "exceptiongroup"
@@ -967,18 +913,6 @@ files = [
 mccabe = ">=0.7.0,<0.8.0"
 pycodestyle = ">=2.14.0,<2.15.0"
 pyflakes = ">=3.4.0,<3.5.0"
-
-[[package]]
-name = "fqdn"
-version = "1.5.1"
-description = "Validates fully-qualified domain names against RFC 1123, so that they are acceptable to modern bowsers"
-optional = false
-python-versions = ">=2.7, !=3.0, !=3.1, !=3.2, !=3.3, !=3.4, <4"
-groups = ["main"]
-files = [
-    {file = "fqdn-1.5.1-py3-none-any.whl", hash = "sha256:3a179af3761e4df6eb2e026ff9e1a3033d3587bf980a0b1b2e1e5d08d7358014"},
-    {file = "fqdn-1.5.1.tar.gz", hash = "sha256:105ed3677e767fb5ca086a0c1f4bb66ebc3c100be518f0e0d755d9eae164d89f"},
-]
 
 [[package]]
 name = "h11"
@@ -1337,21 +1271,6 @@ png = ["cairosvg"]
 tests = ["coverage[toml]", "pytest", "pytest-cov", "pytest-mock"]
 
 [[package]]
-name = "isoduration"
-version = "20.11.0"
-description = "Operations with ISO 8601 durations"
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "isoduration-20.11.0-py3-none-any.whl", hash = "sha256:b2904c2a4228c3d44f409c8ae8e2370eb21a26f7ac2ec5446df141dde3452042"},
-    {file = "isoduration-20.11.0.tar.gz", hash = "sha256:ac2f9015137935279eac671f94f89eb00584f940f5dc49462a0c4ee692ba1bd9"},
-]
-
-[package.dependencies]
-arrow = ">=0.15.0"
-
-[[package]]
 name = "isort"
 version = "8.0.1"
 description = "A Python utility / library to sort Python imports."
@@ -1470,18 +1389,6 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
-name = "jsonpointer"
-version = "3.1.1"
-description = "Identify specific nodes in a JSON document (RFC 6901) "
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "jsonpointer-3.1.1-py3-none-any.whl", hash = "sha256:8ff8b95779d071ba472cf5bc913028df06031797532f08a7d5b602d8b2a488ca"},
-    {file = "jsonpointer-3.1.1.tar.gz", hash = "sha256:0b801c7db33a904024f6004d526dcc53bbb8a4a0f4e32bfd10beadf60adf1900"},
-]
-
-[[package]]
 name = "jsonschema"
 version = "4.26.0"
 description = "An implementation of JSON Schema validation for Python"
@@ -1495,18 +1402,9 @@ files = [
 
 [package.dependencies]
 attrs = ">=22.2.0"
-fqdn = {version = "*", optional = true, markers = "extra == \"format-nongpl\""}
-idna = {version = "*", optional = true, markers = "extra == \"format-nongpl\""}
-isoduration = {version = "*", optional = true, markers = "extra == \"format-nongpl\""}
-jsonpointer = {version = ">1.13", optional = true, markers = "extra == \"format-nongpl\""}
 jsonschema-specifications = ">=2023.3.6"
 referencing = ">=0.28.4"
-rfc3339-validator = {version = "*", optional = true, markers = "extra == \"format-nongpl\""}
-rfc3986-validator = {version = ">0.1.0", optional = true, markers = "extra == \"format-nongpl\""}
-rfc3987-syntax = {version = ">=1.1.0", optional = true, markers = "extra == \"format-nongpl\""}
 rpds-py = ">=0.25.0"
-uri-template = {version = "*", optional = true, markers = "extra == \"format-nongpl\""}
-webcolors = {version = ">=24.6.0", optional = true, markers = "extra == \"format-nongpl\""}
 
 [package.extras]
 format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3987", "uri-template", "webcolors (>=1.11)"]
@@ -1557,24 +1455,6 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linke
 enabler = ["pytest-enabler (>=3.4)"]
 test = ["pyfakefs", "pytest (>=6,!=8.1.*)"]
 type = ["pygobject-stubs", "pytest-mypy (>=1.0.1)", "shtab", "types-pywin32"]
-
-[[package]]
-name = "lark"
-version = "1.3.1"
-description = "a modern parsing library"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "lark-1.3.1-py3-none-any.whl", hash = "sha256:c629b661023a014c37da873b4ff58a817398d12635d3bbb2c5a03be7fe5d1e12"},
-    {file = "lark-1.3.1.tar.gz", hash = "sha256:b426a7a6d6d53189d318f2b6236ab5d6429eaf09259f1ca33eb716eed10d2905"},
-]
-
-[package.extras]
-atomic-cache = ["atomicwrites"]
-interegular = ["interegular (>=0.3.1,<0.4.0)"]
-nearley = ["js2py"]
-regex = ["regex"]
 
 [[package]]
 name = "libcst"
@@ -1767,7 +1647,7 @@ version = "30.4.4"
 description = "license-expression is a comprehensive utility library to parse, compare, simplify and normalize license expressions (such as SPDX license expressions) using boolean logic."
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "license_expression-30.4.4-py3-none-any.whl", hash = "sha256:421788fdcadb41f049d2dc934ce666626265aeccefddd25e162a26f23bcbf8a4"},
     {file = "license_expression-30.4.4.tar.gz", hash = "sha256:73448f0aacd8d0808895bdc4b2c8e01a8d67646e4188f887375398c761f340fd"},
@@ -1985,6 +1865,7 @@ files = [
     {file = "lxml-6.1.2-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:2374235206ec83d4827ad219c93c0f7366b93626eab85392c0ee7c8026649376"},
     {file = "lxml-6.1.2.tar.gz", hash = "sha256:1055241852f2b02068af4a625a5d32c087db193c12251928af2562ecd2239f18"},
 ]
+markers = {main = "extra == \"fast\""}
 
 [package.extras]
 cssselect = ["cssselect (>=0.7)"]
@@ -2449,7 +2330,7 @@ version = "0.17.6"
 description = "A purl aka. Package URL parser and builder"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "packageurl_python-0.17.6-py3-none-any.whl", hash = "sha256:31a85c2717bc41dd818f3c62908685ff9eebcb68588213745b14a6ee9e7df7c9"},
     {file = "packageurl_python-0.17.6.tar.gz", hash = "sha256:1252ce3a102372ca6f86eb968e16f9014c4ba511c5c37d95a7f023e2ca6e5c25"},
@@ -2467,7 +2348,7 @@ version = "26.3"
 description = "Core utilities for Python packages"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "dev", "docs"]
+groups = ["dev", "docs"]
 files = [
     {file = "packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"},
     {file = "packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"},
@@ -2554,7 +2435,7 @@ version = "32.0.1"
 description = "pip requirements parser - a mostly correct pip requirements parsing library because it uses pip's own code."
 optional = false
 python-versions = ">=3.6.0"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "pip-requirements-parser-32.0.1.tar.gz", hash = "sha256:b4fa3a7a0be38243123cf9d1f3518da10c51bdb165a2b2985566247f9155a7d3"},
     {file = "pip_requirements_parser-32.0.1-py3-none-any.whl", hash = "sha256:4659bc2a667783e7a15d190f6fccf8b2486685b6dba4c19c3876314769c57526"},
@@ -2626,7 +2507,7 @@ version = "2.1.0"
 description = "Library for serializing and deserializing Python Objects to and from JSON and XML."
 optional = false
 python-versions = "<4.0,>=3.8"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "py_serializable-2.1.0-py3-none-any.whl", hash = "sha256:b56d5d686b5a03ba4f4db5e769dc32336e142fc3bd4d68a8c25579ebb0a67304"},
     {file = "py_serializable-2.1.0.tar.gz", hash = "sha256:9d5db56154a867a9b897c0163b33a793c804c80cee984116d02d49e4578fc103"},
@@ -2906,7 +2787,7 @@ version = "3.3.2"
 description = "pyparsing - Classes and methods to define and execute parsing grammars"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "pyparsing-3.3.2-py3-none-any.whl", hash = "sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d"},
     {file = "pyparsing-3.3.2.tar.gz", hash = "sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc"},
@@ -3000,21 +2881,6 @@ pytest = ">=7.0.0"
 psutil = ["psutil (>=3.0)"]
 setproctitle = ["setproctitle"]
 testing = ["filelock"]
-
-[[package]]
-name = "python-dateutil"
-version = "2.9.0.post0"
-description = "Extensions to the standard Python datetime module"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-groups = ["main"]
-files = [
-    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
-    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
-]
-
-[package.dependencies]
-six = ">=1.5"
 
 [[package]]
 name = "python-dotenv"
@@ -3285,21 +3151,6 @@ files = [
 requests = ">=2.0.1,<3.0.0"
 
 [[package]]
-name = "rfc3339-validator"
-version = "0.1.4"
-description = "A pure python RFC3339 validator"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-groups = ["main"]
-files = [
-    {file = "rfc3339_validator-0.1.4-py2.py3-none-any.whl", hash = "sha256:24f6ec1eda14ef823da9e36ec7113124b39c04d50a4d3d3a3c2859577e7791fa"},
-    {file = "rfc3339_validator-0.1.4.tar.gz", hash = "sha256:138a2abdf93304ad60530167e51d2dfb9549521a836871b88d7f4695d0022f6b"},
-]
-
-[package.dependencies]
-six = "*"
-
-[[package]]
 name = "rfc3986"
 version = "2.0.0"
 description = "Validating URI References per RFC 3986"
@@ -3313,36 +3164,6 @@ files = [
 
 [package.extras]
 idna2008 = ["idna"]
-
-[[package]]
-name = "rfc3986-validator"
-version = "0.1.1"
-description = "Pure python rfc3986 validator"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-groups = ["main"]
-files = [
-    {file = "rfc3986_validator-0.1.1-py2.py3-none-any.whl", hash = "sha256:2f235c432ef459970b4306369336b9d5dbdda31b510ca1e327636e01f528bfa9"},
-    {file = "rfc3986_validator-0.1.1.tar.gz", hash = "sha256:3d44bde7921b3b9ec3ae4e3adca370438eccebc676456449b145d533b240d055"},
-]
-
-[[package]]
-name = "rfc3987-syntax"
-version = "1.1.0"
-description = "Helper functions to syntactically validate strings according to RFC 3987."
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "rfc3987_syntax-1.1.0-py3-none-any.whl", hash = "sha256:6c3d97604e4c5ce9f714898e05401a0445a641cfa276432b0a648c80856f6a3f"},
-    {file = "rfc3987_syntax-1.1.0.tar.gz", hash = "sha256:717a62cbf33cffdd16dfa3a497d81ce48a660ea691b1ddd7be710c22f00b4a0d"},
-]
-
-[package.dependencies]
-lark = ">=1.2.2"
-
-[package.extras]
-testing = ["pytest (>=8.3.5)"]
 
 [[package]]
 name = "rich"
@@ -3801,18 +3622,6 @@ files = [
 test = ["pytest"]
 
 [[package]]
-name = "six"
-version = "1.17.0"
-description = "Python 2 and 3 compatibility utilities"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-groups = ["main"]
-files = [
-    {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
-    {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
-]
-
-[[package]]
 name = "snowballstemmer"
 version = "3.1.1"
 description = "This package provides 36 stemmers for 34 languages generated from Snowball algorithms."
@@ -3830,7 +3639,7 @@ version = "2.4.0"
 description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
 optional = false
 python-versions = "*"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
     {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
@@ -4225,7 +4034,7 @@ version = "2.4.1"
 description = "A lil' TOML parser"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev", "docs"]
+groups = ["dev", "docs"]
 files = [
     {file = "tomli-2.4.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:f8f0fc26ec2cc2b965b7a3b87cd19c5c6b8c5e5f436b984e85f486d652285c30"},
     {file = "tomli-2.4.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4ab97e64ccda8756376892c53a72bd1f964e519c77236368527f758fbc36a53a"},
@@ -4275,7 +4084,7 @@ files = [
     {file = "tomli-2.4.1-py3-none-any.whl", hash = "sha256:0d85819802132122da43cb86656f8d1f8c6587d54ae7dcaf30e90533028b49fe"},
     {file = "tomli-2.4.1.tar.gz", hash = "sha256:7c7e1a961a0b2f2472c1ac5b69affa0ae1132c39adcb67aba98568702b9cc23f"},
 ]
-markers = {main = "python_version == \"3.10\"", docs = "python_version == \"3.10\""}
+markers = {docs = "python_version == \"3.10\""}
 
 [[package]]
 name = "tomli-w"
@@ -4394,18 +4203,6 @@ files = [
 typing-extensions = ">=4.12.0"
 
 [[package]]
-name = "tzdata"
-version = "2026.3"
-description = "Provider of IANA time zone data"
-optional = false
-python-versions = ">=2"
-groups = ["main"]
-files = [
-    {file = "tzdata-2026.3-py2.py3-none-any.whl", hash = "sha256:dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931"},
-    {file = "tzdata-2026.3.tar.gz", hash = "sha256:4a1518b8993086a7982523e071643f3c0e5f213e75b21318e78bcabfff9d1415"},
-]
-
-[[package]]
 name = "uc-micro-py"
 version = "2.0.0"
 description = "Micro subset of unicode data files for linkify-it-py projects."
@@ -4419,21 +4216,6 @@ files = [
 
 [package.extras]
 test = ["coverage", "pytest", "pytest-cov"]
-
-[[package]]
-name = "uri-template"
-version = "1.3.0"
-description = "RFC 6570 URI Template Processor"
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "uri-template-1.3.0.tar.gz", hash = "sha256:0e00f8eb65e18c7de20d595a14336e9f337ead580c70934141624b6d1ffdacc7"},
-    {file = "uri_template-1.3.0-py3-none-any.whl", hash = "sha256:a44a133ea12d44a0c0f06d7d42a52d71282e77e2f937d8abd5655b8d56fc1363"},
-]
-
-[package.extras]
-dev = ["flake8", "flake8-annotations", "flake8-bandit", "flake8-bugbear", "flake8-commas", "flake8-comprehensions", "flake8-continuation", "flake8-datetimez", "flake8-docstrings", "flake8-import-order", "flake8-literal", "flake8-modern-annotations", "flake8-noqa", "flake8-pyproject", "flake8-requirements", "flake8-typechecking-import", "flake8-use-fstring", "mypy", "pep8-naming", "types-PyYAML"]
 
 [[package]]
 name = "urllib3"
@@ -4665,18 +4447,6 @@ files = [
 anyio = ">=3.0.0"
 
 [[package]]
-name = "webcolors"
-version = "25.10.0"
-description = "A library for working with the color formats defined by HTML and CSS."
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "webcolors-25.10.0-py3-none-any.whl", hash = "sha256:032c727334856fc0b968f63daa252a1ac93d33db2f5267756623c210e57a4f1d"},
-    {file = "webcolors-25.10.0.tar.gz", hash = "sha256:62abae86504f66d0f6364c2a8520de4a0c47b80c03fc3a5f1815fedbef7c19bf"},
-]
-
-[[package]]
 name = "websockets"
 version = "16.1"
 description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
@@ -4797,22 +4567,22 @@ files = [
 
 [[package]]
 name = "xmlschema"
-version = "3.4.5"
+version = "4.3.2"
 description = "An XML Schema validator and decoder"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "xmlschema-3.4.5-py3-none-any.whl", hash = "sha256:c91a2fca387dc4e8a2f2cb4a411ed23bef9da539968e5d858a3fe7f76a65464e"},
-    {file = "xmlschema-3.4.5.tar.gz", hash = "sha256:243244743f151ec859ec0bbf1368fa3f70e5f29e977b77f72e1c9b8f8ae670f6"},
+    {file = "xmlschema-4.3.2-py3-none-any.whl", hash = "sha256:cf5c970a30f6ebcb3da35260e694704cc0b6794d8ace46125bb2a95e38ed9307"},
+    {file = "xmlschema-4.3.2.tar.gz", hash = "sha256:f3b33a21a2b2cdc404ddc3fb599d8bc1dee90b155d547370672e6e684746b8d6"},
 ]
 
 [package.dependencies]
-elementpath = ">=4.4.0,<5.0.0"
+elementpath = ">=5.1.3,<6.0.0"
 
 [package.extras]
 codegen = ["jinja2"]
-dev = ["coverage", "flake8", "lxml", "lxml-stubs", "memory_profiler", "mypy", "tox", "xmlschema[docs]"]
+dev = ["coverage", "flake8", "lxml", "lxml-stubs", "mypy", "psutil", "tox", "xmlschema[docs]"]
 docs = ["jinja2", "sphinx", "sphinx_rtd_theme"]
 
 [[package]]
@@ -4843,4 +4613,4 @@ telemetry = ["opentelemetry-api"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "d89638571576d41760fe3bb9e97e78445c95b34d876c84331f13a33f6928e5fb"
+content-hash = "d85b8378e6f7f6f98f9bb7e1b49535b60205379684990972d68de3f60690c877"
