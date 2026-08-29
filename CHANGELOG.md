@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.20] - 2026-08-29
+
+Aligns the `camt053` suite on one version number.
+
+### Changed
+
+- Version aligned to `0.0.20` across all six packages — `camt053`,
+  `camt053-lsp`, `camt053-mcp`, `camt053-loader-mt940`,
+  `camt053-loader-mt942` and `camt053-writer-xlsx` — which had drifted
+  to `0.0.18`, `0.0.18`, `0.0.19`, `0.0.18`, `0.0.16` and `0.0.16`. The
+  suite ships one number by policy; the existing `Suite Consistency`
+  workflow exists to catch exactly this and had been reporting it.
+- Refreshed the vendored `tests/test_suite_conformance.py` to the
+  current canonical copy, picking up the invariants added since this
+  repository last took it.
+
 ## [0.0.18] - 2026-08-28
 
 Brings this repository onto the **suite conformance gate**, and adds the
