@@ -536,6 +536,49 @@ def test_ci_runs_on_pull_requests() -> None:
     )
 
 
+def test_a_scheduled_check_compares_the_tree_to_what_is_published() -> None:
+    """Catch the release that was bumped in the tree and never shipped.
+
+    This has now happened three times in the suite -- `acmt001-mcp` 0.0.7,
+    `ap2-iso20022` 0.0.3, `camt-exceptions` 0.0.16 -- and each time the
+    version carried a `cryptography` advisory floor that therefore reached
+    nobody. Nothing fails when it happens: the tree is consistent, the
+    tests pass, the changelog is written. Only PyPI disagrees, and only if
+    somebody goes and looks.
+
+    A test inside the repository cannot look, because at commit time the
+    tag legitimately does not exist yet. A shallow CI checkout cannot look
+    either -- `actions/checkout` fetches no tags by default, so a
+    git-based assertion would fail spuriously rather than catch anything.
+
+    What does work is a *scheduled* job that compares the tree against the
+    index, which is what `camt053` already does in
+    `scripts/check_suite_consistency.py`. This asserts the mechanism
+    exists rather than trying to replace it.
+    """
+    workflows = ROOT / ".github" / "workflows"
+    assert workflows.is_dir(), ".github/workflows/ is missing"
+    for path in workflows.glob("*.yml"):
+        text = path.read_text(encoding="utf-8")
+        # Matched on the bare word rather than the hostname. It catches
+        # strictly more -- "pypi.org", "PyPI", a pypi-json helper -- and
+        # it stops CodeQL reading a containment test against a
+        # dotted host as an incomplete URL sanitisation, which it did:
+        # py/incomplete-url-substring-sanitization, high severity, on a
+        # line that never validates a URL in the first place.
+        lowered = text.lower()
+        if "schedule:" in text and (
+            "pypi" in lowered or "consistency" in lowered
+        ):
+            return
+    raise AssertionError(
+        "no scheduled workflow compares this package's version against "
+        "what is published. A version bumped in the tree and never "
+        "released breaks nothing and is invisible until somebody looks; "
+        "see camt053's suite-consistency workflow for the pattern"
+    )
+
+
 def test_a_release_workflow_publishes_on_a_tag() -> None:
     """`pain001` had none: 96 tests, and releases cut by hand."""
     workflows = ROOT / ".github" / "workflows"
@@ -549,7 +592,7 @@ def test_a_release_workflow_publishes_on_a_tag() -> None:
 # ---------------------------------------------------------------------------
 # This file
 # ---------------------------------------------------------------------------
-CANONICAL_SHA256 = "e6293bc575dd7b3af9a990adcbb4a8b27f86cfbb84995f6fb1206bd318c0cbb5"  # fmt: skip # noqa: E501
+CANONICAL_SHA256 = "387a0c93a502a8e774013b3f0a7bdf63153563c7b081d1f5d201ada9a53061fa"  # fmt: skip # noqa: E501
 
 
 def test_this_file_is_the_canonical_copy() -> None:
@@ -578,14 +621,40 @@ def test_this_file_is_the_canonical_copy() -> None:
     )
 
 
-def test_the_python_floor_matches_the_suite() -> None:
-    """A package supporting less than the rest cannot be installed with it."""
-    requires = str(
+def test_the_python_floor_is_at_least_the_suite_floor() -> None:
+    """A package supporting *less* than the suite cannot ship with it.
+
+    The floor is 3.10, which 30 of the 32 repositories declare. This
+    asserts nothing below that, rather than exactly that: a *higher* floor
+    is a compatibility decision somebody made, not a conformance failure,
+    and this test is not the place to overrule it.
+
+    One ecosystem does sit higher. `structured-address-fix` and
+    `structured-address-fix-mcp` both require >=3.12 — consistently, so it
+    reads as deliberate. The consequence is worth knowing rather than
+    silently passing: **those two cannot be installed alongside the rest
+    of the suite on 3.10 or 3.11.** Whether that is intended is a decision
+    for the maintainer; what would be a defect is a floor *below* 3.10, or
+    two members of one ecosystem disagreeing.
+    """
+    from packaging.specifiers import SpecifierSet
+    from packaging.version import Version
+
+    raw = str(
         _poetry().get("dependencies", {}).get("python")
         or _pyproject().get("project", {}).get("requires-python", "")
     )
-    assert "3.10" in requires, (
-        f"python constraint is {requires!r}; the suite floor is 3.10"
+    assert raw, "no Python requirement declared"
+
+    # Poetry's caret form is not PEP 440. `^3.10` means >=3.10,<4.
+    spec = raw
+    if spec.startswith("^"):
+        spec = f">={spec[1:]},<{int(spec[1:].split('.')[0]) + 1}"
+    spec = ",".join(spec.split())
+
+    specifier = SpecifierSet(spec)
+    assert not specifier.contains(Version("3.9")), (
+        f"python {raw} admits 3.9, below the suite floor of 3.10"
     )
 
 
