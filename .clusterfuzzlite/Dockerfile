@@ -3,7 +3,7 @@
 # targets in fuzz/ against the OSS-Fuzz Python base image.
 # Pinned by digest for supply-chain reproducibility; kept current by Dependabot
 # (docker ecosystem in .github/dependabot.yml). Tag: latest as of 2026-06-25.
-FROM gcr.io/oss-fuzz-base/base-builder-python@sha256:6b2b3a7e4a2da50de47f94925cffbe34747e1aae4f33d7f07ba6c681dd648b23
+FROM gcr.io/oss-fuzz-base/base-builder-python@sha256:030add5351585b43fb46a1939aad7c82dc11c7e690eaaaf118e8b71e3b674519
 
 COPY . $SRC/camt053
 WORKDIR $SRC/camt053
