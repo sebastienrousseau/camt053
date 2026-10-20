@@ -187,14 +187,13 @@ jobs:
 
   audit:
     # Dependency vulnerability audit (#15). Runs pip-audit against the resolved
-    # runtime + dev environment on every push/PR. Advisory
-    # (``continue-on-error``) because the only outstanding findings are CVEs in
-    # the runner's own ``pip`` (the build tool), not in any project runtime
-    # dependency -- an unfixable transitive/toolchain issue we should surface
-    # without blocking merges. The project's own dependencies audit clean.
-    name: Dependency Audit (advisory)
+    # runtime + dev environment on every push/PR, and fails on any finding.
+    # It used to be advisory because the standing findings were in pip
+    # itself; pip is now a floored dev dependency (>=26.2) and the
+    # environment audits clean, so a new advisory is a red build, fixed by
+    # constraining the dependency in pyproject.toml.
+    name: Dependency Audit
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -214,9 +213,17 @@ jobs:
         run: pip install --require-hashes -r requirements/audit.txt
 
       - name: Run pip-audit
-        # Audit the resolved Poetry environment. Findings are reported but do
-        # not fail the build (job is advisory); see job comment above.
+        # Audit the resolved Poetry environment.
         run: poetry run pip-audit --desc
+
+      # The hash-pinned sets the other jobs install from (Poetry, the docs
+      # toolchain, the fuzz build, SBOM tooling, the complexity gate).
+      - name: Run pip-audit on requirements/*.txt
+        run: |
+          for f in requirements/*.txt; do
+            echo "== $f"
+            pip-audit --require-hashes --disable-pip --desc -r "$f"
+          done
 
   docker-build:
     # Dockerfile validation for the REST API image (#31). PR-safe: builds the
