@@ -1,4 +1,4 @@
-.PHONY: help install dev test lint format type-check security clean docs docker smoke examples pip-compile
+.PHONY: help install dev test lint format type-check security complexity clean docs docker smoke examples pip-compile
 
 PYTHON ?= python3
 POETRY ?= poetry
@@ -37,6 +37,9 @@ security: ## Run security scan (bandit)
 	$(POETRY) run bandit -r camt053/ -c pyproject.toml 2>/dev/null || \
 		$(POETRY) run bandit -r camt053/ -ll
 
+complexity: ## Hold every function to the complexity ceilings (baseline may only shrink)
+	$(POETRY) run python scripts/check_complexity.py
+
 pip-compile: ## Regenerate hash-pinned requirements/*.txt from requirements/*.in
 	@command -v uv >/dev/null || { echo "uv is required: https://docs.astral.sh/uv/"; exit 1; }
 	@for f in requirements/*.in; do \
@@ -71,4 +74,4 @@ examples: ## Verify example scripts run
 	$(POETRY) run python examples/validate_identifiers.py
 	@rm -f reversal_ac04.xml
 
-check: lint type-check security test examples ## Run all checks
+check: lint type-check security complexity test examples ## Run all checks

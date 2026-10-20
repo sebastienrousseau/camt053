@@ -97,6 +97,11 @@ types-jsonschema = "^4.26.0.20260109"
 # pip GHSA-qwm4-qh6w-59xr (fixed in 26.2).
 urllib3 = ">=2.8.0"
 pip = ">=26.2"
+# The complexity gate (scripts/check_complexity.py) and its tests. Pinned
+# to the versions in requirements/complexity.txt, which the CI job uses,
+# so the metrics the tests see are the metrics the gate sees.
+radon = "6.0.1"
+complexipy = {version = "8.1.0", python = "<3.16"}
 
 [tool.poetry.group.docs]
 optional = true
