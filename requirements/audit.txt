@@ -249,10 +249,12 @@ packaging==26.2 \
     # via
     #   pip-audit
     #   pip-requirements-parser
-pip==26.1.2 \
-    --hash=sha256:382ff9f685ee3bc25864f820aa50505825f10f5458ffff07e30a6d96e5715cab \
-    --hash=sha256:f49cd134c61cf2fd75e0ce2676db03e4054504a5a4986d00f8299ae632dc4605
-    # via pip-api
+pip==26.2.2 \
+    --hash=sha256:3a8e5c800492787f33a4114ef54444546c340df428974ebba17e0fd47e11af2f \
+    --hash=sha256:fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70
+    # via
+    #   -r requirements/audit.in
+    #   pip-api
 pip-api==0.0.34 \
     --hash=sha256:8b2d7d7c37f2447373aa2cf8b1f60a2f2b27a84e1e9e0294a3f6ef10eb3ba6bb \
     --hash=sha256:9b75e958f14c5a2614bae415f2adf7eeb54d50a2cfbe7e24fd4826471bac3625
@@ -352,7 +354,9 @@ typing-extensions==4.15.0 ; python_full_version < '3.13' \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
     --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
     # via cyclonedx-python-lib
-urllib3==2.7.0 \
-    --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
-    --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
-    # via requests
+urllib3==2.8.0 \
+    --hash=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3 \
+    --hash=sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63
+    # via
+    #   -r requirements/audit.in
+    #   requests

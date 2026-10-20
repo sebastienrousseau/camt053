@@ -1,2 +1,6 @@
 # Dependency vulnerability scanner for the CI "audit" job.
 pip-audit
+# Advisory floors (Dependabot alerts): pip GHSA-qwm4-qh6w-59xr,
+# urllib3 GHSA-vxq7-64xx-v4gw and GHSA-gh4c-6fx4-qh6g.
+pip>=26.2
+urllib3>=2.8.0

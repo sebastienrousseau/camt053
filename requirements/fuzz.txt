@@ -10,9 +10,9 @@ defusedxml==0.7.1 \
     --hash=sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69 \
     --hash=sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61
     # via -r requirements/fuzz.in
-elementpath==4.8.0 \
-    --hash=sha256:5393191f84969bcf8033b05ec4593ef940e58622ea13cefe60ecefbbf09d58d9 \
-    --hash=sha256:5822a2560d99e2633d95f78694c7ff9646adaa187db520da200a8e9479dc46ae
+elementpath==5.1.4 \
+    --hash=sha256:3c912a9c41311ac5244c038867670d7c0b0fec0e444813608e5b846dbb3428ac \
+    --hash=sha256:5ec8d7bb44b16c98414a6a95e20cb150f3cbfc3cac65edc14773288c7a937376
     # via xmlschema
 jinja2==3.1.6 \
     --hash=sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d \
@@ -353,7 +353,7 @@ typing-extensions==4.15.0 ; python_full_version < '3.13' \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
     --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
     # via referencing
-xmlschema==3.4.5 \
-    --hash=sha256:243244743f151ec859ec0bbf1368fa3f70e5f29e977b77f72e1c9b8f8ae670f6 \
-    --hash=sha256:c91a2fca387dc4e8a2f2cb4a411ed23bef9da539968e5d858a3fe7f76a65464e
+xmlschema==4.3.2 \
+    --hash=sha256:cf5c970a30f6ebcb3da35260e694704cc0b6794d8ace46125bb2a95e38ed9307 \
+    --hash=sha256:f3b33a21a2b2cdc404ddc3fb599d8bc1dee90b155d547370672e6e684746b8d6
     # via -r requirements/fuzz.in

@@ -41,6 +41,12 @@ jsonschema = ">=4.20,<4.27"
 fastapi = ">=0.95"
 uvicorn = {version = ">=0.20", extras = ["standard"]}
 httpx = ">=0.23"
+# Advisory floor, not a feature requirement: anyio arrives through
+# fastapi, starlette and httpx, and every release before 4.14.2 is
+# affected by GHSA-82r6-8w77-94w6 (critical, TLS host name spoofing),
+# GHSA-3w57-8xmc-8v26 and GHSA-5p39-cfhj-2xmp. Declaring it here keeps
+# an affected anyio from resolving for anyone who installs camt053.
+anyio = ">=4.14.2,<5"
 # Note: jsonschema is held at >=4.20 so the core library is co-installable with
 # the camt053-mcp companion package (which requires the MCP SDK / jsonschema>=4.20).
 
@@ -72,11 +78,11 @@ pytest-xdist = ">=3.6.0,<4.0.0"
 interrogate = "^1.7"
 black = "^26.3.1"
 flake8 = "^7.0.0"
-isort = ">=5.13,<9.0"
+isort = ">=5.13,<10.0"
 mypy = ">=1.11,<3.0"
 pylint = ">=3,<5"
 bandit = "^1.7.0"
-ruff = ">=0.1,<0.17"
+ruff = ">=0.1,<0.18"
 types-defusedxml = "^0.7.0"
 types-setuptools = ">=65,<85"
 hypothesis = "^6.0.0"
@@ -86,6 +92,12 @@ sphinx-rtd-theme = ">=1,<4"
 sphinx-autodoc-typehints = ">=1,<4"
 twine = ">=6.2.0,<8"
 types-jsonschema = "^4.26.0.20260109"
+# Advisory floors for tools that arrive transitively (twine and
+# requests, pip-audit). They keep an affected version from resolving:
+# urllib3 GHSA-vxq7-64xx-v4gw and GHSA-gh4c-6fx4-qh6g (fixed in 2.8.0),
+# pip GHSA-qwm4-qh6w-59xr (fixed in 26.2).
+urllib3 = ">=2.8.0"
+pip = ">=26.2"
 
 [tool.poetry.group.docs]
 optional = true
@@ -96,6 +108,10 @@ pydata-sphinx-theme = ">=0.15,<0.20"
 sphinx-autodoc-typehints = ">=1,<4"
 sphinx-design = "^0.6.0"
 myst-parser = ">=2,<5"
+# Advisory floor: soupsieve arrives through pydata-sphinx-theme's
+# beautifulsoup4; releases before 2.9 carry GHSA-gjv8-xp57-g29c and
+# GHSA-j934-xhv5-fg8f (polynomial-time ReDoS).
+soupsieve = ">=2.9"
 
 [build-system]
 requires = ["poetry-core"]
