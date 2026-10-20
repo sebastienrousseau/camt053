@@ -63,6 +63,7 @@ def test_a_consistent_tree_passes(tree) -> None:
         ("constants.py", 'VERSION = "1.2.2"\n', "constants.VERSION"),
         ("glama.json", '{"version": "1.2.2"}', "glama.json"),
         ("server.json", '{"version": "1.2.3", "packages": [{}]}', "server"),
+        ("SECURITY.md", "| 1.2.2   | :white_check_mark: |\n", "SECURITY.md"),
     ],
     ids=[
         "dunder",
@@ -72,6 +73,7 @@ def test_a_consistent_tree_passes(tree) -> None:
         "constants",
         "glama",
         "server",
+        "security",
     ],
 )
 def test_each_restatement_is_checked(

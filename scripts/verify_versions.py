@@ -9,8 +9,9 @@ one), as a ``## [X.Y.Z]`` heading in ``CHANGELOG.md``, in ``glama.json``
 (``version`` and the Docker tag of ``installation.docker`` when present),
 in ``server.json`` (``version`` and every ``packages[].version``), and
 in ``CITATION.cff`` (``version``). In the core it must also appear as
-``VERSION`` in ``camt053/constants.py`` (what the CLI reports) and in
-the README's "Latest release" line when it has one.
+``VERSION`` in ``camt053/constants.py`` (what the CLI reports), in the
+README's "Latest release" line when it has one, and as the supported row
+of ``SECURITY.md``.
 
 The Glama directory and the MCP registry read those two manifests; before
 this check they sat several releases behind the package on every server
@@ -165,10 +166,28 @@ def _check_readme(expected: str) -> Check:
     return [line], [] if ok else ["README latest release differs"]
 
 
+def _check_security(expected: str) -> Check:
+    """The supported row of ``SECURITY.md`` is the current release."""
+    path = ROOT / "SECURITY.md"
+    if not path.exists():
+        return [], []
+    match = re.search(
+        r"^\| (\d+\.\d+\.\d+)\s+\| :white_check_mark:",
+        path.read_text(encoding="utf-8"),
+        re.MULTILINE,
+    )
+    if not match:
+        return [], []
+    line = f"  SECURITY.md supported  = {match.group(1)}"
+    ok = match.group(1) == expected
+    return [line], [] if ok else ["SECURITY.md supported version differs"]
+
+
 CHECKS = (
     _check_package,
     _check_constants,
     _check_readme,
+    _check_security,
     _check_changelog,
     _check_glama,
     _check_server,
