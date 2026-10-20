@@ -14,7 +14,11 @@ authors:
     email: sebastian.rousseau@gmail.com
 version: "0.0.23"
 date-released: "2026-10-20"
-license: "Apache-2.0 OR MIT"
+# CFF 1.2.0 takes a list of SPDX identifiers; the code is available
+# under either licence (Apache-2.0 OR MIT).
+license:
+  - Apache-2.0
+  - MIT
 repository-code: "https://github.com/sebastienrousseau/camt053"
 url: "https://sebastienrousseau.github.io/camt053/"
 keywords:
