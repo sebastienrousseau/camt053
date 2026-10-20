@@ -31,7 +31,9 @@ skips 0.0.21 and 0.0.22 because `camt053-mcp` had already published
 - Dependencies refreshed (Dependabot #165, #166, #167, #170, #171, #172,
   #180, #181, #182, #185): `fastapi` 0.156.1, `click` 8.5.0,
   `cryptography` 50.0.2, `uvicorn` 0.54.0, `lxml` 6.1.3, `black`
-  26.10.1, `ruff` 0.17.1, `isort` 9.0.2, `mypy` 2.4.0, `poetry` 2.5.1.
+  26.10.1, `ruff` 0.17.1, `isort` 9.0.2, `mypy` 2.4.0, `poetry` 2.5.1,
+  `starlette` 1.9.0 (1.7.0 on Python 3.10); `httpx2` joins the dev
+  group so the API tests' TestClient stops warning.
   `fastapi` 0.142 and later depend on `opentelemetry-api`, so the
   OpenTelemetry API is now installed with camt053's runtime dependencies
   and telemetry is active wherever an SDK is configured.
