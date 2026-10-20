@@ -36,6 +36,12 @@ jobs:
           fi
           echo "poetry.lock matches pyproject.toml."
 
+      # pyproject.toml, __version__, constants.VERSION, the CHANGELOG
+      # heading, CITATION.cff and the README's latest-release line must
+      # name one version. Standard library only.
+      - name: Version sources agree
+        run: python3 scripts/verify_versions.py
+
   test:
     name: Test (Python ${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}

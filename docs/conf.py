@@ -1,6 +1,7 @@
 """Sphinx configuration for camt053 documentation."""
 
 import os
+import re
 import sys
 
 # Make the camt053 package importable for autodoc without an editable install,
@@ -10,7 +11,17 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "camt053"
 copyright = "2026, Sebastien Rousseau"
 author = "Sebastien Rousseau"
-release = "0.0.5"
+# Read from pyproject.toml, the single source of the version, so the
+# rendered manual cannot fall behind the package (it said 0.0.5 for
+# fifteen releases).
+with open(
+    os.path.join(os.path.dirname(__file__), "..", "pyproject.toml"),
+    encoding="utf-8",
+) as _pyproject:
+    release = re.search(
+        r'^version = "([^"]+)"', _pyproject.read(), re.MULTILINE
+    ).group(1)
+version = release
 
 extensions = [
     "sphinx.ext.autodoc",

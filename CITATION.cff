@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+cff-version: 1.2.0
+message: "If you use camt053 in research or production write-ups, please cite it as below."
+type: software
+title: "camt053: ISO 20022 bank statements and reversing entries"
+abstract: >-
+  A Python library and CLI that reads ISO 20022 camt.053, camt.052 and
+  camt.054 cash-management messages into a typed model, filters booked
+  entries by return reason code, and generates reversing entries validated
+  against the official ISO 20022 schemas.
+authors:
+  - family-names: Rousseau
+    given-names: Sebastien
+    email: sebastian.rousseau@gmail.com
+version: "0.0.20"
+date-released: "2026-08-29"
+license: "Apache-2.0 OR MIT"
+repository-code: "https://github.com/sebastienrousseau/camt053"
+url: "https://sebastienrousseau.github.io/camt053/"
+keywords:
+  - ISO 20022
+  - camt.053
+  - camt.052
+  - camt.054
+  - bank statements
+  - reversing entries
+  - treasury
