@@ -33,7 +33,7 @@ skips 0.0.21 and 0.0.22 because `camt053-mcp` had already published
   (GHSA-vfmq-68hx-4jfw), and new floors for packages the web stack
   pulls in: `starlette>=1.3.1` (GHSA-82w8-qh3p-5jfq and two more),
   `pydantic>=2.4.0`, `h11>=0.16.0`, `idna>=3.15`, `python-dotenv>=1.2.2`,
-  `pyyaml>=5.4` and `certifi>=2024.7.4`. `tests/test_advisory_floors.py`
+  `pyyaml>=5.4` and `certifi>=2026.10.19` (GHSA-6q48-6c7w-9gw2). `tests/test_advisory_floors.py`
   holds each floor, and every runtime range except `certifi` now has an
   upper bound.
 

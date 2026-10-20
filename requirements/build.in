@@ -15,3 +15,5 @@ anyio>=4.14.2
 # (GHSA-9h9j-4vrj-gf7g), PYSEC-2026-4013 (GHSA-p58f-9548-mpm2) and
 # PYSEC-2026-4014 (GHSA-x78j-v8h9-3j2q), all fixed by 21.7.13.
 virtualenv>=21.7.13
+# certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
+certifi>=2026.10.19

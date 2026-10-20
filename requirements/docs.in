@@ -16,3 +16,5 @@ xmlschema>=4.3.2,<5.0.0
 # GHSA-j934-xhv5-fg8f; urllib3 GHSA-vxq7-64xx-v4gw and GHSA-gh4c-6fx4-qh6g.
 soupsieve>=2.9
 urllib3>=2.8.0
+# certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
+certifi>=2026.10.19

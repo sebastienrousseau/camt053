@@ -61,7 +61,9 @@ httpx = ">=0.23,<1"
 # - idna: GHSA-65pc-fj4g-8rjx, fixed in 3.15.
 # - python-dotenv: GHSA-mf9w-mj56-hr94, fixed in 1.2.2 (uvicorn[standard]).
 # - pyyaml: GHSA-8q59-q68h-6hv4, fixed in 5.4 (uvicorn[standard]).
-# - certifi: GHSA-248v-346w-9cwc (distrusted root), fixed in 2024.7.4.
+# - certifi: GHSA-248v-346w-9cwc (distrusted root), fixed in 2024.7.4;
+#   GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3, compromised
+#   intermediates), fixed in 2026.10.19.
 #   certifi is calendar-versioned and must stay current, so it is the
 #   one runtime range without an upper bound.
 anyio = ">=4.14.2,<5"
@@ -70,7 +72,7 @@ h11 = ">=0.16.0,<1"
 idna = ">=3.15,<4"
 python-dotenv = ">=1.2.2,<2"
 pyyaml = ">=5.4,<7"
-certifi = ">=2024.7.4"
+certifi = ">=2026.10.19"
 # Note: jsonschema is held at >=4.20 so the core library is co-installable with
 # the camt053-mcp companion package (which requires the MCP SDK / jsonschema>=4.20).
 

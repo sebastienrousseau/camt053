@@ -4,3 +4,5 @@ pip-audit
 # urllib3 GHSA-vxq7-64xx-v4gw and GHSA-gh4c-6fx4-qh6g.
 pip>=26.2
 urllib3>=2.8.0
+# certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
+certifi>=2026.10.19

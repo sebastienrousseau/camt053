@@ -39,7 +39,8 @@ FLOORS = (
     ("idna", "3.14", "3.15", "GHSA-65pc-fj4g-8rjx"),
     ("python-dotenv", "1.2.1", "1.2.2", "GHSA-mf9w-mj56-hr94"),
     ("pyyaml", "5.3.1", "5.4", "GHSA-8q59-q68h-6hv4"),
-    ("certifi", "2024.6.2", "2024.7.4", "GHSA-248v-346w-9cwc"),
+    ("certifi", "2024.6.2", "2026.10.19", "GHSA-248v-346w-9cwc"),
+    ("certifi", "2026.6.17", "2026.10.19", "GHSA-6q48-6c7w-9gw2"),
     ("lxml", "6.0.2", "6.1.0", "GHSA-vfmq-68hx-4jfw"),
 )
 # certifi is calendar-versioned and has to stay current, so a ceiling
