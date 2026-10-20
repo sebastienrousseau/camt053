@@ -60,9 +60,8 @@ fast = ["lxml"]
 telemetry = ["opentelemetry-api"]
 
 [tool.poetry.group.dev.dependencies]
-# Required by scripts/check_suite_consistency.py, which imports it at
-# module scope so a missing install fails loudly instead of silently
-# disabling the floor rule.
+# Required by the suite conformance and requirements drift tests, which
+# parse requirement and version strings with it.
 packaging = ">=23"
 # So scripts/preflight_release.py can actually run its audit. Without it
 # the pre-flight correctly refuses to audit (rather than auditing some
