@@ -9,7 +9,9 @@ import sys
 sys.path.insert(0, os.path.abspath(".."))
 
 project = "camt053"
-copyright = "2026, Sebastien Rousseau"
+# The year only: docs/_templates/copyright.html renders the
+# footer as "© <year> Sebastien Rousseau", linked to the author's site.
+copyright = "2026"
 author = "Sebastien Rousseau"
 # Read from pyproject.toml, the single source of the version, so the
 # rendered manual cannot fall behind the package (it said 0.0.5 for

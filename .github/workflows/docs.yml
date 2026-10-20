@@ -61,6 +61,19 @@ jobs:
         # -W turns warnings into errors so a broken build fails the PR check.
         run: sphinx-build -b html -W docs _site
 
+      - name: Check the author link on every page
+        # AGENTS.md 7.1.2: every published page links the copyright name to
+        # https://sebastienrousseau.com/. docs/_templates/copyright.html
+        # sets it; this proves it reached the built output.
+        run: |
+          missing="$(grep -L -r --include='*.html' --exclude-dir=_static \
+            'href="https://sebastienrousseau.com/" rel="author"' _site || true)"
+          if [ -n "$missing" ]; then
+            echo "pages without the author link:"
+            echo "$missing"
+            exit 1
+          fi
+
       - name: Upload the Pages artifact
         if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -1,0 +1,9 @@
+{#- SPDX-License-Identifier: Apache-2.0 OR MIT -#}
+{#- Replaces pydata-sphinx-theme's copyright component so every page
+    carries the author link the family standard requires (AGENTS.md
+    section 7.1.2). The year comes from conf.py's ``copyright``. -#}
+{% if show_copyright and copyright %}
+  <p class="copyright">
+    © {{ copyright|e }} <a href="https://sebastienrousseau.com/" rel="author">Sebastien Rousseau</a>
+  </p>
+{% endif %}
