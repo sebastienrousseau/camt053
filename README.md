@@ -93,9 +93,10 @@ Kubernetes recipes.
 - Python 3.10 or newer, tested in CI on 3.10, 3.11, 3.12, 3.13 and 3.14 on
   Linux, macOS and Windows ([toolchain policy](docs/POLICIES.md)).
 - No system libraries. `lxml` is optional (the `fast` extra).
-- Runtime dependencies are bounded in `pyproject.toml`; releases of `anyio`
-  affected by GHSA-82r6-8w77-94w6, GHSA-3w57-8xmc-8v26 and
-  GHSA-5p39-cfhj-2xmp cannot be resolved.
+- Runtime dependencies are bounded in `pyproject.toml` (all but the
+  calendar-versioned `certifi`), and each package with a published
+  advisory, direct or pulled in by the REST API's web stack, is floored
+  so no affected release can resolve.
 
 ---
 

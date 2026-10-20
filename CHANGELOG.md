@@ -25,6 +25,17 @@ skips 0.0.21 and 0.0.22 because `camt053-mcp` had already published
   -4014).
 - The dependency audit job now fails on a finding instead of reporting
   it, and also audits every hash-pinned `requirements/*.txt`.
+- The declared runtime ranges admit no release with a published
+  advisory, which the lock alone does not prove for anyone installing
+  camt053: `cryptography>=50.0.0` (GHSA-g6cj-pr64-35w5,
+  GHSA-jwv3-5hgf-82ww, GHSA-m2h6-j472-rp4c), `fastapi>=0.109.1`
+  (PYSEC-2024-38), `lxml>=6.1.0` for the `fast` extra
+  (GHSA-vfmq-68hx-4jfw), and new floors for packages the web stack
+  pulls in: `starlette>=1.3.1` (GHSA-82w8-qh3p-5jfq and two more),
+  `pydantic>=2.4.0`, `h11>=0.16.0`, `idna>=3.15`, `python-dotenv>=1.2.2`,
+  `pyyaml>=5.4` and `certifi>=2024.7.4`. `tests/test_advisory_floors.py`
+  holds each floor, and every runtime range except `certifi` now has an
+  upper bound.
 
 ### Changed
 
