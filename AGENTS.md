@@ -16,7 +16,7 @@ Everything here applies equally to humans and automated agents. It is addressed 
 2. **Suite lockstep**: every member ships the core's version, and the core releases first. `scripts/check_suite_consistency.py` is the shared copy every member carries (only `THIS` differs); change it in every member or not at all.
 3. **Single source of truth**: the version in `pyproject.toml` must agree with `camt053/__init__.py`, `camt053/constants.py`, `CHANGELOG.md`, `CITATION.cff`, the README's latest-release line and `SECURITY.md` (checked by `scripts/verify_versions.py`). `docs/conf.py` reads it from `pyproject.toml`.
 4. **Output is the contract**: a change to the XML a reversal produces, the JSON shape of `parse` or `entries --format json`, the CSV columns, or an error `code` is breaking even when no signature moves.
-5. **Untrusted input**: inbound XML is parsed with `defusedxml` only. Never add a parser path that resolves DTDs or external entities.
+5. **Untrusted input**: inbound XML is parsed with `defusedxml`, except on the optional `lxml` fast path in `camt053/xml/validate_via_xsd.py`, which uses `_hardened_lxml_parser()` (no entity expansion, no DTD loading, no network, libxml2 size limits on). Never add a parser path that resolves DTDs or external entities.
 6. **Dual licensing**: Apache-2.0 OR MIT.
 
 ## 2. Before You Claim To Be Done

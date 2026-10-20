@@ -10,7 +10,11 @@ library with a small well-tested core, first-class developer surfaces
 formats (Excel writer, MT940 loader), and a vertical commitment to
 the **14-16 November 2026** CBPR+ / T2S MR2026 cutover.
 
-## Where we are (v0.0.7, shipped 2026-06-22)
+## Where we are
+
+The status below was written at v0.0.7 (2026-06-22). The suite has
+shipped through v0.0.20 since and releases v0.0.23 next; the release
+history is in `CHANGELOG.md`.
 
 - **Parsing**: `camt.052/053/054` revisions `.001.08`, `.001.13`,
   `.001.14`; deprecated `.001.02` → `.001.07` still parse with a
@@ -39,9 +43,10 @@ the **14-16 November 2026** CBPR+ / T2S MR2026 cutover.
   resources, 4 prompts); LSP server (`camt053-lsp`: diagnostics,
   completion, hover, code-actions, document-symbols, formatting).
 - **Companion packages**:
-  [`camt053-writer-xlsx`](https://pypi.org/project/camt053-writer-xlsx/)
-  and [`camt053-loader-mt940`](https://pypi.org/project/camt053-loader-mt940/),
-  both live on PyPI at v0.0.7.
+  [`camt053-writer-xlsx`](https://pypi.org/project/camt053-writer-xlsx/),
+  [`camt053-loader-mt940`](https://pypi.org/project/camt053-loader-mt940/)
+  and [`camt053-loader-mt942`](https://pypi.org/project/camt053-loader-mt942/),
+  live on PyPI at v0.0.20 (checked 2026-10-20).
 - **Supply chain**: 100% line + branch coverage; 100% docstring
   coverage; OpenSSF Scorecard; signed git tags; SLSA Build L3
   provenance via `actions/attest-build-provenance@v3`; PEP 740

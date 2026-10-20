@@ -718,6 +718,14 @@ handling or reversal generation.
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[0.0.23]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.23
+[0.0.20]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.20
+[0.0.18]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.18
+[0.0.17]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.17
+[0.0.16]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.16
+[0.0.15]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.15
+[0.0.14]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.14
+[0.0.13]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.13
 [0.0.9]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.9
 [0.0.8]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.8
 [0.0.7]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.7
