@@ -68,7 +68,7 @@ def test_no_affected_release_resolves(
     """The range is declared, excludes the affected release, keeps the fix."""
     spec = _declared().get(name)
     assert spec is not None, f"{name} has no floor for {advisory}"
-    assert affected not in spec, f"{name} {spec} admits {affected} ({advisory})"
+    assert affected not in spec, f"{name} {spec} admits {affected}"
     assert fixed in spec, f"{name} {spec} excludes the fix {fixed}"
 
 
