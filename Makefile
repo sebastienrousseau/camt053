@@ -1,4 +1,4 @@
-.PHONY: help install dev test lint format type-check security complexity verify-versions clean docs docker smoke examples pip-compile
+.PHONY: help install dev test lint format type-check security complexity verify-versions demo clean docs docker smoke examples pip-compile
 
 PYTHON ?= python3
 POETRY ?= poetry
@@ -50,6 +50,9 @@ pip-compile: ## Regenerate hash-pinned requirements/*.txt from requirements/*.in
 		uv pip compile --quiet --generate-hashes --universal \
 			--python-version 3.10 "$$f" -o "$${f%.in}.txt"; \
 	done
+
+demo: ## Render .github/demo.gif from .github/demo.tape (needs vhs)
+	$(POETRY) run vhs .github/demo.tape
 
 clean: ## Remove build artifacts and caches
 	rm -rf build/ dist/ *.egg-info .eggs/

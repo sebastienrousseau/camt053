@@ -76,6 +76,18 @@ API Reference
 
    api
 
+Architecture, policies and measurements
+---------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Architecture and policies
+
+   ARCHITECTURE
+   POLICIES
+   BENCHMARKS
+   COMPARISON
+
 Schema-version support matrix
 -----------------------------
 

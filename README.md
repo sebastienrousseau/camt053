@@ -1,225 +1,104 @@
-# camt053: ISO 20022 Bank Statements and Reversing Entries
+<!-- SPDX-License-Identifier: Apache-2.0 OR MIT -->
 
 <p align="center">
   <img src="https://cloudcdn.pro/camt053/v1/logos/camt053.svg" alt="camt053 logo" width="128" />
 </p>
 
-[![PyPI Version][pypi-badge]][07]
-[![Python Versions][python-versions-badge]][07]
-[![License][license-badge]][01]
-[![Tests][tests-badge]][tests-url]
-[![Quality][quality-badge]][quality-url]
-[![OpenSSF Scorecard][scorecard-badge]][scorecard-url]
-[![OpenSSF Best Practices][bestpractices-badge]][bestpractices-url]
-[![Documentation][docs-badge]][docs-url]
+<h1 align="center">camt053</h1>
 
-**Read ISO 20022 `camt` Bank-to-Customer Cash Management messages, extract
-booked entries by return reason code (e.g. AC04 Closed Account), and generate
-validated reversing entries** — the core of a modern, AI-assisted treasury
-stack with native MCP and LSP integrations.
+<p align="center">
+  Read ISO 20022 camt.053, camt.052 and camt.054 bank statements, find entries by return reason code, and generate validated reversing entries.
+</p>
+
+<p align="center">
+  <a href="https://github.com/sebastienrousseau/camt053/actions"><img src="https://img.shields.io/github/actions/workflow/status/sebastienrousseau/camt053/ci.yml?style=for-the-badge&logo=github" alt="Build" height="28" /></a>
+  <a href="https://pypi.org/project/camt053/"><img src="https://img.shields.io/pypi/v/camt053?style=for-the-badge&color=fc8d62&logo=python" alt="Registry" height="28" /></a>
+  <a href="https://sebastienrousseau.github.io/camt053/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=for-the-badge&labelColor=555555&logo=readthedocs" alt="Docs" height="28" /></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/sebastienrousseau/camt053"><img src="https://img.shields.io/ossf-scorecard/github.com/sebastienrousseau/camt053?style=for-the-badge&label=OpenSSF%20Scorecard&logo=openssf" alt="OpenSSF Scorecard" height="28" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg?style=for-the-badge" alt="License: Apache-2.0 OR MIT" height="28" /></a>
+  <a href="https://github.com/sebastienrousseau/camt053/blob/main/docs/POLICIES.md"><img src="https://img.shields.io/badge/Python-3.10%2B-93450a.svg?style=for-the-badge&logo=python" alt="Python 3.10 or newer" height="28" /></a>
+  <a href="https://www.bestpractices.dev/projects/13373"><img src="https://img.shields.io/cii/level/13373?style=for-the-badge&label=OpenSSF%20Best%20Practices&logo=openssf" alt="OpenSSF Best Practices" height="28" /></a>
+</p>
+
+<p align="center">
+  <img src=".github/demo.gif" alt="camt053 demo: list a statement's entries, filter the AC04 return, generate the reversing entry, then validate it against the camt.053.001.14 XSD and list it" width="100%" />
+</p>
+
+---
+
+## Contents
+
+**Getting started**
+
+- [Install](#install) — pip, the `fast` and `telemetry` extras, Docker
+- [Requirements](#requirements) — toolchain floor, platforms
+- [Quick Start](#quick-start) — parse a statement, find the AC04 return, generate its reversing entry
+
+**The camt053 ecosystem**
+
+- [The camt053 ecosystem](#the-camt053-ecosystem) — the core, the MCP and LSP servers, the MT940 and MT942 loaders, the Excel writer
+
+**Library reference**
+
+- [Capabilities at a glance](#capabilities-at-a-glance) — the current surface by theme
+- [Ecosystem comparison](#ecosystem-comparison) — short matrix; full table at [`docs/COMPARISON.md`](docs/COMPARISON.md)
+- [Benchmarks](#benchmarks) — headline numbers; full table at [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
+- [Features](#features) — module-level capability list
+- [Configuration](#configuration) — core options
+- [Examples](#examples) — runnable example index
+
+**Operational**
+
+- [When not to use camt053](#when-not-to-use-camt053) — limitations
+- [Development](#development) — make targets, fuzzing, CI
+- [Security](#security) — guarantees and compliance
+- [Documentation](#documentation) — all reference docs
+- [Stability guarantees](#stability-guarantees) — SemVer axis, output stability, minimum toolchain discipline
+- [License](#license)
+
+---
+
+## Install
+
+### As a Python library
+
+```sh
+python -m pip install camt053
+```
 
 > **Latest release: v0.0.20** — namespace-agnostic camt.052/053/054 parsing and
 > one-shot reversing-entry generation, validated against the official ISO 20022
 > `camt.053.001.14` schema, for Python 3.10+.
 > [See what's new →][release-latest]
 
-## Contents
-
-- [Overview](#overview)
-- [Install](#install)
-- [Quick Start](#quick-start)
-- [Features](#features)
-- [Usage](#usage)
-- [Supported messages](#supported-messages)
-- [Architecture](#architecture)
-- [Examples](#examples)
-- [The camt053 suite](#the-camt053-suite)
-- [When not to use camt053](#when-not-to-use-camt053)
-- [Development](#development)
-- [Security](#security)
-- [Documentation](#documentation)
-- [License](#license)
-- [Contributing](#contributing)
-- [Acknowledgements](#acknowledgements)
-
-## Overview
-
-**camt053** reads ISO 20022 `camt` cash-management messages — the standardised
-bank-to-customer **statements** (camt.053), **account reports** (camt.052), and
-**debit/credit notifications** (camt.054) — into a typed model, lets you filter
-booked entries by ISO external return reason code, and generates a **validated
-reversing entry** for the matching transactions.
-
-The headline capability is the one-shot reversing-entry workflow: read an
-incoming camt.053 statement, find the entries carrying a return reason code
-(e.g. **AC04 Closed Account**), and emit a validated reversing entry — answering
-the prompt-engineering dream:
-
-> *"Read this incoming bank statement XML, parse out the transactions with error
-> code AC04, and automatically generate the reversing entry."*
-
-- **Documentation:** <https://sebastienrousseau.github.io/camt053/>
-- **Source code:** <https://github.com/sebastienrousseau/camt053>
-- **Bug reports:** <https://github.com/sebastienrousseau/camt053/issues>
-
-A single shared facade (`camt053.services`) backs four developer surfaces — the
-Python API, the CLI, the REST API, and the companion MCP and LSP servers — so
-every interface behaves identically. This package is part of the **camt053
-suite** (all Python 3.10+):
-
-| Package | Role |
-|---------|------|
-| `camt053` | Core library + Click CLI + FastAPI REST API (this package) |
-| [`camt053-mcp`][mcp-pkg] | Model Context Protocol server (for AI agents) |
-| [`camt053-lsp`][lsp-pkg] | Language Server Protocol server (for editors) |
-
-```mermaid
-flowchart LR
-    A["Inbound camt.05x XML"] -->|parse| B["camt053.services"]
-    B -->|filter by reason code| C["AC04 entries"]
-    C -->|reverse + validate| D["camt.053.001.14 reversing entry"]
-```
-
-## Install
-
-**camt053** runs on macOS, Linux, and Windows and requires **Python 3.10+** and
-**pip**.
+Two optional extras:
 
 ```sh
-python -m pip install camt053
+python -m pip install "camt053[fast]"        # lxml: XSD validation ~31x faster
+python -m pip install "camt053[telemetry]"   # OpenTelemetry API for spans and metrics
 ```
 
-<details>
-<summary>Using an isolated virtual environment (recommended)</summary>
+`fast` only changes speed: a document `lxml` accepts is one the pure-Python
+validator accepts too. The `camt053` command (the CLI) is installed with the
+package. The REST API ships as a container image built from the
+[`Dockerfile`](Dockerfile); see the
+[deployment cookbook](docs/deployment-cookbook.md) for Compose, systemd and
+Kubernetes recipes.
 
-```sh
-python -m venv venv
-source venv/bin/activate        # macOS/Linux
-venv\Scripts\activate           # Windows
-python -m pip install -U camt053
-```
-</details>
+---
+
+## Requirements
+
+- Python 3.10 or newer, tested in CI on 3.10, 3.11, 3.12, 3.13 and 3.14 on
+  Linux, macOS and Windows ([toolchain policy](docs/POLICIES.md)).
+- No system libraries. `lxml` is optional (the `fast` extra).
+- Runtime dependencies are bounded in `pyproject.toml`; releases of `anyio`
+  affected by GHSA-82r6-8w77-94w6, GHSA-3w57-8xmc-8v26 and
+  GHSA-5p39-cfhj-2xmp cannot be resolved.
+
+---
 
 ## Quick Start
-
-```python
-from camt053 import services
-
-# An incoming camt.053 statement (truncated for brevity — see examples/).
-statement_xml = open("statement.xml", encoding="utf-8").read()
-
-# Find the entries returned AC04 (Closed Account).
-ac04 = services.filter_entries(statement_xml, "AC04")
-print(f"{len(ac04)} AC04 entr{'y' if len(ac04) == 1 else 'ies'}")
-
-# Generate the reversing entry: parse -> filter -> reverse, in one call.
-reversal_xml = services.generate_reversal(statement_xml, reason_code="AC04")
-print(reversal_xml)  # validated camt.053.001.14 document
-```
-
-Or from the command line:
-
-```sh
-# Generate a reversing entry for every AC04 entry on a statement
-camt053 reverse -i statement.xml -r AC04 -o reversal.xml
-
-# List the entries on a statement (filter by reason, status, date, or amount)
-camt053 entries -i statement.xml -r AC04
-camt053 entries -i statement.xml --status BOOK --from 2026-06-01 --min 1000
-
-# Export the (filtered) entries as CSV or JSON, to stdout or a file
-camt053 entries -i statement.xml --export csv -o entries.csv
-camt053 entries -i statement.xml -r AC04 --export json
-
-# Choose the output format: a Rich table (default) or structured JSON
-camt053 entries -i statement.xml --format json
-camt053 reverse -i statement.xml -r AC04 --format json   # JSON envelope
-
-# Inspect the parsed statement as JSON, or validate an identifier
-camt053 parse -i statement.xml
-camt053 validate-id -k iban -v GB29NWBK60161331926819
-
-# Validate an incoming statement against its official ISO camt XSD
-camt053 validate -i statement.xml
-```
-
-`parse`, `entries`, `reverse`, and `validate` accept `-i -` to read from stdin,
-so they compose in a pipeline.
-
-New to camt.053? The [10-minute quickstart](docs/quickstart.md) walks the
-full install, validate, parse, reverse workflow with real commands and output.
-
-## Features
-
-- **Parse** camt.053 / camt.052 / camt.054 into a typed, JSON-serialisable
-  model. Parsing is **namespace-agnostic**, so every ISO version (`.001.01`
-  through `.001.14`) and real-world bank file is read.
-- **Filter** booked entries by ISO external return reason code (AC04, AC06,
-  MD07, …), and by **status**, **booking-date range**, and **amount range**
-  (all ANDed) via `services.filter_entries(...)` or the `camt053 entries`
-  flags.
-- **Return reason codes** — a substantial slice of the ISO 20022
-  `ExternalReturnReason1Code` set (the common SEPA / CBPR+ return reasons),
-  listed via `camt053 reasons`, with case-insensitive lookup through
-  `services.validate_reason_code(code) -> {"code", "name", "valid"}`.
-- **Reason-code action policy** — classify a return reason into a handling
-  action (`"return"`, `"retry"`, or `"ignore"`) via
-  `services.classify_reason(code) -> {"code", "name", "action"}`, with a
-  sensible built-in default (account-level rejections return, transient
-  conditions such as `AM04` / `AM05` retry, informational reasons ignore). The
-  full mapping is `services.reason_policy()`; both accept an `overrides`
-  mapping and a custom `default`. The `camt053 reasons` table shows the action
-  column and `camt053 classify -r AC04` classifies a single code.
-- **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
-  --export {csv,json} [-o file]`); CSV columns are `reference, amount,
-  currency, credit_debit_indicator, status, booking_date, value_date,
-  reason_code`.
-- **Structured output** — `camt053 entries --format json` emits the entries
-  as a JSON array, and `camt053 reverse --format json` emits a
-  `{"message_type", "reason_code", "xml"}` envelope instead of raw XML
-  (`--format table`, the default, keeps the Rich table / raw XML).
-- **Reverse** — generate a `camt.053.001.14` reversing entry from the matching
-  entries (credit/debit indicator flipped, `RvslInd` set, return reason carried
-  in `RtrInf`), in one call.
-- **Validated output** — generated reversals are checked against the **official
-  ISO 20022 `camt.053.001.14` XSD** bundled with the package.
-- **SWIFT charset cleansing** — opt-in cleansing of the name / narrative fields
-  (`Nm` / `AddtlInf` / party / counterparty names) bound for SWIFT FIN / CBPR+
-  rails: characters outside the **SWIFT X** set are transliterated (`é` → `e`,
-  `ß` → `ss`, smart quotes / dashes folded) or stripped, and field maximum
-  lengths are enforced. Enable it on the reversal path with
-  `services.generate_reversal(xml, cleanse=True)` /
-  `services.generate(records, cleanse=True)` (default off, so existing output
-  is unchanged), or cleanse records directly with
-  `services.cleanse_records(records) -> {"changed", "fields": [report, ...]}`,
-  which returns an audit report of exactly what changed. Cleansed reversals
-  still validate against the bundled XSD.
-- **Validate incoming statements** — `services.validate_statement(xml)` (and the
-  `camt053 validate` command) check an inbound camt.052 / camt.053 / camt.054
-  document against the matching **official ISO 20022 XSD**, detected from its
-  namespace, returning `{"valid", "message_type", "errors"}`.
-- **Re-serialise (round-trip)** — render a parsed `ParsedDocument` / `Statement`
-  back to a validated `camt.053.001.14` document via
-  `services.serialize_statement(xml)` (or `camt053.serialize_document(doc)` /
-  `camt053.serialize_statement(stmt)`). The output is **deterministic** and
-  round-trip stable: `parse_document(serialize_statement(parse_document(xml)))`
-  preserves the account, balances, and entries (references, amounts,
-  currencies, credit/debit indicators, and return reasons).
-- **Safe by default** — XML is parsed with `defusedxml` (XXE / billion-laughs
-  safe); output paths are traversal-checked.
-- **One facade, four interfaces** — the CLI, REST API, MCP server, and LSP
-  server all call `camt053.services`.
-- **IBAN / BIC / LEI validators** (ISO 13616 / 9362 / 17442).
-- **Decimal amounts & ISO 4217 currencies** — `Entry.amount_decimal` /
-  `Balance.amount_decimal` parse the string amount into a `Decimal` (the
-  string is kept verbatim for XML fidelity), and
-  `services.validate_currency(code) -> {"code", "valid", "minor_units"}`
-  checks a code against a bundled ISO 4217 set and reports its minor units
-  (EUR=2, JPY=0, …).
-- **Typed** (mypy `--strict`) and **tested** (100% coverage), validated against
-  the official ISO 20022 business samples.
-
-## Usage
 
 ```python
 from camt053 import parse_statement, services
@@ -263,51 +142,162 @@ assert "<RvslInd>true</RvslInd>" in reversal_xml
 assert "<CdtDbtInd>DBIT</CdtDbtInd>" in reversal_xml
 ```
 
-## Supported messages
+The same workflow from the command line, as in the demo above:
+
+```sh
+camt053 entries -i statement.xml -r AC04                  # the AC04 entries
+camt053 reverse -i statement.xml -r AC04 -o reversal.xml  # the reversing entry
+camt053 validate -i reversal.xml                          # against the ISO XSD
+```
+
+`parse`, `entries`, `reverse` and `validate` accept `-i -` to read from stdin.
+The [10-minute quickstart](docs/quickstart.md) walks install, validate, parse
+and reverse with real commands and output.
+
+---
+
+## The camt053 ecosystem
+
+`camt053` is the core of six packages that release together at one version:
+every member ships the core's number, so `camt053-mcp 0.0.20` is meant for
+`camt053 0.0.20`. The wrappers, loaders and writer call the shared
+`camt053.services` facade, so every interface behaves the same.
+`scripts/check_suite_consistency.py` checks PyPI daily and fails when a
+member disagrees.
+
+| Component | Purpose | Use case |
+| :--- | :--- | :--- |
+| [`camt053`](https://pypi.org/project/camt053/) | Core library, Click CLI and FastAPI REST API: parse, filter, validate, reverse | You process bank statements in Python or from a shell: **this package** |
+| [`camt053-mcp`](https://github.com/sebastienrousseau/camt053-mcp) | Model Context Protocol server exposing the library as agent tools | An AI agent reads statements and drafts reversals |
+| [`camt053-lsp`](https://github.com/sebastienrousseau/camt053-lsp) | Language Server Protocol server for reversing-entry data files | You author reversal data in an editor with diagnostics |
+| [`camt053-loader-mt940`](https://github.com/sebastienrousseau/camt053-loader-mt940) | SWIFT MT940 statements to a camt.053 `ParsedDocument` | Your bank still sends MT940 |
+| [`camt053-loader-mt942`](https://github.com/sebastienrousseau/camt053-loader-mt942) | SWIFT MT942 interim reports to a camt.052 `ParsedDocument` | You receive intraday MT942 reports |
+| [`camt053-writer-xlsx`](https://github.com/sebastienrousseau/camt053-writer-xlsx) | Excel `.xlsx` writer for parsed statements | Someone downstream wants a spreadsheet |
+
+For outbound payments (pain.001) use the sibling
+[`pain001`](https://github.com/sebastienrousseau/pain001) library.
+
+---
+
+## Capabilities at a glance
+
+| Area | Capability | Status |
+| :--- | :--- | :--- |
+| Parsing | camt.052, camt.053, camt.054, every ISO revision `.001.01` to `.001.14`, namespace-agnostic | Released |
+| Filtering | By return reason code, status, booking-date range and amount range | Released |
+| Reversal | `camt.053.001.14` reversing entries (also `.001.08` and `pacs.004`), deterministic references | Released |
+| Validation | Inbound and generated documents against the bundled official ISO 20022 XSDs | Released |
+| Readiness | CBPR+ November 2026 pre-flight (`check_cbpr_readiness`) | Released |
+| Interfaces | Python API, CLI, REST API; MCP and LSP through the suite | Released |
+| Observability | Structured logging, optional OpenTelemetry spans and metrics | Released |
+
+---
+
+## Ecosystem comparison
+
+The choice inside the suite is which surface to use; every row calls the same
+`camt053.services` facade.
+
+| Project | Reads camt.05x | Generates reversals | Interface |
+| :--- | :---: | :---: | :---: |
+| **camt053** | Yes | Yes | Python, CLI, REST |
+| camt053-mcp | Yes | Yes | MCP tools |
+| camt053-loader-mt940 / -mt942 | MT940 / MT942 in | Through the core | Python |
+
+See [`docs/COMPARISON.md`](docs/COMPARISON.md) for the evidence and complete matrix.
+
+---
+
+## Benchmarks
+
+Streaming holds peak memory down, and the XSD compiles once per process, so
+the first validation costs far more than later ones. Measured with
+`benches/bench_statement_pipeline.py` on a shared machine, so wall-clock
+figures are ranges over three runs.
+
+| Scenario | Result | Environment |
+| :--- | ---: | :--- |
+| `parse_statement`, 2,000 entries (531 KiB) | 69 to 167 ms | Apple A18 Pro, Python 3.12.15 |
+| `list_entries` peak memory, 10,000 entries | 22,926 KiB streaming, 32,935 KiB buffered | Apple A18 Pro, Python 3.12.15 |
+| First `validate_statement` in a process | 0.35 to 3.0 s | Apple A18 Pro, Python 3.12.15, lxml 6.1.3 |
+| Later `validate_statement` calls | 28 to 273 ms | Apple A18 Pro, Python 3.12.15, lxml 6.1.3 |
+
+See [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) for methodology and full results.
+
+---
+
+## Features
+
+- **Parse** camt.053 / camt.052 / camt.054 into a typed, JSON-serialisable
+  model. Parsing is **namespace-agnostic**, so every ISO version (`.001.01`
+  through `.001.14`) and real-world bank file is read.
+- **Filter** booked entries by ISO external return reason code (AC04, AC06,
+  MD07, …), and by **status**, **booking-date range**, and **amount range**
+  (all ANDed) via `services.filter_entries(...)` or the `camt053 entries`
+  flags.
+- **Return reason codes**: a substantial slice of the ISO 20022
+  `ExternalReturnReason1Code` set (the common SEPA / CBPR+ return reasons),
+  listed via `camt053 reasons`, with case-insensitive lookup through
+  `services.validate_reason_code(code) -> {"code", "name", "valid"}`.
+- **Reason-code action policy**: classify a return reason into a handling
+  action (`"return"`, `"retry"`, or `"ignore"`) via
+  `services.classify_reason(code) -> {"code", "name", "action"}`, with a
+  built-in default (account-level rejections return, transient conditions
+  such as `AM04` / `AM05` retry, informational reasons ignore). The full
+  mapping is `services.reason_policy()`; both accept an `overrides` mapping
+  and a custom `default`. `camt053 classify -r AC04` classifies one code.
+- **Export** the (filtered) entries to **CSV** or **JSON** (`camt053 entries
+  --export {csv,json} [-o file]`); CSV columns are `reference, amount,
+  currency, credit_debit_indicator, status, booking_date, value_date,
+  reason_code`.
+- **Structured output**: `camt053 entries --format json` emits the entries
+  as a JSON array, and `camt053 reverse --format json` emits a
+  `{"message_type", "reason_code", "xml"}` envelope instead of raw XML.
+- **Reverse**: generate a `camt.053.001.14` reversing entry from the matching
+  entries (credit/debit indicator flipped, `RvslInd` set, return reason carried
+  in `RtrInf`), in one call.
+- **Validated output**: generated reversals are checked against the **official
+  ISO 20022 `camt.053.001.14` XSD** bundled with the package.
+- **SWIFT charset cleansing**: opt-in cleansing of the name / narrative fields
+  bound for SWIFT FIN / CBPR+ rails. Characters outside the **SWIFT X** set
+  are transliterated (`é` → `e`, `ß` → `ss`) or stripped, and field maximum
+  lengths are enforced. Enable it with
+  `services.generate_reversal(xml, cleanse=True)`, or cleanse records directly
+  with `services.cleanse_records(records)`, which reports exactly what changed.
+- **Validate incoming statements**: `services.validate_statement(xml)` (and
+  `camt053 validate`) check an inbound camt.052 / camt.053 / camt.054 document
+  against the matching **official ISO 20022 XSD**, detected from its
+  namespace, returning `{"valid", "message_type", "errors"}`.
+- **Re-serialise (round-trip)**: render a parsed `ParsedDocument` /
+  `Statement` back to a validated `camt.053.001.14` document via
+  `services.serialize_statement(xml)`. The output is deterministic and
+  round-trip stable for the account, balances and entries.
+- **Safe by default**: XML is parsed with `defusedxml` (XXE / billion-laughs
+  safe); output paths are traversal-checked.
+- **IBAN / BIC / LEI validators** (ISO 13616 / 9362 / 17442) and **ISO 4217
+  currencies** with minor units (`services.validate_currency`).
+- **Typed** (mypy `--strict`) and **tested** (100% line and branch coverage),
+  validated against the official ISO 20022 business samples.
+
+### Supported messages
 
 | Message type | Name | Direction |
-|--------------|------|-----------|
+| :--- | :--- | :--- |
 | `camt.052.001.14` | Bank To Customer Account Report | read |
 | `camt.053.001.14` | Bank To Customer Statement | read + **reverse** |
 | `camt.054.001.14` | Bank To Customer Debit Credit Notification | read |
 
-The parser is namespace-agnostic and reads every ISO version of these messages;
-the official XSDs for `.001.01`–`.001.14` are bundled under `camt053/xsd/`.
-Reversing entries are emitted as `camt.053.001.14`.
+The parser reads every ISO version of these messages; the official XSDs for
+`.001.01` to `.001.14` are bundled under `camt053/xsd/`.
 
-## Architecture
-
-```mermaid
-flowchart TD
-    CLI["Click CLI"] --> S["camt053.services"]
-    API["FastAPI REST API"] --> S
-    MCP["camt053-mcp"] --> S
-    LSP["camt053-lsp"] --> S
-    S --> P["parse/ — statement_parser, reason_codes"]
-    S --> R["reversal/ — reversal builder"]
-    S --> X["xml/ — template + official ISO XSD"]
-    S --> V["validation/ — IBAN, BIC, LEI, JSON Schema"]
-```
-
-| Module | Responsibility |
-|--------|----------------|
-| `camt053.parse` | Namespace-agnostic statement parser and return-reason helpers |
-| `camt053.reversal` | Builds flat reversing-entry records from parsed entries |
-| `camt053.xml` | Renders the camt.053 reversal template and validates it via the ISO XSD |
-| `camt053.validation` | IBAN / BIC / LEI and JSON-Schema validators |
-| `camt053.security` | XXE-safe parsing and path-traversal-checked output |
-| `camt053.services` | The shared facade backing every interface |
-
-## Error handling
+### Error codes
 
 Every exception in [`camt053.exceptions`](camt053/exceptions.py) inherits from
-`Camt053Error` and carries a stable, machine-readable `code`. These codes are
-part of the public API — they are guaranteed unique and will not change across
-releases — so you can switch on `exc.code` (e.g. to map a failure onto an HTTP
-status) without depending on the class name or message text.
+`Camt053Error` and carries a stable, machine-readable `code`, so callers can
+switch on `exc.code` rather than the class name or message text.
 
 | Code | Exception | Meaning |
-|------|-----------|---------|
+| :--- | :--- | :--- |
 | `CAMT053_ERROR` | `Camt053Error` | Base error for any Camt053 failure |
 | `ACCOUNT_VALIDATION_ERROR` | `AccountValidationError` | Account/input data failed validation |
 | `XML_GENERATION_ERROR` | `XMLGenerationError` | XML rendering or template failure |
@@ -321,47 +311,45 @@ status) without depending on the class name or message text.
 | `STATEMENT_PARSE_ERROR` | `StatementParseError` | An incoming statement could not be parsed |
 | `REVERSAL_GENERATION_ERROR` | `ReversalGenerationError` | A reversing entry could not be generated |
 
-```python
-from camt053 import services
-from camt053.exceptions import Camt053Error
+### Robustness
 
-try:
-    services.generate_reversal(statement_xml, reason_code="AC04")
-except Camt053Error as exc:
-    log.error("[%s] %s", exc.code, exc)
-```
+Malformed-but-recoverable statements degrade gracefully. Missing optional
+elements read as `None` or empty, unknown elements are ignored (children are
+matched by local name), and prefixed, missing or non-ISO namespaces parse the
+same way. Non-well-formed XML still raises `StatementParseError`, carrying the
+1-based source `line` (and column, where reported).
 
-## Robustness
+---
 
-The statement parser is built for the messy reality of inbound bank files:
-malformed-but-recoverable statements degrade gracefully rather than failing
-outright.
+## Configuration
 
-- **Missing optional elements** (owner name, currency, balances, booking date,
-  return reason, ...) read as `None` / empty — only the `<Document>` envelope
-  wrapping a recognised camt.05x container is mandatory.
-- **Unknown or extra elements** (vendor extensions, unexpected siblings) are
-  ignored: children are matched by local name, not by a fixed schema.
-- **Unexpected namespaces and prefixes** are tolerated — a prefixed
-  `<camt:Document>` root, a missing namespace, or a non-ISO namespace URI all
-  parse the same way.
+| Setting | Default | Effect |
+| :--- | :--- | :--- |
+| `CAMT053_MAX_BODY_BYTES` | `1048576` | REST API request-body cap; larger requests get HTTP 413 |
+| `CAMT053_LOG_FORMAT` | unset (logging untouched) | `json` or `text` structured logging |
+| `CAMT053_LOG_LEVEL` | `INFO` | Level used when `CAMT053_LOG_FORMAT` is set |
+| `guard_xml_payload(..., max_bytes=)` | `1048576` | Byte cap for the pre-parse XML guard, per call |
+| `generate_reversal(..., cleanse=)` | `False` | SWIFT X charset cleansing of the reversal |
 
-Genuinely non-well-formed XML (unclosed / mismatched tags, bad entities) still
-raises `StatementParseError`, which carries the 1-based source `line` (and
-column, where reported) so the offending byte can be located. See
-[`camt053/parse/statement_parser.py`](camt053/parse/statement_parser.py) for
-the documented recovery limits.
+OpenTelemetry is configured through its own standard environment variables
+(for example `OTEL_SERVICE_NAME`); camt053 emits spans and metrics only when
+the API is installed.
+
+---
 
 ## Examples
 
-Runnable, self-contained scripts live in [`examples/`](examples/):
+Twenty-seven runnable, self-contained scripts live in
+[`examples/`](examples/), indexed in [`examples/README.md`](examples/README.md)
+and executed in CI by `tests/test_examples.py`:
 
 | Example | Demonstrates |
-|---------|--------------|
-| [`reverse_ac04.py`](examples/reverse_ac04.py) | The headline workflow — find AC04 entries and generate the reversing entry |
+| :--- | :--- |
+| [`reverse_ac04.py`](examples/reverse_ac04.py) | The headline workflow: find AC04 entries and generate the reversing entry |
 | [`parse_statement.py`](examples/parse_statement.py) | Parsing a statement into the typed model |
 | [`services_facade.py`](examples/services_facade.py) | The shared `camt053.services` facade |
 | [`validate_identifiers.py`](examples/validate_identifiers.py) | IBAN / BIC / LEI validation |
+| [`check_cbpr_readiness.py`](examples/check_cbpr_readiness.py) | The CBPR+ November 2026 pre-flight |
 | [`rest_api_client.py`](examples/rest_api_client.py) | Driving the FastAPI REST API in-process |
 
 ```sh
@@ -369,134 +357,108 @@ git clone https://github.com/sebastienrousseau/camt053.git && cd camt053
 python examples/reverse_ac04.py
 ```
 
-## The camt053 suite
-
-`camt053` is the core of a set of independently installable packages
-— pick whichever ones your stack needs:
-
-| Package | Role |
-| :--- | :--- |
-| [`camt053`](https://pypi.org/project/camt053/) | **Core library + CLI + FastAPI REST API (this package)** |
-| [`camt053-mcp`](https://pypi.org/project/camt053-mcp/) | Model Context Protocol server (for AI agents) |
-| [`camt053-lsp`](https://pypi.org/project/camt053-lsp/) | Language Server Protocol server (for editors) |
-| [`camt053-writer-xlsx`](https://pypi.org/project/camt053-writer-xlsx/) | Excel `.xlsx` writer for parsed statements |
-| [`camt053-loader-mt940`](https://pypi.org/project/camt053-loader-mt940/) | SWIFT MT940 → camt.053 loader |
-
-The MCP, LSP, writer-xlsx, and loader-mt940 packages are thin wrappers
-over the shared `camt053.services` facade exported here, so every
-interface behaves identically.
+---
 
 ## When not to use camt053
 
-- **You need to generate payment files** (pain.001 Customer Credit
-  Transfer, pain.008 Direct Debit). Use
-  [`pain001`](https://github.com/sebastienrousseau/pain001) — the
-  sibling library for outbound ISO 20022.
+- **You need to generate payment files** (pain.001 credit transfers, pain.008
+  direct debits). Use [`pain001`](https://github.com/sebastienrousseau/pain001),
+  the sibling library for outbound ISO 20022.
 - **You need to parse pacs.\* (FI-to-FI) messages.** Out of scope; this
   library targets the camt.05x (Bank-to-Customer) family only.
-- **You need bank API transport** (PSD2, EBICS, SWIFTNet). camt053
-  reads files and emits files; it does not move them. Pair with a
-  dedicated transport library.
-- **You need a GUI.** This is a library + CLI + REST API; the closest
-  thing to a UI is the LSP server's in-editor diagnostics.
-- **You need real-time processing** (FedNow / TIPS / RTP). Those rails
-  use camt.052 intraday reporting, not camt.053 end-of-day statements;
-  the parser accepts camt.052 but the reversing-entry workflow is
-  camt.053-shaped.
+- **You need bank API transport** (PSD2, EBICS, SWIFTNet). camt053 reads
+  files and emits files; it does not move them.
+- **You need a GUI.** This is a library, CLI and REST API; the closest thing
+  to a UI is the LSP server's in-editor diagnostics.
+- **You need real-time processing** (FedNow / TIPS / RTP). Those rails use
+  camt.052 intraday reporting; the parser reads camt.052 but the
+  reversing-entry workflow is camt.053-shaped.
+- **You need authentication on the REST API.** There is none built in; put
+  an authenticating gateway in front.
+
+---
 
 ## Development
 
-**camt053** uses [Poetry](https://python-poetry.org/) and
-[mise](https://mise.jdx.dev/).
-
 ```bash
 git clone https://github.com/sebastienrousseau/camt053.git && cd camt053
-mise install
 poetry install
-poetry shell
+make check        # versions, lint, mypy strict, bandit, complexity, tests, examples
+make complexity   # per-function ceilings against complexity-baseline.json
+make demo         # re-render .github/demo.gif (needs vhs)
+python benches/bench_statement_pipeline.py --quick
 ```
 
-A `Makefile` orchestrates the quality gates (kept in lockstep with CI):
+`make check` runs ruff, black, mypy in strict mode, bandit, the complexity
+gate (cyclomatic 10, cognitive 15, Halstead difficulty 30, 60 lines per
+function, 500 per file, against a baseline that may only shrink), pytest with
+a 100% line and branch coverage gate, and the examples. CI also runs the test
+matrix (Linux, macOS, Windows × Python 3.10 to 3.14), pip-audit on the
+resolved environment and every hash-pinned requirements file, CodeQL, OpenSSF
+Scorecard, a Docker build, and ClusterFuzzLite: five minutes of fuzzing on
+every code change and 30 minutes weekly against `fuzz/fuzz_parser.py`. See
+[`DEVELOPMENT.md`](DEVELOPMENT.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-```bash
-make check        # all gates (REQUIRED before commit)
-make test         # pytest with coverage (100% gate)
-make lint         # ruff + black --check
-make type-check   # mypy --strict
-make examples     # run the example scripts
-```
+---
 
 ## Security
 
-`camt053` is the entry point for **untrusted XML from banks** for
-every consumer in the suite. Defence-in-depth is taken seriously:
-parsing uses `defusedxml` (XXE / billion-laughs neutralised), a
-pre-flight `xml_guard` enforces a configurable byte cap and refuses
-inline DOCTYPE / ENTITY declarations, and the REST API additionally
-caps request bodies via middleware. Reporting practice, supported
-versions, fix-window SLAs, and the full supply-chain posture (PyPI
-Trusted Publishing, sigstore attestations, signed tags) live in
-[`SECURITY.md`](SECURITY.md). Vulnerabilities go via GitHub Private
-Vulnerability Reporting, not public issues.
+`camt053` is the entry point for untrusted XML from banks for every consumer
+in the suite. Parsing uses `defusedxml` (XXE and billion-laughs neutralised),
+a pre-flight `xml_guard` enforces a byte cap and refuses inline DOCTYPE and
+ENTITY declarations, the REST API caps request bodies, and output paths are
+traversal-checked. Releases are published to PyPI by Trusted Publishing from a
+signed tag, with SLSA build provenance, PEP 740 attestations, sigstore
+signatures and CycloneDX and SPDX SBOMs. The parser is fuzzed by
+ClusterFuzzLite on every code change; it is not enrolled in OSS-Fuzz. The
+project holds the [OpenSSF Best Practices](https://www.bestpractices.dev/projects/13373)
+passing badge, and [`SECURITY.md`](SECURITY.md) maps the practices to NIST SSDF.
 
-## News / Releases
+Report vulnerabilities according to [`SECURITY.md`](SECURITY.md).
 
-- **2026-06-22 — [Shipping camt053 v0.0.6 for the 14-16 November 2026 ISO 20022 cliff](docs/posts/2026-06-22-shipping-camt053-v006-for-the-november-2026-cliff.md)** (v0.0.6 release announcement + Nov 2026 cliff narrative).
+---
 
 ## Documentation
 
-- [`README.md`](README.md) — this file
-- [`CHANGELOG.md`](CHANGELOG.md) — release notes
-- [`ROADMAP.md`](ROADMAP.md) — milestones and the explicit Declined/Deferred list
-- [`GOVERNANCE.md`](GOVERNANCE.md) — decision model + becoming a maintainer
-- [`SECURITY.md`](SECURITY.md) — disclosure + supported versions + supply chain + NIST SSDF mapping
-- [`SUPPORT.md`](SUPPORT.md) — how to get help, by need
-- [`MAINTAINERS.md`](MAINTAINERS.md) — who can merge and cut releases
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — submission process + style
-- [`STYLEGUIDE.md`](STYLEGUIDE.md) — cross-suite style guide (linked from every package README)
-- [`docs/quickstart.md`](docs/quickstart.md) — 10-minute install, validate, parse, reverse tutorial
-- [`docs/deployment-cookbook.md`](docs/deployment-cookbook.md) — Docker Compose / systemd / Kubernetes recipes for the REST API
-- [`docs/version-matrix.md`](docs/version-matrix.md) — supported `camt.05x` revisions with the Nov 2026 cliff
-- [`examples/`](examples/) — runnable scripts, exercised in CI
-- [`docs/`](docs/) — extended reference (API, quickstart, deployment cookbook)
-- Hosted Sphinx docs: <https://sebastienrousseau.github.io/camt053/>
+[User manual](https://sebastienrousseau.github.io/camt053/) ·
+[API reference](https://sebastienrousseau.github.io/camt053/api.html) ·
+[Developer guide](DEVELOPMENT.md) ·
+[Architecture](docs/ARCHITECTURE.md) ·
+[Family map](#the-camt053-ecosystem) ·
+[Quickstart](docs/quickstart.md) ·
+[Deployment cookbook](docs/deployment-cookbook.md) ·
+[Version matrix](docs/version-matrix.md) ·
+[Changelog](CHANGELOG.md) ·
+[Roadmap](ROADMAP.md) ·
+[Governance](GOVERNANCE.md) ·
+[Support](SUPPORT.md) ·
+[Style guide](STYLEGUIDE.md)
+
+---
+
+## Stability guarantees
+
+The project is pre-1.0 and versions advance in `0.0.1` steps, in lockstep
+with the rest of the suite. The breaking axis is the public Python API
+(`camt053`, `camt053.services`, `camt053.exceptions`), the CLI's commands and
+flags, the REST API routes, and the error `code` values, which are unique and
+never reused. Output is part of the contract: a change to the XML a reversal
+produces, the JSON shape of `parse` or `entries --format json`, or the CSV
+columns is breaking even when no signature moves, and is called out in the
+[changelog](CHANGELOG.md). The Python floor moves only as described in the
+[toolchain policy](docs/POLICIES.md).
+
+---
 
 ## License
 
-Licensed under the [Apache License, Version 2.0][01]. Any contribution submitted
-for inclusion shall be licensed as above, without additional terms.
+This project is dual-licensed under either:
 
-## Contributing
+* Apache License, Version 2.0 ([`LICENSE-APACHE`](LICENSE-APACHE) or <https://www.apache.org/licenses/LICENSE-2.0>)
+* MIT License ([`LICENSE-MIT`](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
 
-Contributions are welcome — see the [contributing instructions][04]. Thanks to
-all [contributors][05].
+at your option. Any contribution submitted for inclusion is licensed the same
+way, without additional terms. Dependencies keep their own licences; the
+bundled ISO 20022 XSDs are the published ISO 20022 schemas.
 
-## Acknowledgements
-
-Built on [Click](https://click.palletsprojects.com/),
-[Rich](https://rich.readthedocs.io/), [Jinja2](https://jinja.palletsprojects.com/),
-[xmlschema](https://github.com/sissaschool/xmlschema),
-[defusedxml](https://github.com/tiran/defusedxml), and
-[FastAPI](https://fastapi.tiangolo.com/), against the official ISO 20022
-`camt.05x` schemas.
-
-[01]: https://opensource.org/license/apache-2-0/
-[04]: https://github.com/sebastienrousseau/camt053/blob/main/CONTRIBUTING.md
-[05]: https://github.com/sebastienrousseau/camt053/graphs/contributors
-[07]: https://pypi.org/project/camt053/
-[mcp-pkg]: https://github.com/sebastienrousseau/camt053-mcp
-[lsp-pkg]: https://github.com/sebastienrousseau/camt053-lsp
 [release-latest]: https://github.com/sebastienrousseau/camt053/releases/latest
-[docs-badge]: https://img.shields.io/badge/Docs-GitHub%20Pages-blue?style=for-the-badge
-[docs-url]: https://sebastienrousseau.github.io/camt053/
-[license-badge]: https://img.shields.io/pypi/l/camt053?style=for-the-badge
-[pypi-badge]: https://img.shields.io/pypi/v/camt053?style=for-the-badge
-[python-versions-badge]: https://img.shields.io/pypi/pyversions/camt053.svg?style=for-the-badge
-[quality-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/camt053/ci.yml?branch=main&label=Quality&style=for-the-badge
-[quality-url]: https://github.com/sebastienrousseau/camt053/actions/workflows/ci.yml
-[scorecard-badge]: https://api.scorecard.dev/projects/github.com/sebastienrousseau/camt053/badge?style=for-the-badge
-[scorecard-url]: https://scorecard.dev/viewer/?uri=github.com/sebastienrousseau/camt053
-[bestpractices-badge]: https://www.bestpractices.dev/projects/13373/badge
-[bestpractices-url]: https://www.bestpractices.dev/projects/13373
-[tests-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/camt053/ci.yml?branch=main&label=Tests&style=for-the-badge
-[tests-url]: https://github.com/sebastienrousseau/camt053/actions/workflows/ci.yml
