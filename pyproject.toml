@@ -97,6 +97,10 @@ types-jsonschema = "^4.26.0.20260109"
 # pip GHSA-qwm4-qh6w-59xr (fixed in 26.2).
 urllib3 = ">=2.8.0"
 pip = ">=26.2"
+# starlette.testclient (behind fastapi.testclient in the API tests) warns
+# that driving it with httpx is deprecated and looks for httpx2 first.
+# httpx2 needs Python 3.11, so the 3.10 run keeps that one warning.
+httpx2 = {version = ">=2.15,<3", python = ">=3.11"}
 # The complexity gate (scripts/check_complexity.py) and its tests. Pinned
 # to the versions in requirements/complexity.txt, which the CI job uses,
 # so the metrics the tests see are the metrics the gate sees.
