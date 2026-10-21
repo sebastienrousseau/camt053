@@ -1,0 +1,4 @@
+# Complexity ceilings for the CI "complexity" job (scripts/check_complexity.py).
+# Compiled to complexity.txt with hashes via: make pip-compile
+radon==6.0.1
+complexipy==8.1.0

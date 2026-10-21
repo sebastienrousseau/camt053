@@ -11,4 +11,10 @@ defusedxml==0.7.1
 jinja2==3.1.6
 markupsafe==2.1.5
 jsonschema>=4.20,<4.27
-xmlschema>=3.4.0,<4.0.0
+xmlschema>=4.3.2,<5.0.0
+# Advisory floors (Dependabot alerts): soupsieve GHSA-gjv8-xp57-g29c and
+# GHSA-j934-xhv5-fg8f; urllib3 GHSA-vxq7-64xx-v4gw and GHSA-gh4c-6fx4-qh6g.
+soupsieve>=2.9
+urllib3>=2.8.0
+# certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
+certifi>=2026.10.19

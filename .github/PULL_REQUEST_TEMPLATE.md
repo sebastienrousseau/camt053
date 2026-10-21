@@ -1,36 +1,43 @@
 <!--
-Thank you for contributing to camt053! Please complete the checklist below.
-Use a Conventional Commit style title, e.g. "feat: add LEI validation".
+Keep these sections and their order; fill every line from real evidence.
+- Title: a Conventional Commit, e.g. "fix: keep the AC04 filter case-blind".
+- Open with two lines, each its own paragraph: line 1 begins "This PR " and
+  says what it does; line 2 says why it matters or the outcome.
+- Write it plainly. No em dash characters anywhere in the body; use commas,
+  colons, parentheses or a spaced hyphen. No tool-attribution footer.
+- Every commit is signed (SSH or GPG) and signed off (`git commit -s`).
 -->
 
-## Summary
+This PR <what it does, in one plain line>.
 
-Briefly describe what this PR changes and why.
+<Why it matters or the outcome, in one plain line.>
 
-## Linked Issue
+## Highlights ⭐️
 
-Closes #<!-- issue number -->
+* **<Headline>**: <one or two plain sentences on what changed for the user>.
+* **<Headline>**: <one or two plain sentences>.
 
-## Type of Change
+## What's Changed
 
-- [ ] Bug fix (`fix:`)
-- [ ] New feature (`feat:`)
-- [ ] Documentation (`docs:`)
-- [ ] Refactor / chore (no behaviour change)
+* `<commit subject>` by @<author>
 
-## Checklist
+<Optional: a few detail bullets naming files and the concrete change.
+Name the issues this closes ("Closes #123") and anything deferred, with
+the reason.>
 
-- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)
-- [ ] Linked to a tracking issue
-- [ ] All commits are signed (SSH or GPG)
-- [ ] Tests added or updated for the change
-- [ ] `poetry run pytest tests/` passes with **100% coverage**
-- [ ] `poetry run ruff check camt053/` passes
-- [ ] `poetry run black --check camt053/ tests/` passes
-- [ ] `poetry run mypy camt053/` passes (strict)
-- [ ] Documentation updated (README / CHANGELOG / docstrings) where relevant
-- [ ] CHANGELOG.md updated under the `Unreleased` section
+## Validation
 
-## Additional Notes
+* `make check`: <result, with numbers: tests passed, coverage %>.
+* `poetry run python scripts/check_complexity.py`: <result>.
+* `poetry build && twine check dist/*`: <result>.
 
-Anything reviewers should pay particular attention to.
+## Checksums
+
+SHA-256 of the artifacts produced by `poetry build` on this branch:
+
+```text
+<sha256>  dist/camt053-<version>-py3-none-any.whl
+<sha256>  dist/camt053-<version>.tar.gz
+```
+
+**Full Changelog**: https://github.com/sebastienrousseau/camt053/compare/<previous tag>...<this branch>

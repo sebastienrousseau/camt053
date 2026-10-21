@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "camt053"
-version = "0.0.20"
+version = "0.0.23"
 description = "Camt053 is a Python library for reading ISO 20022 camt Bank-to-Customer Statements (camt.053/052/054) and generating validated reversing entries by return reason code (e.g. AC04 Closed Account)."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0 OR MIT"
@@ -35,28 +35,59 @@ xmlschema = ">=4.3.2,<5.0.0"
 # than the pure-Python validator. Auto-detected — nothing changes if it
 # is absent, and it can never turn a rejected document into an accepted
 # one.
-lxml = {version = ">=5.0,<7", optional = true}
-cryptography = ">=48.0.1,<51.0.0"
+# The floor is GHSA-vfmq-68hx-4jfw (iterparse and ETCompatXMLParser
+# defaults, fixed in 6.1.0).
+lxml = {version = ">=6.1.0,<7", optional = true}
 jsonschema = ">=4.20,<4.27"
-fastapi = ">=0.95"
-uvicorn = {version = ">=0.20", extras = ["standard"]}
-httpx = ">=0.23"
+# The REST API. fastapi's floor is PYSEC-2024-38 (fixed in 0.109.1);
+# camt053.api imports starlette and pydantic directly, so both are
+# declared, floored at GHSA-82w8-qh3p-5jfq (starlette 1.3.1, which also
+# clears GHSA-86qp-5c8j-p5mr and GHSA-jp82-jpqv-5vv3) and
+# GHSA-mr82-8j83-vxmv (pydantic 2.4.0).
+fastapi = ">=0.109.1,<1"
+starlette = ">=1.3.1,<2"
+pydantic = ">=2.4.0,<3"
+uvicorn = {version = ">=0.20,<1", extras = ["standard"]}
+httpx = ">=0.23,<1"
+# Advisory floors, not feature requirements. Each package arrives only
+# through the web stack above, whose own ranges still admit releases
+# with a published advisory; declaring the floor here keeps an affected
+# version from resolving for anyone who installs camt053.
+# - anyio: GHSA-82r6-8w77-94w6 (critical, TLS host name spoofing),
+#   GHSA-3w57-8xmc-8v26 and GHSA-5p39-cfhj-2xmp, fixed in 4.14.2.
+# - cryptography: GHSA-g6cj-pr64-35w5 (PKCS#7 Bleichenbacher oracle),
+#   GHSA-jwv3-5hgf-82ww and GHSA-m2h6-j472-rp4c, fixed in 50.0.0.
+# - h11: GHSA-vqfr-h8mv-ghfj (request smuggling), fixed in 0.16.0.
+# - idna: GHSA-65pc-fj4g-8rjx, fixed in 3.15.
+# - python-dotenv: GHSA-mf9w-mj56-hr94, fixed in 1.2.2 (uvicorn[standard]).
+# - pyyaml: GHSA-8q59-q68h-6hv4, fixed in 5.4 (uvicorn[standard]).
+# - certifi: GHSA-248v-346w-9cwc (distrusted root), fixed in 2024.7.4;
+#   GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3, compromised
+#   intermediates), fixed in 2026.10.19.
+#   certifi is calendar-versioned and must stay current, so it is the
+#   one runtime range without an upper bound.
+anyio = ">=4.14.2,<5"
+cryptography = ">=50.0.0,<51.0.0"
+h11 = ">=0.16.0,<1"
+idna = ">=3.15,<4"
+python-dotenv = ">=1.2.2,<2"
+pyyaml = ">=5.4,<7"
+certifi = ">=2026.10.19"
 # Note: jsonschema is held at >=4.20 so the core library is co-installable with
 # the camt053-mcp companion package (which requires the MCP SDK / jsonschema>=4.20).
 
 # Optional: OpenTelemetry tracing + metrics. Off by default; install via
 # ``pip install camt053[telemetry]``. The library gracefully degrades to
 # a zero-overhead no-op when the API is absent.
-opentelemetry-api = {version = ">=1.20", optional = true}
+opentelemetry-api = {version = ">=1.20,<2", optional = true}
 
 [tool.poetry.extras]
 fast = ["lxml"]
 telemetry = ["opentelemetry-api"]
 
 [tool.poetry.group.dev.dependencies]
-# Required by scripts/check_suite_consistency.py, which imports it at
-# module scope so a missing install fails loudly instead of silently
-# disabling the floor rule.
+# Required by the suite conformance and requirements drift tests, which
+# parse requirement and version strings with it.
 packaging = ">=23"
 # So scripts/preflight_release.py can actually run its audit. Without it
 # the pre-flight correctly refuses to audit (rather than auditing some
@@ -64,7 +95,7 @@ packaging = ">=23"
 # means the check never runs locally. CI installs its own hash-pinned
 # copy; this is for the pre-flight.
 pip-audit = ">=2.7"
-lxml = ">=5.0,<7"
+lxml = ">=6.1.0,<7"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
 pytest-benchmark = ">=5.0.0,<6.0.0"
@@ -72,11 +103,11 @@ pytest-xdist = ">=3.6.0,<4.0.0"
 interrogate = "^1.7"
 black = "^26.3.1"
 flake8 = "^7.0.0"
-isort = ">=5.13,<9.0"
+isort = ">=5.13,<10.0"
 mypy = ">=1.11,<3.0"
 pylint = ">=3,<5"
 bandit = "^1.7.0"
-ruff = ">=0.1,<0.17"
+ruff = ">=0.1,<0.18"
 types-defusedxml = "^0.7.0"
 types-setuptools = ">=65,<85"
 hypothesis = "^6.0.0"
@@ -86,6 +117,21 @@ sphinx-rtd-theme = ">=1,<4"
 sphinx-autodoc-typehints = ">=1,<4"
 twine = ">=6.2.0,<8"
 types-jsonschema = "^4.26.0.20260109"
+# Advisory floors for tools that arrive transitively (twine and
+# requests, pip-audit). They keep an affected version from resolving:
+# urllib3 GHSA-vxq7-64xx-v4gw and GHSA-gh4c-6fx4-qh6g (fixed in 2.8.0),
+# pip GHSA-qwm4-qh6w-59xr (fixed in 26.2).
+urllib3 = ">=2.8.0"
+pip = ">=26.2"
+# starlette.testclient (behind fastapi.testclient in the API tests) warns
+# that driving it with httpx is deprecated and looks for httpx2 first.
+# httpx2 needs Python 3.11, so the 3.10 run keeps that one warning.
+httpx2 = {version = ">=2.15,<3", python = ">=3.11"}
+# The complexity gate (scripts/check_complexity.py) and its tests. Pinned
+# to the versions in requirements/complexity.txt, which the CI job uses,
+# so the metrics the tests see are the metrics the gate sees.
+radon = "6.0.1"
+complexipy = {version = "8.1.0", python = "<3.16"}
 
 [tool.poetry.group.docs]
 optional = true
@@ -96,6 +142,10 @@ pydata-sphinx-theme = ">=0.15,<0.20"
 sphinx-autodoc-typehints = ">=1,<4"
 sphinx-design = "^0.6.0"
 myst-parser = ">=2,<5"
+# Advisory floor: soupsieve arrives through pydata-sphinx-theme's
+# beautifulsoup4; releases before 2.9 carry GHSA-gjv8-xp57-g29c and
+# GHSA-j934-xhv5-fg8f (polynomial-time ReDoS).
+soupsieve = ">=2.9"
 
 [build-system]
 requires = ["poetry-core"]

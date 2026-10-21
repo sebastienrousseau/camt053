@@ -166,3 +166,46 @@ def test_services_parse_statement_re_raises_underlying_exceptions():
 def test_services_exports_telemetry_module():
     """The telemetry module is reachable via the services facade."""
     assert services.telemetry is telemetry
+
+
+@pytest.fixture
+def _without_otel(monkeypatch):
+    """Take the no-op path even where the OpenTelemetry API is installed.
+
+    fastapi 0.142 and later depend on ``opentelemetry-api``, so it is now
+    present in every environment that installs camt053's runtime deps.
+    These tests pin the no-op stubs a ``pip install camt053`` without
+    that dependency would still get.
+    """
+    monkeypatch.setattr(telemetry, "_OTEL_AVAILABLE", False)
+
+
+@pytest.mark.usefixtures("_without_otel")
+def test_no_op_path_reports_telemetry_unavailable():
+    """With the API absent the module says so and hands out stubs."""
+    assert telemetry.is_telemetry_available() is False
+    assert isinstance(telemetry.get_tracer(), telemetry._NoopTracer)
+    assert isinstance(telemetry.get_meter(), telemetry._NoopMeter)
+
+
+@pytest.mark.usefixtures("_without_otel")
+def test_no_op_path_records_without_raising():
+    """Every recording helper is a silent no-op without the API."""
+    telemetry.record_request("parse")
+    telemetry.record_error("parse", "StatementParseError")
+    telemetry.record_duration("parse", 0.01)
+    with telemetry.measure("parse") as span:
+        assert isinstance(span, telemetry._NoopSpan)
+
+
+@pytest.mark.usefixtures("_without_otel")
+def test_no_op_path_re_raises_from_measure():
+    """``measure`` still re-raises unchanged on the no-op path."""
+    with pytest.raises(ValueError, match="boom"):
+        with telemetry.measure("parse"):
+            raise ValueError("boom")
+
+
+def test_import_otel_returns_none_for_a_missing_module():
+    """An absent OpenTelemetry submodule is ``None``, never an error."""
+    assert telemetry._import_otel("no_such_submodule") is None

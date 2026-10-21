@@ -65,8 +65,10 @@ shapes that the camt053 service facade emits use redacted forms
 
 from __future__ import annotations
 
+import importlib
 import time
 from contextlib import contextmanager
+from types import ModuleType
 from typing import Any
 
 from camt053.logging import redact_value
@@ -101,15 +103,22 @@ METRIC_DURATION = "camt053_duration_seconds"
 # Try to import the OpenTelemetry API. Absent → use no-op stubs so
 # callers do not need ``if`` guards. The runtime cost when absent is
 # a one-time ImportError caught here at module load.
-try:  # pragma: no cover - exercised by both branches in CI
-    from opentelemetry import metrics as _otel_metrics
-    from opentelemetry import trace as _otel_trace
+def _import_otel(submodule: str) -> ModuleType | None:
+    """Return ``opentelemetry.<submodule>``, or ``None`` when absent.
 
-    _OTEL_AVAILABLE = True
-except ImportError:  # pragma: no cover - depends on install extras
-    _otel_trace = None
-    _otel_metrics = None
-    _OTEL_AVAILABLE = False
+    Imported by name rather than with ``from opentelemetry import``, so
+    the module-level name has one type, ``ModuleType | None``, whether
+    or not the API is installed where the type checker runs.
+    """
+    try:
+        return importlib.import_module(f"opentelemetry.{submodule}")
+    except ImportError:
+        return None
+
+
+_otel_trace = _import_otel("trace")
+_otel_metrics = _import_otel("metrics")
+_OTEL_AVAILABLE = _otel_trace is not None and _otel_metrics is not None
 
 
 def is_telemetry_available() -> bool:
@@ -188,7 +197,7 @@ def get_tracer() -> Any:
     ``Tracer`` instance unless :func:`is_telemetry_available` is
     ``True``.
     """
-    if not _OTEL_AVAILABLE:
+    if not _OTEL_AVAILABLE or _otel_trace is None:
         return _NoopTracer()
     return _otel_trace.get_tracer(  # pragma: no cover - OTel-only branch
         "camt053"
@@ -201,7 +210,7 @@ def get_meter() -> Any:
     Same contract as :func:`get_tracer`: stable subset, idempotent,
     cheap.
     """
-    if not _OTEL_AVAILABLE:
+    if not _OTEL_AVAILABLE or _otel_metrics is None:
         return _NoopMeter()
     return _otel_metrics.get_meter(  # pragma: no cover - OTel-only branch
         "camt053"

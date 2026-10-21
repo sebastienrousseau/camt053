@@ -14,12 +14,16 @@ deliberate difference they need to understand.
 Versions advance in ``0.0.1`` steps and stay on the ``0.0.x`` line;
 ``0.1.0`` follows ``0.0.999``, not ``0.0.16``.
 
-Two rules follow, and both are checked by
-``scripts/check_suite_consistency.py``:
+Two rules follow:
 
-1. Every member's published version must equal the core's.
-2. Every member's declared ``camt053`` floor must be a version that
-   actually exists, or the combination is uninstallable.
+1. Every member's published version must equal the core's, and a
+   member's tree must not carry a version it never published. Both are
+   checked daily by ``scripts/check_suite_consistency.py``, one shared
+   copy in every member.
+2. Every member's declared ``camt053`` floor is the newest released
+   core, raised in the same release. A floor on a core that was never
+   published cannot resolve, so the member's own CI install fails
+   before such a release could be built.
 
 Rule 2 is not hypothetical here. Every satellite declared
 ``camt053>=0.0.6`` while the core was at ``0.0.15`` -- resolvable, but

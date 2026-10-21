@@ -5,6 +5,87 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.23] - 2026-10-20
+
+Released with the whole camt053 suite at 0.0.23, core first. The suite
+skips 0.0.21 and 0.0.22 because `camt053-mcp` had already published
+0.0.22 on its own; every member now ships 0.0.23 together.
+
+### Security
+
+- Every open Dependabot alert is constrained so no affected version can
+  resolve: `anyio>=4.14.2` as a runtime dependency (GHSA-82r6-8w77-94w6,
+  critical, plus GHSA-3w57-8xmc-8v26 and GHSA-5p39-cfhj-2xmp); and in the
+  dev and tool sets `urllib3>=2.8.0` (GHSA-vxq7-64xx-v4gw,
+  GHSA-gh4c-6fx4-qh6g), `soupsieve>=2.9` (GHSA-gjv8-xp57-g29c,
+  GHSA-j934-xhv5-fg8f), `pip>=26.2` (GHSA-qwm4-qh6w-59xr) and
+  `dulwich>=1.2.9` (five advisories).
+- `virtualenv>=21.7.13` in `requirements/build.in`, for four advisories
+  pip-audit found that no Dependabot alert covered (PYSEC-2026-4011 to
+  -4014).
+- The dependency audit job now fails on a finding instead of reporting
+  it, and also audits every hash-pinned `requirements/*.txt`.
+- The declared runtime ranges admit no release with a published
+  advisory, which the lock alone does not prove for anyone installing
+  camt053: `cryptography>=50.0.0` (GHSA-g6cj-pr64-35w5,
+  GHSA-jwv3-5hgf-82ww, GHSA-m2h6-j472-rp4c), `fastapi>=0.109.1`
+  (PYSEC-2024-38), `lxml>=6.1.0` for the `fast` extra
+  (GHSA-vfmq-68hx-4jfw), and new floors for packages the web stack
+  pulls in: `starlette>=1.3.1` (GHSA-82w8-qh3p-5jfq and two more),
+  `pydantic>=2.4.0`, `h11>=0.16.0`, `idna>=3.15`, `python-dotenv>=1.2.2`,
+  `pyyaml>=5.4` and `certifi>=2026.10.19` (GHSA-6q48-6c7w-9gw2). `tests/test_advisory_floors.py`
+  holds each floor, and every runtime range except `certifi` now has an
+  upper bound.
+
+### Changed
+
+- Dependencies refreshed (Dependabot #165, #166, #167, #170, #171, #172,
+  #180, #181, #182, #185): `fastapi` 0.156.1, `click` 8.5.0,
+  `cryptography` 50.0.2, `uvicorn` 0.54.0, `lxml` 6.1.3, `black`
+  26.10.1, `ruff` 0.17.1, `isort` 9.0.2, `mypy` 2.4.0, `poetry` 2.5.1,
+  `starlette` 1.9.0 (1.7.0 on Python 3.10); `httpx2` joins the dev
+  group so the API tests' TestClient stops warning.
+  `fastapi` 0.142 and later depend on `opentelemetry-api`, so the
+  OpenTelemetry API is now installed with camt053's runtime dependencies
+  and telemetry is active wherever an SDK is configured.
+- GitHub Actions bumped (#186) and the ClusterFuzzLite base image moved
+  to the current digest (#183).
+- **Suite Consistency** uses the shared script every member carries. It
+  now also fails when the tree carries a version that was never
+  published, needs no third-party install, and its workflow has
+  SHA-pinned actions and no issue-write permission. It had failed every
+  run since 2026-08-21 without opening its drift issue, because the
+  `chore` label it applied does not exist.
+- A **Complexity ceilings** CI job holds every function to cyclomatic 10,
+  cognitive 15, Halstead difficulty 30 and 60 lines (500 per file)
+  against `complexity-baseline.json`, which can only shrink
+  (`make complexity`).
+- `scripts/verify_versions.py` checks every version source (pyproject,
+  `__version__`, `constants.VERSION`, the CHANGELOG, `CITATION.cff`, the
+  README's latest-release line, `SECURITY.md`) in CI and in `make check`.
+- GitHub releases are created titled `camt053 <version>` rather than the
+  bare tag.
+- README follows the family template, with the badge row, a rendered
+  demo (`make demo`), and `DEVELOPMENT.md`, `AGENTS.md`, `CITATION.cff`,
+  `docs/ARCHITECTURE.md`, `docs/POLICIES.md`, `docs/BENCHMARKS.md` and
+  `docs/COMPARISON.md` added. The PR template follows the family's PR
+  format.
+
+### Fixed
+
+- The docs build and the ClusterFuzzLite build installed `xmlschema`
+  3.4.5 although the package requires `>=4.3.2` since 0.0.17; both
+  requirement sets now follow `pyproject.toml`, and
+  `tests/test_requirements_drift.py` fails if a pinned runtime
+  dependency leaves the declared range again.
+- `camt053.telemetry` type-checks and stays fully covered whether or not
+  the OpenTelemetry API is installed.
+- The Sphinx manual reported version 0.0.5; it now reads the version from
+  `pyproject.toml`.
+- `CONTRIBUTING.md`, `GOVERNANCE.md` and the README said the project is
+  Apache-2.0 only; it is Apache-2.0 OR MIT. `SECURITY.md` listed 0.0.15
+  as the supported release.
+
 ## [0.0.20] - 2026-08-29
 
 Aligns the `camt053` suite on one version number.
@@ -637,6 +718,14 @@ handling or reversal generation.
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[0.0.23]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.23
+[0.0.20]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.20
+[0.0.18]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.18
+[0.0.17]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.17
+[0.0.16]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.16
+[0.0.15]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.15
+[0.0.14]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.14
+[0.0.13]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.13
 [0.0.9]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.9
 [0.0.8]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.8
 [0.0.7]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.7

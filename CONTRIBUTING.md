@@ -64,10 +64,12 @@ pip install poetry
    poetry run black --check camt053/ tests/
    poetry run mypy camt053/
    ```
-6. **Sign and commit** (see [Commit Signing](#commit-signing-required)):
+6. **Sign, sign off and commit** (see [Commit Signing](#commit-signing-required)):
    ```bash
-   git commit -S -m "feat: add my feature"
+   git commit -S -s -m "feat: add my feature"
    ```
+   `-s` adds your `Signed-off-by:` line, which certifies the
+   [Developer Certificate of Origin](https://developercertificate.org/).
 7. **Push** and open a pull request against `main`, filling in the PR template
 
 ## Branch Protection
@@ -210,12 +212,17 @@ blocking a merge.
 
 ## Pull Request Checklist
 
-The PR template captures this checklist; the essentials are:
+The PR template sets the description's shape: two opening lines (what the
+PR does, then why it matters), Highlights, What's Changed, Validation with
+the commands you ran and their results, and the SHA-256 of the built
+distributions. Before opening one:
 
-- [ ] All tests pass (`poetry run pytest`)
+- [ ] `make check` passes: version sources, lint, types, security,
+      complexity, tests and examples
 - [ ] Coverage remains at **100%**
-- [ ] Linters and type checks pass (`ruff check`, `black --check`, `mypy`)
-- [ ] Commits are signed (SSH or GPG)
+- [ ] No function or file is newly over a complexity ceiling
+      (`make complexity`; the baseline may only shrink)
+- [ ] Commits are signed (SSH or GPG) and signed off (`git commit -s`)
 - [ ] PR title follows conventional commit format
 - [ ] PR is linked to a tracking issue
 - [ ] All review conversations are resolved
@@ -225,4 +232,6 @@ The PR template captures this checklist; the essentials are:
 ## License
 
 By contributing, you agree that your contributions will be licensed under
-the [Apache License 2.0](LICENSE).
+the same terms as the project: Apache-2.0 OR MIT, at the user's option
+(see [`LICENSE`](LICENSE), [`LICENSE-APACHE`](LICENSE-APACHE) and
+[`LICENSE-MIT`](LICENSE-MIT)).

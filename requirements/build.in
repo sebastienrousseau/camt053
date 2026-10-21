@@ -2,3 +2,18 @@
 # only needs Poetry to drive `poetry install` / `poetry run`.
 poetry
 twine
+# Advisory floors (Dependabot alerts) for Poetry's transitive deps:
+# dulwich GHSA-8mcx-5rqc-vhmf, GHSA-35mr-4567-66vg, GHSA-cm62-gvxx-vmxx,
+# GHSA-8w8g-wq8h-fq33 and GHSA-5fqc-mrg8-w798; urllib3 GHSA-vxq7-64xx-v4gw
+# and GHSA-gh4c-6fx4-qh6g; anyio GHSA-82r6-8w77-94w6, GHSA-3w57-8xmc-8v26
+# and GHSA-5p39-cfhj-2xmp.
+dulwich>=1.2.9
+urllib3>=2.8.0
+anyio>=4.14.2
+# virtualenv (Poetry's environment builder), found by pip-audit:
+# PYSEC-2026-4011 (GHSA-94p9-xgh2-xp45), PYSEC-2026-4012
+# (GHSA-9h9j-4vrj-gf7g), PYSEC-2026-4013 (GHSA-p58f-9548-mpm2) and
+# PYSEC-2026-4014 (GHSA-x78j-v8h9-3j2q), all fixed by 21.7.13.
+virtualenv>=21.7.13
+# certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
+certifi>=2026.10.19

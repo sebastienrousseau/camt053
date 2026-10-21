@@ -91,7 +91,7 @@ applies to anything touching the public API.
 
 ## Forks
 
-The project is Apache-2.0 licensed; forks are explicitly welcome. The
+The project is licensed Apache-2.0 OR MIT; forks are explicitly welcome. The
 governance and naming requirements:
 
 - Do not market a fork as the upstream `camt053` (`pip install camt053`
@@ -104,8 +104,9 @@ governance and naming requirements:
 
 `camt053` and its suite are currently unfunded volunteer work. The lead
 maintainer holds copyright on the original code; contributions are licensed
-under Apache-2.0 per the inbound = outbound rule (no CLA, no DCO required
-today, though both may be added if the project grows).
+under Apache-2.0 OR MIT per the inbound = outbound rule. There is no CLA;
+each commit carries a Developer Certificate of Origin sign-off
+(`git commit -s`).
 
 ## Updating this document
 

@@ -1,0 +1,69 @@
+{
+  "camt053/audit.py::verify_chain": {
+    "lines": 69
+  },
+  "camt053/cli/cli.py": {
+    "file_lines": 606
+  },
+  "camt053/cli/cli.py::entries": {
+    "cyclomatic": 16,
+    "lines": 78
+  },
+  "camt053/compliance/cbpr_readiness.py::check_cbpr_readiness": {
+    "lines": 87
+  },
+  "camt053/logging.py::redact_value": {
+    "cognitive": 19,
+    "cyclomatic": 17
+  },
+  "camt053/parse/statement_parser.py": {
+    "file_lines": 592
+  },
+  "camt053/parse/statement_parser.py::_parse_transaction_details": {
+    "cognitive": 25
+  },
+  "camt053/parse/statement_parser.py::parse_document": {
+    "lines": 74
+  },
+  "camt053/parse/statement_parser.py::parse_document_lenient": {
+    "cyclomatic": 13,
+    "lines": 104
+  },
+  "camt053/reversal/reversal.py::build_reversal_record": {
+    "cognitive": 24,
+    "cyclomatic": 41,
+    "lines": 86
+  },
+  "camt053/schema_version.py::validate_schema_version": {
+    "lines": 62
+  },
+  "camt053/services.py": {
+    "file_lines": 1014
+  },
+  "camt053/services.py::filter_entries": {
+    "cognitive": 42,
+    "lines": 71
+  },
+  "camt053/services.py::filter_entries.matches": {
+    "cyclomatic": 24
+  },
+  "camt053/services.py::generate_reversal": {
+    "lines": 67
+  },
+  "camt053/validation/bic_validator.py::validate_bic_format": {
+    "cyclomatic": 14,
+    "lines": 76
+  },
+  "camt053/validation/iban_validator.py::validate_iban_format": {
+    "cyclomatic": 11,
+    "lines": 69
+  },
+  "camt053/xml/serialize_statement.py::_statement_context": {
+    "cyclomatic": 14
+  },
+  "scripts/preflight_release.py::main": {
+    "cognitive": 22,
+    "cyclomatic": 14,
+    "lines": 158
+  }
+}
