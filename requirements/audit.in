@@ -6,3 +6,7 @@ pip>=26.2
 urllib3>=2.8.0
 # certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
 certifi>=2026.10.19
+# filelock <= 4.2.0 (via pip-audit's cachecontrol): GHSA-9vhv-jxww-xfm5,
+# GHSA-567q-5qvw-pf92 and GHSA-v4x8-3wr5-3wq8; 4.2.1 needs Python 3.11.
+# The audit job runs on 3.12, so this is compiled for 3.12.
+filelock>=4.2.1

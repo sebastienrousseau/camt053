@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- The Poetry toolchain (`requirements/build.txt`) and the audit job's
+  tree (`requirements/audit.txt`) floor `filelock >= 4.2.1`
+  (GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92, GHSA-v4x8-3wr5-3wq8; they
+  pinned 3.29.4), and `build.txt` floors `virtualenv >= 21.14.13`
+  (GHSA-cx6f-vjhg-g3cc; it pinned 21.14.11). filelock 4.2.1 needs
+  Python 3.11, so both are compiled for 3.12, and the test job runs
+  Poetry on 3.12 while the project runs on the matrix Python through
+  `poetry env use`.
+- The dev group installs `pip-audit` only on Python 3.11 and later, with
+  `filelock >= 4.2.1`: its cachecontrol needs filelock, which has no
+  fixed release for 3.10. `poetry.lock` moves filelock 3.32.3 to 4.2.4.
+  On 3.10 the release pre-flight reports pip-audit as not installed.
+
 ## [0.0.23] - 2026-10-20
 
 Released with the whole camt053 suite at 0.0.23, core first. The suite
@@ -718,6 +735,7 @@ handling or reversal generation.
   reversing-entry data with diagnostics, completion, and hover
   (Python 3.10+)
 
+[Unreleased]: https://github.com/sebastienrousseau/camt053/compare/v0.0.23...HEAD
 [0.0.23]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.23
 [0.0.20]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.20
 [0.0.18]: https://github.com/sebastienrousseau/camt053/releases/tag/v0.0.18

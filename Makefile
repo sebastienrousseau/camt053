@@ -46,9 +46,15 @@ verify-versions: ## Check every version source names the pyproject version
 pip-compile: ## Regenerate hash-pinned requirements/*.txt from requirements/*.in
 	@command -v uv >/dev/null || { echo "uv is required: https://docs.astral.sh/uv/"; exit 1; }
 	@for f in requirements/*.in; do \
+		case "$$f" in requirements/build.in|requirements/audit.in) continue;; esac; \
 		echo "compiling $$f"; \
 		uv pip compile --quiet --generate-hashes --universal \
 			--python-version 3.10 "$$f" -o "$${f%.in}.txt"; \
+	done
+	@for f in requirements/build.in requirements/audit.in; do \
+		echo "compiling $$f (3.12, the toolchain's Python: filelock 4.2.1 needs 3.11)"; \
+		uv pip compile --quiet --generate-hashes --universal \
+			--python-version 3.12 "$$f" -o "$${f%.in}.txt"; \
 	done
 
 demo: ## Render .github/demo.gif from .github/demo.tape (needs vhs)

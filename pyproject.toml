@@ -93,8 +93,12 @@ packaging = ">=23"
 # the pre-flight correctly refuses to audit (rather than auditing some
 # other environment that happens to have pip-audit on PATH), but that
 # means the check never runs locally. CI installs its own hash-pinned
-# copy; this is for the pre-flight.
-pip-audit = ">=2.7"
+# copy; this is for the pre-flight. Not on 3.10: its cachecontrol needs
+# filelock, which has no release fixed for GHSA-9vhv-jxww-xfm5,
+# GHSA-567q-5qvw-pf92 and GHSA-v4x8-3wr5-3wq8 there (4.2.1 needs 3.11); on
+# 3.10 the pre-flight says pip-audit is not installed and skips the audit.
+pip-audit = {version = ">=2.7", python = ">=3.11"}
+filelock = {version = ">=4.2.1", python = ">=3.11"}
 lxml = ">=6.1.0,<7"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
