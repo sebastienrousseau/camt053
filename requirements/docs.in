@@ -9,7 +9,7 @@ sphinx-design>=0.6.0,<0.7.0
 myst-parser>=2,<4
 defusedxml==0.7.1
 jinja2==3.1.6
-markupsafe==2.1.5
+markupsafe==3.0.4
 jsonschema>=4.20,<4.27
 xmlschema>=4.3.2,<5.0.0
 # Advisory floors (Dependabot alerts): soupsieve GHSA-gjv8-xp57-g29c and
