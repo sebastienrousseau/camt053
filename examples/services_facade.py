@@ -2,7 +2,7 @@
 """Example: the shared service facade.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/services_facade.py
 
 The same `camt053.services` functions back the CLI, REST API, MCP server, and

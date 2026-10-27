@@ -2,7 +2,7 @@
 """Example: ISO 4217 currency validation and minor-unit lookup.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/validate_currencies.py
 
 Amount handling needs two facts per currency: is the code a real ISO 4217

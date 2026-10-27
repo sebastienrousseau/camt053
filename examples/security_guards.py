@@ -2,7 +2,7 @@
 """Example: the security guards for untrusted XML, paths, and log fields.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/security_guards.py
 
 Three defence layers from ``camt053.security``: ``guard_xml_payload``

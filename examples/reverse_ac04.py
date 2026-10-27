@@ -2,7 +2,7 @@
 """Example: the headline workflow -- reverse AC04 (Closed Account) entries.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/reverse_ac04.py
 
 Reads an incoming camt.053 Bank-to-Customer Statement, finds the booked entries

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import dataclasses
+from datetime import UTC
 from unittest import mock
 
 import pytest
@@ -73,6 +74,13 @@ class TestProfileSeverity:
             "info",
         }
 
+    def test_str_and_format_give_the_wire_value(self) -> None:
+        # A StrEnum: printing or formatting a severity gives the same
+        # string the wire format carries, not "ProfileSeverity.ERROR".
+        assert str(ProfileSeverity.ERROR) == "error"
+        assert f"{ProfileSeverity.WARNING}" == "warning"
+        assert ProfileSeverity.INFO == "info"
+
 
 class TestProfileFinding:
     """ProfileFinding shape + JSON round-trip."""
@@ -130,11 +138,9 @@ class TestProfileV02:
 
     def test_post_cutover_adds_error(self) -> None:
         with mock.patch("camt053.profiles.v02.datetime") as mock_dt:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
-            mock_dt.now.return_value = datetime(
-                2027, 1, 1, tzinfo=timezone.utc
-            )
+            mock_dt.now.return_value = datetime(2027, 1, 1, tzinfo=UTC)
             findings = Profile_v02().validate(_wrap(_NS["02"]))
         codes = [f.code for f in findings]
         assert "CAMT.SCHEMA.POST_CUTOVER" in codes

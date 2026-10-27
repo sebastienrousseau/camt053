@@ -36,7 +36,7 @@ Four developer-facing surfaces sit on top of one shared service layer
 * **LSP server** — a Language Server (``camt053-lsp``) providing diagnostics,
   completion, and hover for reversing-entry data files in editors.
 
-The MCP and LSP servers ship as companion packages (Python 3.10+):
+The MCP and LSP servers ship as companion packages (Python 3.11+):
 
 .. code-block:: sh
 

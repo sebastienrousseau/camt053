@@ -29,7 +29,7 @@ profiles.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from camt053.compliance.cbpr_readiness import CBPR_CUTOVER_DATE
 from camt053.profiles._xml import parse_xml
@@ -70,7 +70,7 @@ class Profile_v02(SchemaProfile):
             )
         ]
 
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         if today >= CBPR_CUTOVER_DATE:
             findings.append(
                 ProfileFinding(

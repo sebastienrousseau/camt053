@@ -21,7 +21,7 @@ environment.
 
 Every recipe assumes:
 
-- Python 3.12 (3.10 / 3.11 also supported).
+- Python 3.12 (3.11, 3.13 and 3.14 also supported).
 - The REST API is `camt053.api.app:app` (a FastAPI ASGI app).
 - TLS terminates at a reverse proxy (nginx, Cloud Load Balancer,
   ingress controller). The API itself runs HTTP on a local

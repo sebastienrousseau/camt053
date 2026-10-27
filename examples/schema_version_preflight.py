@@ -2,7 +2,7 @@
 """Example: schema-version detection, classification, and XSD pre-flight.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/schema_version_preflight.py
 
 Before processing an incoming payload, detect which camt.05x revision it

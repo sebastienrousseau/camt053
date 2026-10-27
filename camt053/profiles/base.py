@@ -19,11 +19,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ProfileSeverity(str, Enum):
+class ProfileSeverity(StrEnum):
     """Severity buckets a profile finding can land in.
 
     The string values are stable and used as the wire format

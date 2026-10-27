@@ -2,7 +2,7 @@
 """Example: ISO return reason codes and handling policies.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/reason_code_policies.py
 
 The ``camt053.parse.reason_codes`` catalogue maps every known ISO external

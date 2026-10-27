@@ -270,7 +270,7 @@ push and pull request:
      - Matrix
      - Actions
    * - **test**
-     - 3 OS (ubuntu, macos, windows) x 4 Python (3.9, 3.10, 3.11, 3.12)
+     - 3 OS (ubuntu, macos, windows) x 4 Python (3.11, 3.12, 3.13, 3.14)
      - Install dependencies, run full test suite with coverage, upload
        coverage to Codecov (Python 3.12 / ubuntu only)
    * - **smoke**

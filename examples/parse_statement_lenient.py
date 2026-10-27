@@ -2,7 +2,7 @@
 """Example: partial-batch lenient parsing (v0.0.6 B4).
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/parse_statement_lenient.py
 
 The strict parser refuses the entire payload if any entry is

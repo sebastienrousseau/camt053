@@ -2,7 +2,7 @@
 """Example: validate financial identifiers (IBAN, BIC, LEI).
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/validate_identifiers.py
 
 The camt053 validators implement ISO 13616 (IBAN mod-97), ISO 9362 (BIC), and

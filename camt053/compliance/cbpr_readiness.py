@@ -33,7 +33,7 @@ for safe parsing of untrusted input.
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import StringIO
 from typing import Any
 
@@ -166,9 +166,7 @@ def check_cbpr_readiness(xml: str) -> dict[str, Any]:
     return {
         "cbpr_ready": cbpr_ready,
         "schema_version": schema_version,
-        "checked_at": datetime.now(timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        ),
+        "checked_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "cutover_date": CBPR_CUTOVER_DATE,
         "issues": issues,
         "summary": summary,

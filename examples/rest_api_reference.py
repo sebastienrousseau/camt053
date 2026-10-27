@@ -2,7 +2,7 @@
 """Example: the REST API's reference and validation endpoints.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/rest_api_reference.py
 
 ``examples/rest_api_client.py`` covers the statement workflow (parse,

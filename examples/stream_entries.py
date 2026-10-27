@@ -2,7 +2,7 @@
 """Example: memory-bounded streaming and entry filtering.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/stream_entries.py
 
 For very large statements, ``iter_statement_entries`` (and its facade

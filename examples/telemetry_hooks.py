@@ -2,7 +2,7 @@
 """Example: OpenTelemetry hooks with graceful no-op degradation.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/telemetry_hooks.py
 
 ``camt053.telemetry`` wraps the optional OpenTelemetry API (installed via

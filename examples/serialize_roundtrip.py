@@ -2,7 +2,7 @@
 """Example: parse -> typed model -> re-serialised, validated XML.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/serialize_roundtrip.py
 
 Round-trips a statement through the typed model: ``parse_document`` builds

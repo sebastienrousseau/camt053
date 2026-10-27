@@ -14,7 +14,7 @@ git clone https://github.com/sebastienrousseau/camt053.git && cd camt053
 poetry install            # runtime + dev dependencies from poetry.lock
 ```
 
-Python 3.10 or newer ([toolchain policy](docs/POLICIES.md)). CI installs
+Python 3.11 or newer ([toolchain policy](docs/POLICIES.md)). CI installs
 Poetry itself from the hash-pinned `requirements/build.txt`.
 
 ## Reproduce CI locally

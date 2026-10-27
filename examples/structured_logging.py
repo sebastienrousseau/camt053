@@ -2,7 +2,7 @@
 """Example: structured JSON logging with automatic PII redaction.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/structured_logging.py
 
 ``camt053.logging`` emits machine-parseable JSON log lines and redacts

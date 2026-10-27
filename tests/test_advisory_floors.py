@@ -12,17 +12,12 @@ fixes.
 
 from __future__ import annotations
 
-import sys
+import tomllib
 from pathlib import Path
 
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # pragma: no cover - exercised only on the 3.10 floor
-    import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parent.parent
 

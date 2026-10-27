@@ -21,8 +21,8 @@ in-code strings stayed at ``0.0.1``, so ``camt053.__version__`` and
 sources ever drift apart again.
 
 It parses ``pyproject.toml`` with a regex on the raw text rather than
-``tomllib`` because Python 3.10 (part of the CI matrix) does not ship
-``tomllib``.
+``tomllib``; it was written while Python 3.10, which does not ship
+``tomllib``, was in the CI matrix.
 
 The CHANGELOG guard was added after 0.0.14 and 0.0.15 both shipped
 without an entry: the file jumped straight from 0.0.13 to the previous

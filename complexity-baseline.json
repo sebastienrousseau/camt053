@@ -10,7 +10,7 @@
     "lines": 78
   },
   "camt053/compliance/cbpr_readiness.py::check_cbpr_readiness": {
-    "lines": 87
+    "lines": 85
   },
   "camt053/logging.py::redact_value": {
     "cognitive": 19,

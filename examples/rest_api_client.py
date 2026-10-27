@@ -2,7 +2,7 @@
 """Example: drive the REST API in-process with the FastAPI test client.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/rest_api_client.py
 
 Exercises the API without starting a server. To run the real server:

@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -60,11 +60,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Poetry runs on 3.12, the interpreter build.txt is compiled for:
-      # filelock, which Poetry needs, has no fixed release for 3.10
-      # (GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92, GHSA-v4x8-3wr5-3wq8 are
-      # fixed in 4.2.1, which needs 3.11). The project still runs on the
-      # matrix Python, through `poetry env use`.
+      # Poetry runs on 3.12, the interpreter build.txt is compiled for,
+      # as in every other job. The project still runs on the matrix
+      # Python, through `poetry env use`.
       - name: Set up Python 3.12 for the toolchain
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
