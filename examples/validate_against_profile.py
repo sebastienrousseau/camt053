@@ -2,7 +2,7 @@
 """Example: per-schema-version profile validation.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/validate_against_profile.py
 
 Shows the v0.0.7 profile-dispatch architecture: the same payload

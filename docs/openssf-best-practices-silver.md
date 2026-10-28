@@ -125,7 +125,7 @@ Silver adds the following Met / N/A criteria. Bronze must already pass.
 | `coding_standards` | Met | `STYLEGUIDE.md` |
 | `coding_standards_enforced` | Met | ruff + black in CI |
 | `build_reproducible` | Met | `poetry build` with lockfile pinning produces deterministic dist |
-| `installation_common` | Met | `pip install <project>` — works on every supported Python (3.10/3.11/3.12) |
+| `installation_common` | Met | `pip install <project>` — works on every supported Python (3.11 to 3.14) |
 | `installation_standard_variables` | Met | follows PEP 517 / 518 build metadata |
 | `installation_development_quick` | Met | `pip install -e '.[dev]'` per `CONTRIBUTING.md` |
 | `documentation_roadmap` | Met | `ROADMAP.md` |

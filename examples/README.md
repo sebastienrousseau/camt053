@@ -60,5 +60,5 @@ if any example exits non-zero, so the examples cannot silently rot.
 Install the package first:
 
 ```sh
-pip install camt053   # Python 3.10+
+pip install camt053   # Python 3.11+
 ```

@@ -2,7 +2,7 @@
 """Example: the reversal-building primitives, step by step.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/build_reversal_records.py
 
 ``services.generate_reversal`` does parse -> select -> reverse -> render in

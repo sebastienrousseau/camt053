@@ -56,7 +56,7 @@ import hashlib
 import hmac
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 __all__ = [
@@ -207,7 +207,7 @@ def _utc_now_iso() -> str:
     timestamps for ordering (``sequence`` does) but rapid collisions
     look suspicious to human readers.
     """
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 @dataclass

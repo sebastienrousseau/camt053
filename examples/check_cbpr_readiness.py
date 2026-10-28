@@ -2,7 +2,7 @@
 """Example: Nov 14-16 2026 CBPR+ cliff pre-flight (v0.0.6).
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/check_cbpr_readiness.py
 
 Runs ``check_cbpr_readiness`` against two payloads: one that will

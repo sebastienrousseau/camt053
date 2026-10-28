@@ -2,7 +2,7 @@
 """Example: write a reversal to disk and validate files against the XSD.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/write_reversal_file.py
 
 ``write_reversal_xml`` renders reversing-entry records and writes the

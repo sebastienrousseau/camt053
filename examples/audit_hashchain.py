@@ -2,7 +2,7 @@
 """Example: HMAC-SHA-256 hash-chain audit log (v0.0.6).
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/audit_hashchain.py
 
 Shows the tamper-evident append-only audit primitives: build a chain

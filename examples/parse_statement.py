@@ -2,7 +2,7 @@
 """Example: parse an incoming statement into structured data.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/parse_statement.py
 
 Reads a camt.053 statement and walks the typed model: group header, account,

@@ -21,5 +21,5 @@ virtualenv>=21.14.13
 # certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
 certifi>=2026.10.19
 # filelock <= 4.2.0: GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92 and
-# GHSA-v4x8-3wr5-3wq8; 4.2.1 needs Python 3.11, hence the 3.12 compile.
+# GHSA-v4x8-3wr5-3wq8, fixed in 4.2.1.
 filelock>=4.2.1

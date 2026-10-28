@@ -50,7 +50,7 @@ import json
 import logging
 import os
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 __all__ = [
@@ -249,7 +249,7 @@ class JsonFormatter(logging.Formatter):
         """Render ``record`` as a compact JSON string."""
         payload: dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(
-                record.created, tz=timezone.utc
+                record.created, tz=UTC
             ).isoformat(),
             "level": record.levelname,
             "logger": record.name,

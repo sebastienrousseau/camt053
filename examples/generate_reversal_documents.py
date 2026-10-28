@@ -2,7 +2,7 @@
 """Example: one-shot reversal generation in every output format.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/generate_reversal_documents.py
 
 ``services.generate_reversal`` is the headline one-shot workflow (parse ->

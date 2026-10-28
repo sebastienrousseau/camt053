@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "camt053"
-version = "0.0.23"
+version = "0.0.24"
 description = "Camt053 is a Python library for reading ISO 20022 camt Bank-to-Customer Statements (camt.053/052/054) and generating validated reversing entries by return reason code (e.g. AC04 Closed Account)."
 authors = ["Sebastien Rousseau <sebastian.rousseau@gmail.com>"]
 license = "Apache-2.0 OR MIT"
@@ -28,7 +28,7 @@ defusedxml = "0.7.1"
 jinja2 = "3.1.6"
 markupsafe = ">=2.1,<4"
 pygments = ">=2.20.0,<3.0.0"
-python = ">=3.10,<4.0"
+python = ">=3.11,<4.0"
 rich = ">=13.7.1,<16"
 xmlschema = ">=4.3.2,<5.0.0"
 # Optional: when present, libxml2 validates a camt document ~31x faster
@@ -93,12 +93,11 @@ packaging = ">=23"
 # the pre-flight correctly refuses to audit (rather than auditing some
 # other environment that happens to have pip-audit on PATH), but that
 # means the check never runs locally. CI installs its own hash-pinned
-# copy; this is for the pre-flight. Not on 3.10: its cachecontrol needs
-# filelock, which has no release fixed for GHSA-9vhv-jxww-xfm5,
-# GHSA-567q-5qvw-pf92 and GHSA-v4x8-3wr5-3wq8 there (4.2.1 needs 3.11); on
-# 3.10 the pre-flight says pip-audit is not installed and skips the audit.
-pip-audit = {version = ">=2.7", python = ">=3.11"}
-filelock = {version = ">=4.2.1", python = ">=3.11"}
+# copy; this is for the pre-flight. filelock arrives through its
+# cachecontrol and is floored for GHSA-9vhv-jxww-xfm5,
+# GHSA-567q-5qvw-pf92 and GHSA-v4x8-3wr5-3wq8 (fixed in 4.2.1).
+pip-audit = ">=2.7"
+filelock = ">=4.2.1"
 lxml = ">=6.1.0,<7"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
@@ -129,8 +128,7 @@ urllib3 = ">=2.8.0"
 pip = ">=26.2"
 # starlette.testclient (behind fastapi.testclient in the API tests) warns
 # that driving it with httpx is deprecated and looks for httpx2 first.
-# httpx2 needs Python 3.11, so the 3.10 run keeps that one warning.
-httpx2 = {version = ">=2.15,<3", python = ">=3.11"}
+httpx2 = ">=2.15,<3"
 # The complexity gate (scripts/check_complexity.py) and its tests. Pinned
 # to the versions in requirements/complexity.txt, which the CI job uses,
 # so the metrics the tests see are the metrics the gate sees.
@@ -163,7 +161,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.black]
 line-length = 79
 extend-exclude = "tests/test_suite_conformance\\.py"
-target-version = ['py310']
+target-version = ['py311']
 
 [tool.isort]
 profile = "black"
@@ -265,7 +263,7 @@ do_not_mutate = [
 
 [tool.ruff]
 line-length = 79
-target-version = "py310"
+target-version = "py311"
 extend-exclude = [".github/*.md", "*.md", "docs/**/*.md", "releases/**/*.md", "tmp_env", ".venv", ".eggs"]
 
 [tool.ruff.lint]
@@ -278,6 +276,9 @@ ignore = ["E501"]
 # come first.
 "benches/*.py" = ["E402"]
 "__init__.py" = ["F401"]
+# Vendored and byte-pinned (see [tool.black]): its 3.10 tomli fallback
+# is fixed in the canonical copy, not here.
+"tests/test_suite_conformance.py" = ["UP036"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -285,7 +286,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true

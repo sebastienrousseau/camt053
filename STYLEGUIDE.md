@@ -147,7 +147,7 @@ Every package in the suite enforces the same CI minimum in
 
 | Gate | Tool | Threshold |
 | :--- | :--- | :--- |
-| Tests | `pytest` | green on Python 3.10, 3.11, 3.12 |
+| Tests | `pytest` | green on Python 3.11, 3.12, 3.13, 3.14 |
 | Line + branch coverage | `pytest-cov` | `--cov-fail-under=100` |
 | Docstring coverage | `interrogate` | `--fail-under=100` |
 | Lint | `ruff` | clean |

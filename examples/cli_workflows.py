@@ -2,7 +2,7 @@
 """Example: the camt053 command-line interface, end to end.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/cli_workflows.py
 
 Drives the installed ``camt053`` CLI (via ``python -m camt053``) through

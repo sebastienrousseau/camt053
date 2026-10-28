@@ -13,7 +13,7 @@ the **14-16 November 2026** CBPR+ / T2S MR2026 cutover.
 ## Where we are
 
 The status below was written at v0.0.7 (2026-06-22). The suite has
-shipped through v0.0.20 since and releases v0.0.23 next; the release
+shipped through v0.0.23 since and releases v0.0.24 next; the release
 history is in `CHANGELOG.md`.
 
 - **Parsing**: `camt.052/053/054` revisions `.001.08`, `.001.13`,

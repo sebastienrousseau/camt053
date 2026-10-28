@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.24] - 2026-10-27
+
+Released with the whole camt053 suite at 0.0.24, core first.
+
+### Removed
+
+- **Python 3.10 support.** camt053 now requires Python 3.11 or newer
+  (`python = ">=3.11,<4.0"`), and CI tests 3.11, 3.12, 3.13 and 3.14 on
+  Linux, macOS and Windows. Python 3.10 reaches end of life in October
+  2026, and current `hypothesis` releases need 3.11, which had stopped
+  Dependabot from resolving the dev group. Every member of the suite
+  drops 3.10 in this release. On 3.10, pip keeps installing camt053
+  0.0.23.
+
+### Changed
+
+- `ProfileSeverity` is a `StrEnum`: `str()` and f-strings now give the
+  value (`"error"`) rather than `"ProfileSeverity.ERROR"`. Equality with
+  plain strings, `.value`, `ProfileFinding.to_dict()` and every JSON
+  shape are unchanged.
+- `poetry.lock` and the hash-pinned `requirements/*.txt` are resolved
+  for 3.11 and up (`make pip-compile` now compiles for 3.11), which drops
+  the 3.10-only backports (`exceptiongroup`, `tomli`) and the second
+  `hypothesis`, `rpds-py` and `sphinx` lines that 3.10 needed.
+- Dependencies refreshed (#188, #193, #194, #195, #196): `fastapi`
+  0.161.1, `pydantic` 2.14.1, `idna` 3.20, `python-dotenv` 1.2.4,
+  `certifi` 2026.10.23, `ruff` 0.17.2, `httpx2` 2.16.0, `markupsafe`
+  3.0.4 in the docs and fuzz requirement sets, and the `types-jsonschema`
+  and `types-setuptools` stubs.
+- GitHub Actions bumped (#192): `setup-python` 7.1.0, `codeql-action`
+  4.39.1, `docker/login-action` 4.7.0 and `gh-action-pypi-publish`
+  1.14.3, each pinned by SHA.
+
+### Security
+
+- `filelock>=4.2.1` (GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92,
+  GHSA-v4x8-3wr5-3wq8) in the dev group and in `requirements/build.in`
+  and `audit.in`, and `virtualenv>=21.14.13` (GHSA-cx6f-vjhg-g3cc) in
+  `requirements/build.in` (#191). pip-audit found both; no Dependabot
+  alert covered them. With the 3.11 floor the dev-group floors now apply
+  on every supported Python.
+
 ## [0.0.23] - 2026-10-20
 
 Released with the whole camt053 suite at 0.0.23, core first. The suite

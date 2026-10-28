@@ -2,7 +2,7 @@
 """Example: exactly-once dedupe primitives (v0.0.6 B3).
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/compute_dedupe_keys.py
 
 Two helpers from ``camt053.parse.dedupe``:

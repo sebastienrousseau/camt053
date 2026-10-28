@@ -2,7 +2,7 @@
 """Example: JSON Schema validation of flat reversing-entry records.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/validate_records_schema.py
 
 Every supported message type ships a JSON Schema describing its flat

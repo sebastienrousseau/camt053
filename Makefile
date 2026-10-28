@@ -49,10 +49,10 @@ pip-compile: ## Regenerate hash-pinned requirements/*.txt from requirements/*.in
 		case "$$f" in requirements/build.in|requirements/audit.in) continue;; esac; \
 		echo "compiling $$f"; \
 		uv pip compile --quiet --generate-hashes --universal \
-			--python-version 3.10 "$$f" -o "$${f%.in}.txt"; \
+			--python-version 3.11 "$$f" -o "$${f%.in}.txt"; \
 	done
 	@for f in requirements/build.in requirements/audit.in; do \
-		echo "compiling $$f (3.12, the toolchain's Python: filelock 4.2.1 needs 3.11)"; \
+		echo "compiling $$f (3.12, the toolchain's Python)"; \
 		uv pip compile --quiet --generate-hashes --universal \
 			--python-version 3.12 "$$f" -o "$${f%.in}.txt"; \
 	done

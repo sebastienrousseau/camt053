@@ -2,7 +2,7 @@
 """Example: SWIFT X charset cleansing for names and narratives.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/swift_charset_cleansing.py
 
 SWIFT FIN / CBPR+ rails only accept the SWIFT X character set. The

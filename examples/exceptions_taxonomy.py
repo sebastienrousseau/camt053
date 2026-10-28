@@ -2,7 +2,7 @@
 """Example: the typed exception taxonomy and strict validators.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/exceptions_taxonomy.py
 
 Every camt053 failure raises a typed exception rooted at ``Camt053Error``,

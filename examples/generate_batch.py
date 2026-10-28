@@ -2,7 +2,7 @@
 """Example: batch-reverse a directory of statement files.
 
 Usage:
-    pip install camt053     # requires Python 3.10+
+    pip install camt053     # requires Python 3.11+
     python examples/generate_batch.py
 
 ``services.generate_batch`` processes a directory (recursively), a glob,
