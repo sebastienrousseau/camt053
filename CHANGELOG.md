@@ -40,6 +40,12 @@ Released with the whole camt053 suite at 0.0.24, core first.
 
 ### Security
 
+- `msgpack>=1.2.3` (GHSA-j586-36cw-2gc2, CVE-2026-114613, high) in the
+  dev group and in `requirements/build.in` and `audit.in`, where it
+  arrives through cachecontrol: the C extension leaks a rejected map
+  value and can drop a stale reference. The advisory was published after
+  the 0.0.24 release PR merged; Dependabot #198 and #199 are folded in,
+  with the requirement files recompiled in place so only msgpack moves.
 - `filelock>=4.2.1` (GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92,
   GHSA-v4x8-3wr5-3wq8) in the dev group and in `requirements/build.in`
   and `audit.in`, and `virtualenv>=21.14.13` (GHSA-cx6f-vjhg-g3cc) in
