@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25] - 2026-10-29
+
+Released with the whole camt053 suite at 0.0.25, core first. The suite
+moves together because camt053-mcp takes a development-tool update
+(pytest-asyncio 1.4.1, complexipy); the library is unchanged.
+
+### Changed
+
+- Version 0.0.25 in `pyproject.toml`, `camt053/__init__.py`,
+  `camt053/constants.py`, `CITATION.cff`, `SECURITY.md`, the README and
+  the ROADMAP status line. Parsing, validation, generation and every
+  JSON shape are unchanged from 0.0.24.
+
 ## [0.0.24] - 2026-10-27
 
 Released with the whole camt053 suite at 0.0.24, core first.
