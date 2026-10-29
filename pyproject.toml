@@ -95,9 +95,11 @@ packaging = ">=23"
 # means the check never runs locally. CI installs its own hash-pinned
 # copy; this is for the pre-flight. filelock arrives through its
 # cachecontrol and is floored for GHSA-9vhv-jxww-xfm5,
-# GHSA-567q-5qvw-pf92 and GHSA-v4x8-3wr5-3wq8 (fixed in 4.2.1).
+# GHSA-567q-5qvw-pf92 and GHSA-v4x8-3wr5-3wq8 (fixed in 4.2.1);
+# msgpack, the same way, for GHSA-j586-36cw-2gc2 (fixed in 1.2.3).
 pip-audit = ">=2.7"
 filelock = ">=4.2.1"
+msgpack = ">=1.2.3"
 lxml = ">=6.1.0,<7"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
