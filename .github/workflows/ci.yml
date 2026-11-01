@@ -109,6 +109,22 @@ jobs:
           path: coverage.xml
           if-no-files-found: error
 
+  test-all:
+    # Branch protection requires this check by name. It stands for every
+    # leg of the test matrix, so adding or dropping a version never
+    # renames a required check.
+    name: Test (all)
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Every leg of the matrix passed
+        env:
+          RESULT: ${{ needs.test.result }}
+        run: test "$RESULT" = success
+
   smoke:
     name: Smoke Test
     runs-on: ubuntu-latest
