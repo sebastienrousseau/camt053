@@ -61,6 +61,22 @@ jobs:
         # -W turns warnings into errors so a broken build fails the PR check.
         run: sphinx-build -b html -W docs _site
 
+      - name: Generate sitemap.xml and robots.txt
+        run: |
+          python3 -c '
+          import pathlib
+          site = pathlib.Path("_site")
+          urls = sorted(
+              "https://camt053.com/" if p.name == "index.html" and p.parent == site
+              else f"https://camt053.com/{p.relative_to(site).as_posix()}"
+              for p in site.rglob("*.html")
+              if not {"_static", "_sources", "genindex.html", "search.html"} & set(p.relative_to(site).parts)
+          )
+          items = "\n".join(f"  <url>\n    <loc>{u}</loc>\n  </url>" for u in urls)
+          (site / "sitemap.xml").write_text(f"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n{items}\n</urlset>\n")
+          (site / "robots.txt").write_text("User-agent: *\nAllow: /\n\nSitemap: https://camt053.com/sitemap.xml\n")
+          '
+
       - name: Check the author link on every page
         # AGENTS.md 7.1.2: every published page links the copyright name to
         # https://sebastienrousseau.com/. docs/_templates/copyright.html
