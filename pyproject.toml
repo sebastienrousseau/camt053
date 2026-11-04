@@ -103,7 +103,7 @@ msgpack = ">=1.2.3"
 lxml = ">=6.1.0,<7"
 pytest = ">=9.0.3,<10.0.0"
 pytest-cov = ">=6.0.0,<8.0.0"
-pytest-benchmark = ">=5.0.0,<6.0.0"
+pytest-benchmark = ">=5.3.1,<6.0.0"
 pytest-xdist = ">=3.6.0,<4.0.0"
 interrogate = "^1.7"
 black = "^26.3.1"
@@ -135,17 +135,17 @@ httpx2 = ">=2.15,<3"
 # to the versions in requirements/complexity.txt, which the CI job uses,
 # so the metrics the tests see are the metrics the gate sees.
 radon = "6.0.1"
-complexipy = {version = "8.1.0", python = "<3.16"}
+complexipy = {version = "8.3.0", python = "<3.16"}
 
 [tool.poetry.group.docs]
 optional = true
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=7,<9"
-pydata-sphinx-theme = ">=0.15,<0.20"
+pydata-sphinx-theme = ">=0.15,<0.24"
 sphinx-autodoc-typehints = ">=1,<4"
-sphinx-design = "^0.6.0"
-myst-parser = ">=2,<5"
+sphinx-design = ">=0.6,<0.8"
+myst-parser = ">=2,<6"
 # Advisory floor: soupsieve arrives through pydata-sphinx-theme's
 # beautifulsoup4; releases before 2.9 carry GHSA-gjv8-xp57-g29c and
 # GHSA-j934-xhv5-fg8f (polynomial-time ReDoS).
