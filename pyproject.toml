@@ -38,7 +38,7 @@ xmlschema = ">=4.3.2,<5.0.0"
 # The floor is GHSA-vfmq-68hx-4jfw (iterparse and ETCompatXMLParser
 # defaults, fixed in 6.1.0).
 lxml = {version = ">=6.1.0,<7", optional = true}
-jsonschema = ">=4.20,<4.27"
+jsonschema = ">=4.20,<5"
 # The REST API, behind the ``api`` extra (``pip install camt053[api]``):
 # parsing, validation and generation import none of it. fastapi's
 # floor is PYSEC-2024-38 (fixed in 0.109.1);

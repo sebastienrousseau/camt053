@@ -6,5 +6,5 @@
 defusedxml==0.7.1
 jinja2==3.1.6
 markupsafe==3.0.4
-jsonschema>=4.20,<4.27
+jsonschema>=4.20,<5
 xmlschema>=4.3.2,<5.0.0

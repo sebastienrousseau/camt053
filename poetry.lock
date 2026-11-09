@@ -4874,4 +4874,4 @@ telemetry = ["opentelemetry-api"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "d637e90599b9fb92916a892d92b65f21d25fb5e9da742cba98e162b718ce66b2"
+content-hash = "fa3889ddaf1da3cf62704e7df994fc663809e381d2c6a865f7550ed8570bd89c"
