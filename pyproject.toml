@@ -159,7 +159,7 @@ optional = true
 
 [tool.poetry.group.docs.dependencies]
 sphinx = ">=7,<9"
-pydata-sphinx-theme = ">=0.15,<0.24"
+pydata-sphinx-theme = ">=0.15,<0.25"
 sphinx-autodoc-typehints = ">=1,<4"
 sphinx-design = ">=0.6,<0.8"
 myst-parser = ">=2,<6"
