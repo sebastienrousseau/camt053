@@ -72,12 +72,16 @@ python -m pip install camt053
 > one version.
 > [See what's new →][release-latest]
 
-Two optional extras:
+Three optional extras:
 
 ```sh
+python -m pip install "camt053[api]"         # the REST API: FastAPI, uvicorn
 python -m pip install "camt053[fast]"        # lxml: XSD validation ~31x faster
 python -m pip install "camt053[telemetry]"   # OpenTelemetry API for spans and metrics
 ```
+
+The base install parses, validates and generates without the web stack;
+`camt053.api` needs `camt053[api]`.
 
 `fast` only changes speed: a document `lxml` accepts is one the pure-Python
 validator accepts too. The `camt053` command (the CLI) is installed with the

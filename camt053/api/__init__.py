@@ -13,8 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""REST API package for the camt053 library."""
+"""REST API package for the camt053 library.
 
-from camt053.api.app import app
+The web stack (fastapi, starlette, pydantic, uvicorn) is the ``api``
+extra. Without it, importing this package (which ``uvicorn
+camt053.api.app:app`` does) names the install command instead of
+failing on the first missing module.
+"""
+
+try:
+    import fastapi  # noqa: F401
+except ImportError as exc:
+    raise ImportError(
+        "The camt053 REST API needs its extra: pip install 'camt053[api]'"
+    ) from exc
+
+from camt053.api.app import app  # noqa: E402
 
 __all__ = ["app"]

@@ -75,7 +75,7 @@ jobs:
         run: poetry env use "${{ steps.python.outputs.python-path }}"
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Check the project runs on Python ${{ matrix.python-version }}
         run: poetry run python -c "import sys; v = '${{ matrix.python-version }}'; assert sys.version.startswith(v + '.'), sys.version"
@@ -140,7 +140,7 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Run smoke tests
         run: poetry run pytest tests/ -m smoke -v --no-cov --tb=short
@@ -164,7 +164,7 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Ruff check
         run: poetry run ruff check camt053/ tests/ scripts/ benches/
@@ -192,7 +192,7 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Bandit
         run: poetry run bandit -r camt053/ -c pyproject.toml || poetry run bandit -r camt053/ -s B101
@@ -238,7 +238,7 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Install pip-audit (hash-pinned)
         run: pip install --require-hashes -r requirements/audit.txt
@@ -303,7 +303,7 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Run benchmarks (regression guard)
         run: >
@@ -349,7 +349,7 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --extras api
 
       - name: Run mutmut (advisory)
         # Limit to the small, pure modules so the advisory run stays fast in

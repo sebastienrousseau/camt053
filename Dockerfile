@@ -19,7 +19,7 @@ COPY pyproject.toml ./
 
 # Install dependencies without dev deps
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --only main --no-root
+    poetry install --no-interaction --only main --no-root --extras api
 
 # Copy application code (README is referenced by pyproject's readme field)
 COPY README.md ./

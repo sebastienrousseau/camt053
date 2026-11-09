@@ -249,7 +249,7 @@ That's 80% of the surface for 90% of users.
 | :--- | :--- |
 | Reverse a whole directory of statements at once | `camt053 reverse --batch` ([`examples/generate_batch.py`](https://github.com/sebastienrousseau/camt053/blob/main/examples/generate_batch.py)) |
 | Emit a pacs.004 PaymentReturn instead of camt.053 | `camt053 reverse --output-format pacs004` |
-| Run camt053 as a REST service | `uvicorn camt053.api.app:app` ([README Usage](https://github.com/sebastienrousseau/camt053#usage)) |
+| Run camt053 as a REST service | `pip install 'camt053[api]'`, then `uvicorn camt053.api.app:app` ([README Usage](https://github.com/sebastienrousseau/camt053#usage)) |
 | Pre-flight the Nov 14-16 2026 CBPR+ cutover | `camt053 check-cbpr-readiness` ([version matrix](version-matrix.md)) |
 | Stream very large statements with bounded memory | [`examples/stream_entries.py`](https://github.com/sebastienrousseau/camt053/blob/main/examples/stream_entries.py) |
 | Deploy the REST API with Redis + Prometheus + Grafana | [Deployment cookbook](deployment-cookbook.md) |
