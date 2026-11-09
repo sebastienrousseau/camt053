@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   naming that command. The Dockerfile, CI and the deployment cookbook
   install the extra.
 
+### Fixed
+
+- The release SBOM (`camt053-vX.Y.Z.cdx.json`) and licence manifest
+  describe camt053's runtime tree. Both tools ran from the system
+  Python and described that environment instead: the 0.0.25 SBOM
+  listed poetry, cyclonedx-bom and pip-licenses but not xmlschema or
+  jinja2. The sbom job now names the Poetry environment's interpreter
+  and fails if the SBOM misses camt053, xmlschema or jinja2, or lists
+  the release tooling.
+
 ### Changed
 
 - `jinja2`, `colorama` and `defusedxml` are ranges (`>=3.1.6,<4`,
