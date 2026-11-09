@@ -13,7 +13,7 @@ authors:
     given-names: Sebastien
     email: sebastian.rousseau@gmail.com
 version: "0.0.26"
-date-released: "2026-10-29"
+date-released: "2026-11-09"
 # CFF 1.2.0 takes a list of SPDX identifiers; the code is available
 # under either licence (Apache-2.0 OR MIT).
 license:
