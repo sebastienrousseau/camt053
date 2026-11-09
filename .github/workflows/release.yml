@@ -65,7 +65,7 @@ jobs:
       # identity, no secrets) for every distribution, attached to the GitHub
       # release as .sig + .pem so the release is verifiably signed.
       - name: Install cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
         with:
           cosign-release: "v2.4.3"
 
@@ -116,19 +116,40 @@ jobs:
         run: pip install --require-hashes -r requirements/build.txt
 
       - name: Install runtime dependencies
-        # Install only the runtime ("main") deps so the SBOM reflects what
-        # ships, not the dev toolchain.
+        # Install only the runtime ("main") deps, without extras, so the
+        # SBOM describes what `pip install camt053` ships, not the dev
+        # toolchain or the optional api, fast and telemetry extras.
         run: poetry install --no-interaction --only main
 
       - name: Install SBOM + license tooling (hash-pinned)
         run: pip install --require-hashes -r requirements/sbom.txt
 
       - name: Generate CycloneDX SBOM (JSON)
-        # Describe the Poetry-managed virtualenv (the resolved runtime tree).
+        # Describe the Poetry-managed virtualenv (the resolved runtime tree)
+        # by naming its interpreter. cyclonedx-py and pip-licenses come
+        # from the system Python (requirements/sbom.txt), so without it
+        # they describe that environment, the release tooling, instead:
+        # the 0.0.25 SBOM listed poetry and cyclonedx-bom but no xmlschema.
         run: |
-          poetry run cyclonedx-py environment \
+          cyclonedx-py environment \
             --of JSON \
-            -o "camt053-${RELEASE_TAG}.cdx.json"
+            -o "camt053-${RELEASE_TAG}.cdx.json" \
+            "$(poetry env info --executable)"
+
+      - name: Check the SBOM describes the runtime tree
+        run: |
+          python - "camt053-${RELEASE_TAG}.cdx.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              names = {c["name"].lower() for c in json.load(handle)["components"]}
+          missing = {"camt053", "xmlschema", "jinja2"} - names
+          tooling = {"cyclonedx-bom", "pip-licenses", "poetry"} & names
+          assert not missing, f"SBOM lacks runtime packages: {sorted(missing)}"
+          assert not tooling, f"SBOM lists release tooling: {sorted(tooling)}"
+          print(f"SBOM describes {len(names)} runtime components")
+          PY
 
       - name: Generate SPDX SBOM (JSON)
         # Anchore's syft engine produces an SPDX 2.3 JSON document from the
@@ -145,7 +166,8 @@ jobs:
         # A human-readable third-party license inventory of the runtime tree,
         # useful for downstream legal review.
         run: |
-          poetry run pip-licenses \
+          pip-licenses \
+            --python "$(poetry env info --executable)" \
             --format=json \
             --with-urls --with-license-file --no-license-path \
             --output-file "camt053-${RELEASE_TAG}.licenses.json"

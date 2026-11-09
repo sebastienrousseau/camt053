@@ -22,7 +22,8 @@ environment.
 Every recipe assumes:
 
 - Python 3.12 (3.11, 3.13 and 3.14 also supported).
-- The REST API is `camt053.api.app:app` (a FastAPI ASGI app).
+- The REST API is `camt053.api.app:app` (a FastAPI ASGI app), from the
+  `api` extra (`pip install 'camt053[api]'`).
 - TLS terminates at a reverse proxy (nginx, Cloud Load Balancer,
   ingress controller). The API itself runs HTTP on a local
   socket.
@@ -51,7 +52,7 @@ services:
     image: python:3.12-slim
     working_dir: /app
     command: >
-      sh -c "pip install --no-cache-dir 'camt053[telemetry]' uvicorn[standard] &&
+      sh -c "pip install --no-cache-dir 'camt053[api,telemetry]' &&
              uvicorn camt053.api.app:app --host 0.0.0.0 --port 8080"
     environment:
       CAMT053_AUDIT_LOG_PATH: /var/lib/camt053/audit.log
@@ -221,7 +222,7 @@ server {
 sudo useradd --system --home /srv/camt053 --shell /usr/sbin/nologin camt053
 sudo install -d -o camt053 -g camt053 /srv/camt053 /var/lib/camt053
 sudo -u camt053 python3 -m venv /srv/camt053/venv
-sudo -u camt053 /srv/camt053/venv/bin/pip install 'camt053[telemetry]' 'uvicorn[standard]'
+sudo -u camt053 /srv/camt053/venv/bin/pip install 'camt053[api,telemetry]'
 sudo systemctl daemon-reload
 sudo systemctl enable --now camt053-api.service
 sudo systemctl reload nginx
@@ -375,7 +376,7 @@ handler = Mangum(app, lifespan="off")
 Package with:
 
 ```sh
-pip install --target package camt053 mangum
+pip install --target package 'camt053[api]' mangum
 cd package && zip -r ../bundle.zip . && cd ..
 zip bundle.zip handler.py
 aws lambda update-function-code \

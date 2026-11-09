@@ -25,6 +25,11 @@ PINNED = ("docs.txt", "fuzz.txt")
 _PIN = re.compile(r"^([A-Za-z0-9._-]+)==([^\s\\;]+)", re.MULTILINE)
 
 
+def _specifier(raw: str) -> SpecifierSet:
+    """A Poetry constraint as PEP 440; a bare ``0.7.1`` means ``==0.7.1``."""
+    return SpecifierSet(f"=={raw}" if raw[0].isdigit() else raw)
+
+
 def _runtime_constraints() -> dict[str, SpecifierSet]:
     """Every runtime dependency's range, as a PEP 440 specifier set."""
     with (ROOT / "pyproject.toml").open("rb") as handle:
@@ -34,9 +39,7 @@ def _runtime_constraints() -> dict[str, SpecifierSet]:
         if name == "python":
             continue
         raw = value["version"] if isinstance(value, dict) else value
-        if raw[0].isdigit():
-            raw = f"=={raw}"
-        constraints[canonicalize_name(name)] = SpecifierSet(raw)
+        constraints[canonicalize_name(name)] = _specifier(raw)
     return constraints
 
 
@@ -61,5 +64,10 @@ def test_pins_satisfy_the_runtime_ranges(filename: str) -> None:
 
 
 def test_exact_poetry_pins_become_equality() -> None:
-    """A bare Poetry version such as ``0.7.1`` means ``==0.7.1``."""
-    assert str(_runtime_constraints()["defusedxml"]) == "==0.7.1"
+    """A bare Poetry version such as ``0.7.1`` means ``==0.7.1``.
+
+    Checked on the conversion itself: the runtime dependencies are
+    ranges now, so no live pin is left to use as the example.
+    """
+    assert str(_specifier("0.7.1")) == "==0.7.1"
+    assert _specifier(">=0.7.1,<1") == SpecifierSet(">=0.7.1,<1")

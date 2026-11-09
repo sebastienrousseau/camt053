@@ -66,18 +66,22 @@
 python -m pip install camt053
 ```
 
-> **Latest release: v0.0.25**: namespace-agnostic camt.052/053/054 parsing and
+> **Latest release: v0.0.26**: namespace-agnostic camt.052/053/054 parsing and
 > one-shot reversing-entry generation, validated against the official ISO 20022
 > `camt.053.001.14` schema, for Python 3.11+, released with the whole suite at
 > one version.
 > [See what's new →][release-latest]
 
-Two optional extras:
+Three optional extras:
 
 ```sh
+python -m pip install "camt053[api]"         # the REST API: FastAPI, uvicorn
 python -m pip install "camt053[fast]"        # lxml: XSD validation ~31x faster
 python -m pip install "camt053[telemetry]"   # OpenTelemetry API for spans and metrics
 ```
+
+The base install parses, validates and generates without the web stack;
+`camt053.api` needs `camt053[api]`.
 
 `fast` only changes speed: a document `lxml` accepts is one the pure-Python
 validator accepts too. The `camt053` command (the CLI) is installed with the
@@ -161,8 +165,8 @@ and reverse with real commands and output.
 ## The camt053 ecosystem
 
 `camt053` is the core of six packages that release together at one version:
-every member ships the core's number, so `camt053-mcp 0.0.25` is meant for
-`camt053 0.0.25`. The wrappers, loaders and writer call the shared
+every member ships the core's number, so `camt053-mcp 0.0.26` is meant for
+`camt053 0.0.26`. The wrappers, loaders and writer call the shared
 `camt053.services` facade, so every interface behaves the same.
 `scripts/check_suite_consistency.py` checks PyPI daily and fails when a
 member disagrees.

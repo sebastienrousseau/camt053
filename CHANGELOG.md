@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.26] - 2026-11-09
+
+### Changed (breaking)
+
+- The REST API's web stack is the `api` extra: install
+  `pip install 'camt053[api]'` to run `camt053.api.app:app`. A plain
+  `pip install camt053` no longer brings fastapi, starlette, pydantic,
+  uvicorn or httpx, nor the advisory floors that exist only because of
+  them (anyio, cryptography, h11, idna, python-dotenv, pyyaml,
+  certifi): parsing, validation and generation import none of it.
+  Importing `camt053.api` without the extra raises an `ImportError`
+  naming that command. The Dockerfile, CI and the deployment cookbook
+  install the extra.
+
+### Fixed
+
+- The release SBOM (`camt053-vX.Y.Z.cdx.json`) and licence manifest
+  describe camt053's runtime tree. Both tools ran from the system
+  Python and described that environment instead: the 0.0.25 SBOM
+  listed poetry, cyclonedx-bom and pip-licenses but not xmlschema or
+  jinja2. The sbom job now names the Poetry environment's interpreter
+  and fails if the SBOM misses camt053, xmlschema or jinja2, or lists
+  the release tooling.
+
+### Changed
+
+- `jinja2`, `colorama` and `defusedxml` are ranges (`>=3.1.6,<4`,
+  `>=0.4.6,<1`, `>=0.7.1,<1`) instead of exact pins, and `jsonschema`
+  may go up to (not including) 5 instead of 4.27, so a package that
+  depends on camt053 (pain001's `status` reads camt.052, camt.053 and
+  camt.054 through it) is not held to one release of each. Every
+  resolved version in `poetry.lock` stays the same.
+
 ## [0.0.25] - 2026-10-29
 
 Released with the whole camt053 suite at 0.0.25, core first. The suite

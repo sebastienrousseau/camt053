@@ -12,8 +12,8 @@ security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.0.25  | :white_check_mark: |
-| < 0.0.25 | :x:               |
+| 0.0.26  | :white_check_mark: |
+| < 0.0.26 | :x:               |
 
 ## Reporting a Vulnerability
 
