@@ -17,7 +17,7 @@ anyio>=4.14.2
 # PYSEC-2026-4014 (GHSA-x78j-v8h9-3j2q), all fixed by 21.7.13; and
 # GHSA-cx6f-vjhg-g3cc (21.14.9 to 21.14.12: the bash activator leaves
 # --prompt unescaped in PS1), fixed in 21.14.13.
-virtualenv>=21.15.5
+virtualenv>=21.15.6
 # certifi GHSA-6q48-6c7w-9gw2 (emSign ECC Root CA - G3), fixed in 2026.10.19.
 certifi>=2026.10.19
 # filelock <= 4.2.0: GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92 and
