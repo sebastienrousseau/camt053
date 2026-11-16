@@ -134,7 +134,7 @@ types-defusedxml = "^0.7.0"
 types-setuptools = ">=65,<85"
 hypothesis = "^6.0.0"
 mutmut = "^3.0.0"
-sphinx = ">=7,<9"
+sphinx = ">=7,<10"
 sphinx-rtd-theme = ">=1,<4"
 sphinx-autodoc-typehints = ">=1,<4"
 twine = ">=6.2.0,<8"
@@ -158,7 +158,7 @@ complexipy = {version = "8.3.0", python = "<3.16"}
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-sphinx = ">=7,<9"
+sphinx = ">=7,<10"
 pydata-sphinx-theme = ">=0.15,<0.25"
 sphinx-autodoc-typehints = ">=1,<4"
 sphinx-design = ">=0.6,<0.8"
