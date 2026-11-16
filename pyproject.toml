@@ -161,7 +161,7 @@ optional = true
 sphinx = ">=7,<9"
 pydata-sphinx-theme = ">=0.15,<0.25"
 sphinx-autodoc-typehints = ">=1,<4"
-sphinx-design = ">=0.6,<0.8"
+sphinx-design = ">=0.6,<0.9"
 myst-parser = ">=2,<6"
 # Advisory floor: soupsieve arrives through pydata-sphinx-theme's
 # beautifulsoup4; releases before 2.9 carry GHSA-gjv8-xp57-g29c and
